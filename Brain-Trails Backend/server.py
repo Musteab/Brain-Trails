@@ -7,11 +7,6 @@ CORS(app)  # Allow cross-origin requests from your React app
 # In-memory store for study groups (for now)
 groups = []
 
-# Root route (for testing purposes)
-@app.route('/')
-def home():
-    return "Study Group API is running!"
-
 # Endpoint to fetch all study groups
 @app.route('/groups', methods=['GET'])
 def get_groups():

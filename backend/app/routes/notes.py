@@ -85,7 +85,10 @@ def _sync_tags(note: Note, tags_payload):
     if tags_payload is None:
         return
     note.tags.clear()
-    for tag_name in tags_payload:
+    for tag in tags_payload:
+        tag_name = tag
+        if isinstance(tag, dict):
+            tag_name = tag.get("name")
         if not tag_name:
             continue
         tag = Tag.query.filter_by(name=tag_name).first()

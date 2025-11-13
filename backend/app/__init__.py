@@ -3,10 +3,13 @@ from typing import List, Optional
 
 from flask import Flask, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 
 from config import get_config
 from .extensions import db, jwt, migrate
 from .routes import register_blueprints
+
+load_dotenv()
 
 
 def _parse_origins(origins: str) -> List[str]:

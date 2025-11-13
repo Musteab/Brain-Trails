@@ -1,0 +1,440 @@
+.flashcards-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 2.5rem 1rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6fb;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.flashcards-container h2 {
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.deck-section, .flashcard-section {
+  background: #fff;
+  border-radius: 18px;
+  padding: 2rem 1.5rem 2rem 1.5rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.5rem;
+}
+
+.deck-section h3, .flashcard-section h3 {
+  color: #334155;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  text-align: left;
+}
+
+.deck-form, .flashcard-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.3rem;
+  font-size: 1.08rem;
+}
+
+.deck-input, .flashcard-input, .deck-select {
+  padding: 1rem;
+  border: 1.5px solid #dbeafe;
+  border-radius: 12px;
+  font-size: 1.08rem;
+  background: #f8fafc;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(80,120,200,0.04);
+}
+
+.deck-input:focus, .flashcard-input:focus, .deck-select:focus {
+  border-color: #60a5fa;
+  outline: none;
+  box-shadow: 0 0 0 2px #bae6fd;
+}
+
+.create-deck-btn, .create-flashcard-btn {
+  background: linear-gradient(135deg, #60a5fa 60%, #818cf8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.9rem 1.5rem;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(80,120,200,0.08);
+  letter-spacing: 0.01em;
+}
+
+.create-deck-btn:hover, .create-flashcard-btn:hover {
+  background: linear-gradient(135deg, #2563eb 60%, #6366f1 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 16px rgba(80,120,200,0.13);
+}
+
+.error-message {
+  color: #ef4444;
+  background: #fef2f2;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-size: 1.08rem;
+  box-shadow: 0 1px 4px rgba(255,0,0,0.04);
+}
+
+.review-section {
+  background: #fff;
+  border-radius: 18px;
+  padding: 2.5rem 1.5rem 2.5rem 1.5rem;
+  margin: 3rem auto 3rem auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  max-width: 600px;
+  min-height: 420px;
+  width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2.5rem;
+}
+
+.review-title {
+  color: #334155;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.review-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.2rem;
+}
+
+.review-card {
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 16 / 10;
+  margin: 0 auto;
+}
+
+.review-controls, .review-actions {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.review-btn {
+  padding: 0.7rem 1.3rem;
+  border-radius: 12px;
+  border: none;
+  font-size: 1.08rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #60a5fa 60%, #818cf8 100%);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(80,120,200,0.08);
+  letter-spacing: 0.01em;
+}
+
+.review-btn:hover, .review-btn:focus {
+  background: linear-gradient(135deg, #2563eb 60%, #6366f1 100%);
+  outline: none;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 16px rgba(80,120,200,0.13);
+}
+
+.flip-btn {
+  background: linear-gradient(135deg, #818cf8 60%, #bae6fd 100%);
+  color: #fff;
+}
+
+.flip-btn:hover, .flip-btn:focus {
+  background: linear-gradient(135deg, #6366f1 60%, #60a5fa 100%);
+}
+
+.edit-btn {
+  background: linear-gradient(135deg, #fde68a 60%, #fbbf24 100%);
+  color: #7c4700;
+}
+
+.edit-btn:hover, .edit-btn:focus {
+  background: linear-gradient(135deg, #f59e0b 60%, #fbbf24 100%);
+  color: #fff;
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #fca5a5 60%, #f87171 100%);
+  color: #fff;
+}
+
+.delete-btn:hover, .delete-btn:focus {
+  background: linear-gradient(135deg, #ef4444 60%, #fca5a5 100%);
+}
+
+.no-flashcards {
+  text-align: center;
+  color: #64748b;
+  font-size: 1.15rem;
+  padding: 2.2rem 0;
+  background: linear-gradient(135deg, #f1f5f9 60%, #e0e7ef 100%);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(80,120,200,0.06);
+  margin: 1.5rem 0;
+}
+
+/* Modal styles */
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.edit-modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.edit-modal-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.save-btn {
+  background: #818cf8;
+  color: white;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  font-weight: 500;
+}
+
+.save-btn:hover {
+  background: #6366f1;
+  transform: translateY(-1px);
+}
+
+.cancel-btn {
+  background: #95a5a6;
+  color: white;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  font-weight: 500;
+}
+
+.cancel-btn:hover {
+  background: #7f8c8d;
+  transform: translateY(-1px);
+}
+
+/* Animation classes */
+.flipping {
+  animation: flip 0.6s ease-in-out;
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .flashcards-container {
+    padding: 1rem;
+  }
+
+  .deck-section, .flashcard-section, .review-section {
+    padding: 1.5rem;
+  }
+
+  .flashcard {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .flashcard-front p, .flashcard-back p {
+    font-size: 1.4rem;
+  }
+
+  .flashcard-controls,
+  .flashcard-actions {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .control-btn {
+    width: 100%;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 500px) {
+  .review-section {
+    max-width: 100vw;
+    padding: 1rem 0.2rem 2rem 0.2rem;
+  }
+  .review-card, .review-controls, .review-actions {
+    max-width: 98vw;
+  }
+  .review-card-inner {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .flashcards-container {
+    padding: 1.2rem 0.2rem 1.2rem 0.2rem;
+    gap: 1.2rem;
+  }
+  .deck-section, .flashcard-section {
+    max-width: 98vw;
+    padding: 1.2rem 0.2rem 1.2rem 0.2rem;
+  }
+}
+
+/* Robust natural centering for the flashcard review */
+body, #root, .App, .main-content {
+  min-height: 100vh;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+
+.review-section {
+  margin: 2rem auto !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-card {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.review-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  transition: transform 0.7s cubic-bezier(.4,2.3,.3,1);
+  transform-style: preserve-3d;
+  position: relative;
+  background: transparent;
+}
+
+.review-card.flipped .review-card-inner {
+  transform: rotateY(180deg);
+}
+
+.review-card-front, .review-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  padding: 2rem;
+  font-size: 1.3rem;
+  font-weight: 500;
+  background: linear-gradient(135deg, #f8fafc 60%, #dbeafe 100%);
+  color: #334155;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.review-card-front {
+  background: linear-gradient(135deg, #f1f5f9 60%, #bae6fd 100%);
+}
+
+.review-card-back {
+  background: linear-gradient(135deg, #fef9c3 60%, #fcd34d 100%);
+  transform: rotateY(180deg);
+}
+
+.review-card-front span, .review-card-back span {
+  width: 100%;
+  text-align: center;
+  margin: 0;
+  word-break: break-word;
+  font-size: 1.4rem;
+  font-weight: 600;
+} 

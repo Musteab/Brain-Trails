@@ -1,0 +1,35 @@
+# Backend
+Flask==2.0.1
+Flask-SQLAlchemy==2.5.1
+Flask-Login==0.5.0
+Flask-WTF==0.15.1
+Flask-Migrate==3.1.0
+Flask-Mail==0.9.1
+Flask-Cors==3.0.10
+gunicorn==20.1.0
+python-dotenv==0.19.0
+Werkzeug==2.0.1
+SQLAlchemy==1.4.23
+psycopg2-binary==2.9.1
+PyJWT==2.1.0
+bcrypt==3.2.0
+Pillow==8.3.1
+requests==2.26.0
+schedule==1.1.0
+
+# AI and NLP
+transformers==4.9.2
+torch==1.9.0
+nltk==3.6.2
+scikit-learn==0.24.2
+pandas==1.3.1
+numpy==1.21.1
+
+# Testing
+pytest==6.2.5
+pytest-cov==2.12.1
+
+# Development
+black==21.6b0
+flake8==3.9.2
+isort==5.9.2 

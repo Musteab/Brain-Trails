@@ -78,6 +78,7 @@ const FlashcardsPage = () => {
   const deleteCardMutation = useMutation({
     mutationFn: (cardId) => flashcardApi.deleteFlashcard(cardId),
     onSuccess: () => {
+      setEditingId(null);
       queryClient.invalidateQueries(['flashcards', selectedDeck]);
     },
   });

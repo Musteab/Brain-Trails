@@ -1,10 +1,11 @@
-import { Dashboard, EventNote, MenuBook, QueryStats, Quiz, Person, Settings } from '@mui/icons-material';
+import { Dashboard, Description, EventNote, MenuBook, QueryStats, Quiz, Person, Settings } from '@mui/icons-material';
 import { Box, ButtonBase, Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
   { label: 'Dashboard', icon: Dashboard, to: '/dashboard' },
+  { label: 'Notes', icon: Description, to: '/notes' },
   { label: 'Flashcards', icon: MenuBook, to: '/flashcards' },
   { label: 'Quizzes', icon: Quiz, to: '/quizzes' },
   { label: 'Planner', icon: EventNote, to: '/planner' },

@@ -13,6 +13,8 @@ _Demo screenshot coming soon!_
 BrainTrails makes studying feel like leveling up in your favorite game. Power through sessions with a pomodoro timer that grows lush trees, keep a tiny study pet motivated, fight intimidating exam “bosses,” swap between themed study rooms, and stay focused with brainrot split-screen videos, interactive flashcards, quizzes, and AI assistance. Your progress fuels streaks, XP, and daily rewards.
 
 ## Features
+- 📝 **Notion-like notes** with rich text editor and slash commands.
+- 🧠 **Generate quizzes from notes** (no copy-paste needed!).
 - 🌳 **Animated pomodoro garden** that grows plants as you focus.
 - 🎮 **Boss battle study mode**—deal damage by completing real tasks.
 - 🐾 **Adopt a study pet** and watch it react to your habits.
@@ -25,15 +27,71 @@ BrainTrails makes studying feel like leveling up in your favorite game. Power th
 - 🎵 **Spotify Web Playback + YouTube fallback** for study playlists.
 
 ## Quick Start
-1. **Clone** this repo: `git clone https://github.com/yourname/braintrails.git`
-2. **Install backend deps**: `cd backend && python -m venv .venv && pip install -r ../requirements.txt`
-3. **Install frontend deps**: `cd ../frontend && npm install`
-4. **Set up `.env` files** for Flask + React (API keys, DB URL, Gemini/Groq tokens, Spotify client ID, etc.)
-5. **Run both apps**: `flask --app wsgi run` (backend) and `npm start` (frontend).  
-6. **Start studying!**
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- PostgreSQL (or SQLite for development)
+
+### Backend Setup
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -r ../requirements.txt
+
+# Create .env file with:
+# DATABASE_URL=sqlite:///braintrails.db (or your PostgreSQL URL)
+# SECRET_KEY=your-secret-key
+# JWT_SECRET_KEY=your-jwt-secret
+# GEMINI_API_KEY=your-gemini-api-key
+# CORS_ORIGINS=http://localhost:3000
+
+# Run migrations
+flask db upgrade
+
+# Start backend
+flask --app wsgi run --port 5000
+```
+
+### Frontend Setup
+```bash
+cd frontend
+npm install
+
+# Create .env file with:
+# REACT_APP_API_URL=http://localhost:5000/api
+
+# Start frontend
+npm start
+```
+
+### Database Migrations
+When pulling new changes that include database schema updates:
+```bash
+cd backend
+flask db upgrade
+```
+
+To create a new migration after model changes:
+```bash
+flask db migrate -m "Description of changes"
+flask db upgrade
+```
+
+### Running Tests
+```bash
+# Backend tests
+cd backend
+PYTHONPATH=. pytest
+
+# Frontend tests
+cd frontend
+npm test
+```
 
 ## Tech Stack
-React · Flask · PostgreSQL · Hugging Face transformers
+React · Flask · PostgreSQL · TipTap Editor · Hugging Face transformers · Gemini AI
 
 ## Screenshots
 _Add yours once you grab them—drop a few hero/dashboard shots here._

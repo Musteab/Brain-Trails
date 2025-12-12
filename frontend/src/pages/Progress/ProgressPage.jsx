@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Card, CardContent, Grid, Stack, Typography } from '@mui/material';
+import { Card, CardContent, Grid, Stack, Typography, Box } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 
 import LoadingState from '../../components/common/LoadingState';
 import EmptyState from '../../components/common/EmptyState';
+import StudyHeatmap from '../../components/common/StudyHeatmap';
+import InsightsCard from '../../components/common/InsightsCard';
 import { statsApi } from '../../api';
 
 const ProgressPage = () => {
@@ -93,6 +95,12 @@ const ProgressPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Study Activity Heatmap */}
+      <StudyHeatmap />
+
+      {/* AI-Generated Insights */}
+      <InsightsCard />
     </Stack>
   );
 };

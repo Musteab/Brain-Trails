@@ -67,7 +67,7 @@ def quiz_questions(quiz_id: int):
     return jsonify(
         {
             "quiz": quiz.to_dict(),
-            "questions": [question.to_dict() for question in quiz.questions],
+            "questions": [question.to_dict(reveal_answer=True) for question in quiz.questions],
         }
     )
 

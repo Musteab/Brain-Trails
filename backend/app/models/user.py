@@ -24,12 +24,11 @@ class User(db.Model):
         "UserQuizResult", back_populates="user", cascade="all, delete-orphan"
     )
     flashcard_progress = db.relationship(
-        "UserFlashcardProgress", backref="user", cascade="all, delete-orphan"
+        "UserFlashcardProgress", back_populates="user", cascade="all, delete-orphan"
     )
     study_sessions = db.relationship(
         "StudySession", back_populates="user", cascade="all, delete-orphan"
     )
-    notes = db.relationship("Note", back_populates="user", cascade="all, delete-orphan")
     preferences = db.relationship(
         "UserPreference", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )

@@ -64,7 +64,7 @@ class UserFlashcardProgress(db.Model):
     repetitions = db.Column(db.Integer, default=0)
     last_reviewed = db.Column(db.DateTime)
 
-    user = db.relationship("User", backref="flashcard_progress")
+    user = db.relationship("User", back_populates="flashcard_progress")
     flashcard = db.relationship("Flashcard", back_populates="progress")
 
     def to_dict(self) -> dict:

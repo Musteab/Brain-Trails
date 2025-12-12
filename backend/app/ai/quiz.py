@@ -1,38 +1,13 @@
+import json
 import logging
 import os
-import random
-from functools import lru_cache
 from typing import List
+
+from google import genai
 
 from config import get_config
 
 logger = logging.getLogger(__name__)
-
-try:
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
-except Exception:  # pragma: no cover - transformers optional
-    AutoModelForSeq2SeqLM = None  # type: ignore
-    AutoTokenizer = None  # type: ignore
-    pipeline = None  # type: ignore
-    logger.warning("Transformers not available. Falling back to heuristic quiz generation.")
-
-
-def _transformers_disabled() -> bool:
-    return os.getenv("AI_DISABLE_TRANSFORMERS", "0") == "1"
-
-
-@lru_cache(maxsize=1)
-def _get_qg_pipeline():
-    if _transformers_disabled() or pipeline is None or AutoTokenizer is None:
-        return None
-    model_name = get_config(os.getenv("FLASK_ENV")).QUESTION_MODEL_NAME
-    try:
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        return pipeline("text2text-generation", model=model, tokenizer=tokenizer)
-    except Exception as exc:  # pragma: no cover - depends on env
-        logger.warning("Question generation fallback triggered: %s", exc)
-        return None
 
 
 def generate_quiz_items(text: str, num_questions: int = 5) -> List[dict]:
@@ -42,97 +17,70 @@ def generate_quiz_items(text: str, num_questions: int = 5) -> List[dict]:
     limit = get_config(os.getenv("FLASK_ENV")).AI_MAX_INPUT_CHARS
     cleaned = cleaned[:limit]
 
-    questions = _generate_with_transformers(cleaned, num_questions)
-    if not questions:
-        questions = _fallback_questions(cleaned, num_questions)
+    questions = _generate_with_gemini(cleaned, num_questions)
     return questions[:num_questions]
 
 
-def _generate_with_transformers(text: str, num_questions: int) -> List[dict]:
-    qg = _get_qg_pipeline()
-    if not qg:
+def _generate_with_gemini(text: str, num_questions: int) -> List[dict]:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY is not configured")
+
+    config = get_config(os.getenv("FLASK_ENV"))
+    client = genai.Client(api_key=api_key)
+    prompt = (
+        "You are generating classroom-ready quiz questions that reward reasoning.\n"
+        "Follow these rules:\n"
+        "1. Mix question purposes: application, analysis, comparison, cause/effect, scenario-based.\n"
+        "2. Avoid fill-in-the-blank or quote-completion prompts. Never copy wording verbatim.\n"
+        "3. Every question must be contextual and require understanding, not rote recall.\n"
+        "4. Provide exactly four answer choices per question. Wrong options should be plausible but clearly incorrect.\n"
+        "5. Vary the stems (what/why/how/compare/predict) and difficulty.\n"
+        "Return STRICT JSON:\n"
+        "[{\"question\": \"...\", \"correct_answer\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"]}]\n"
+        f"Create {num_questions} questions based on:\n{text}\n"
+        "Do not include any extra commentary outside the JSON."
+    )
+    response = client.models.generate_content(
+        model=config.GEMINI_MODEL_NAME,
+        contents=prompt,
+    )
+    text_output = getattr(response, "text", None) or ""
+    if not text_output and getattr(response, "candidates", None):
+        candidate = response.candidates[0]
+        parts = getattr(candidate, "content", {}).get("parts") if hasattr(candidate, "content") else None
+        if parts:
+            text_output = parts[0].get("text", "")
+    return _parse_gemini_response(text_output)
+
+
+def _parse_gemini_response(raw_text: str) -> List[dict]:
+    if not raw_text:
         return []
+    cleaned = raw_text.strip("` \n")
+    if cleaned.lower().startswith("json"):
+        cleaned = cleaned[4:].strip()
     try:
-        prompt = f"generate {num_questions} question answer pairs: {text}"
-        generations = qg(prompt, max_length=512, do_sample=False)
-        raw_output = generations[0]["generated_text"]
-    except Exception as exc:  # pragma: no cover - env specific
-        logger.warning("Transformer quiz generation failed: %s", exc)
+        parsed = json.loads(cleaned)
+    except json.JSONDecodeError:
+        logger.warning("Unable to parse Gemini JSON output: %s", cleaned)
         return []
-    return _parse_generated_output(raw_output)
 
-
-def _parse_generated_output(output: str) -> List[dict]:
-    chunks = [chunk.strip() for chunk in output.replace("<sep>", "\n").split("\n") if chunk.strip()]
-    questions = []
-    pool_answers = []
-    for chunk in chunks:
-        lower = chunk.lower()
-        question = None
-        answer = None
-        if "question:" in lower and "answer:" in lower:
-            try:
-                q_part, a_part = chunk.split("answer:")
-                question = q_part.split("question:")[-1].strip(" ?")
-                answer = a_part.strip()
-            except ValueError:
-                continue
-        elif "?" in chunk:
-            parts = chunk.split("?")
-            question = parts[0].strip()
-            answer = parts[1].replace("answer", "").strip(": .")
-        if question and answer:
-            pool_answers.append(answer)
-            questions.append(
-                {
-                    "question": question + "?",
-                    "correct_answer": answer,
-                    "options": [],  # filled later
-                }
-            )
-    if not questions:
-        return []
-    for item in questions:
-        item["options"] = _build_options(item["correct_answer"], pool_answers)
-    return questions
-
-
-def _fallback_questions(text: str, num_questions: int) -> List[dict]:
-    sentences = [s.strip() for s in text.replace("?", ".").split(".") if s.strip()]
-    questions = []
-    pool = sentences[: num_questions * 2]
-    for sentence in pool:
-        if len(questions) >= num_questions:
-            break
-        words = sentence.split()
-        if len(words) < 6:
+    questions: List[dict] = []
+    for item in parsed if isinstance(parsed, list) else []:
+        question = (item.get("question") or "").strip()
+        answer = (item.get("correct_answer") or "").strip()
+        options = item.get("options") or []
+        if not question or not answer or len(options) != 4:
             continue
-        answer = words[-1].strip(",")
-        stem = " ".join(words[:-1])
-        question = f"What word best completes: {stem} ___ ?"
+        if answer not in options:
+            options = [answer] + [opt for opt in options if opt != answer]
+            options = options[:4]
         questions.append(
             {
-                "question": question,
+                "question": question.rstrip("?") + "?",
                 "correct_answer": answer,
-                "options": _build_options(answer, [w.split()[-1] for w in pool if w != sentence]),
+                "options": options,
             }
         )
     return questions
-
-
-def _build_options(correct_answer: str, pool: List[str]) -> List[str]:
-    unique = []
-    for candidate in pool:
-        candidate = candidate.strip().strip(".")
-        if candidate and candidate.lower() != correct_answer.lower():
-            unique.append(candidate)
-        if len(unique) >= 3:
-            break
-    options = [correct_answer] + unique[:3]
-    filler_index = 1
-    while len(options) < 4:
-        options.append(f"Option {filler_index}")
-        filler_index += 1
-    rng = random.Random(len(correct_answer))
-    rng.shuffle(options)
-    return options

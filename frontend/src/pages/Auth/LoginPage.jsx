@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   CardContent,
+  Link,
   Stack,
   TextField,
   Typography,
@@ -80,9 +81,9 @@ const LoginPage = () => {
           </Stack>
           <Typography variant="body2" color="text.secondary" mt={3}>
             Need an account?{' '}
-            <Typography component={RouterLink} to="/register" color="primary.main">
+            <Link component={RouterLink} to="/register" color="primary.main" underline="hover">
               Create one
-            </Typography>
+            </Link>
           </Typography>
         </CardContent>
       </Card>

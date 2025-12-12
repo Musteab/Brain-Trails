@@ -4,15 +4,7 @@ from typing import List
 from sqlalchemy import func
 
 from ..extensions import db
-from ..models import (
-    Deck,
-    Flashcard,
-    Note,
-    Quiz,
-    StudySession,
-    UserFlashcardProgress,
-    UserQuizResult,
-)
+from ..models import Deck, Flashcard, Quiz, StudySession, UserFlashcardProgress, UserQuizResult
 
 
 def user_overview(user_id: int) -> dict:
@@ -30,7 +22,6 @@ def user_overview(user_id: int) -> dict:
         )
         .scalar()
     )
-    total_notes = Note.query.filter_by(user_id=user_id).count()
     total_quizzes = Quiz.query.filter_by(user_id=user_id).count()
     quizzes_completed = UserQuizResult.query.filter_by(user_id=user_id).count()
     minutes_studied = (
@@ -48,7 +39,6 @@ def user_overview(user_id: int) -> dict:
     return {
         "flashcards_created": total_flashcards,
         "flashcards_due": due_flashcards,
-        "notes_created": total_notes,
         "quizzes_created": total_quizzes,
         "quizzes_completed": quizzes_completed,
         "minutes_studied": minutes_studied or 0,

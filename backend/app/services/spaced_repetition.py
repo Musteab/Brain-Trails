@@ -19,6 +19,13 @@ def review_flashcard(user_id: int, flashcard: Flashcard, quality: int) -> UserFl
         )
         db.session.add(progress)
 
+    if progress.repetitions is None:
+        progress.repetitions = 0
+    if progress.interval is None:
+        progress.interval = 1
+    if progress.ease_factor is None:
+        progress.ease_factor = 2.5
+
     progress.last_reviewed = datetime.utcnow()
     quality = max(0, min(5, quality))
 

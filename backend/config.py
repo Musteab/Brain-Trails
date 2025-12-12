@@ -21,6 +21,8 @@ class BaseConfig:
     QUESTION_MODEL_NAME = os.getenv(
         "QUESTION_MODEL_NAME", "valhalla/t5-base-e2e-qg"
     )
+    GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-flash")
+    GROQ_MODEL_NAME = os.getenv("GROQ_MODEL_NAME", "llama-3.1-70b-versatile")
     AI_MAX_INPUT_CHARS = int(os.getenv("AI_MAX_INPUT_CHARS", 4000))
 
 

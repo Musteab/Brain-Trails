@@ -19,15 +19,6 @@ export const flashcardApi = {
   reviewFlashcard: (cardId, payload) => client.post(`/flashcards/${cardId}/review`, payload),
 };
 
-export const notesApi = {
-  list: () => client.get('/notes'),
-  create: (payload) => client.post('/notes', payload),
-  update: (id, payload) => client.put(`/notes/${id}`, payload),
-  remove: (id) => client.delete(`/notes/${id}`),
-  summarize: (id) => client.post(`/notes/${id}/summaries`),
-  summarizeRaw: (payload) => client.post('/notes/summarize', payload),
-};
-
 export const quizApi = {
   list: () => client.get('/quizzes'),
   createFromNotes: (payload) => client.post('/quizzes/generate', payload),

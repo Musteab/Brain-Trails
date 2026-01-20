@@ -1,0 +1,264 @@
+/* Dashboard Premium Styles */
+
+/* ==========================================
+   Glass Morphism Effects
+   ========================================== */
+.glass {
+  @apply bg-white/80 backdrop-blur-lg border border-white/20;
+}
+
+.glass-dark {
+  @apply bg-gray-900/80 backdrop-blur-lg border border-gray-700/30;
+}
+
+/* ==========================================
+   Premium Card Styles
+   ========================================== */
+.card-premium {
+  @apply rounded-2xl bg-white border border-gray-200/60 
+         shadow-card transition-all duration-200
+         hover:shadow-card-hover hover:-translate-y-0.5;
+}
+
+.card-premium-interactive {
+  @apply card-premium cursor-pointer;
+}
+
+.card-glass {
+  @apply rounded-2xl bg-white/70 backdrop-blur-sm 
+         border border-gray-200/50 shadow-soft;
+}
+
+/* ==========================================
+   Gradient Buttons
+   ========================================== */
+.btn-gradient {
+  @apply rounded-xl bg-gradient-to-r from-violet-500 to-indigo-600 
+         text-white font-medium shadow-lg 
+         hover:shadow-glow hover:scale-[1.02]
+         active:scale-[0.98] transition-all duration-200;
+}
+
+.btn-gradient-success {
+  @apply rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 
+         text-white font-medium shadow-lg 
+         hover:shadow-glow-success hover:scale-[1.02]
+         active:scale-[0.98] transition-all duration-200;
+}
+
+.btn-gradient-warm {
+  @apply rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 
+         text-white font-medium shadow-lg 
+         hover:shadow-glow-warning hover:scale-[1.02]
+         active:scale-[0.98] transition-all duration-200;
+}
+
+.btn-ghost {
+  @apply rounded-xl bg-transparent text-gray-600 font-medium
+         border border-gray-200 hover:bg-gray-50 
+         hover:border-gray-300 transition-all duration-200;
+}
+
+.btn-icon {
+  @apply p-2 rounded-xl bg-gray-100 text-gray-600
+         hover:bg-gray-200 hover:text-gray-800
+         active:scale-95 transition-all duration-150;
+}
+
+/* ==========================================
+   Progress Bars with Glow
+   ========================================== */
+.progress-glow {
+  @apply h-3 rounded-full bg-gray-100 overflow-hidden;
+}
+
+.progress-glow-bar {
+  @apply h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-600
+         shadow-glow transition-all duration-500 ease-out;
+}
+
+.progress-glow-bar.success {
+  @apply bg-gradient-to-r from-emerald-500 to-green-600 shadow-glow-success;
+}
+
+.progress-glow-bar.warning {
+  @apply bg-gradient-to-r from-amber-500 to-orange-500 shadow-glow-warning;
+}
+
+/* Animated glow effect */
+.progress-glow-animated .progress-glow-bar {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
+  }
+}
+
+/* ==========================================
+   Stat Bubbles
+   ========================================== */
+.stat-bubble {
+  @apply flex flex-col items-start p-4 rounded-xl
+         bg-gray-50 border border-gray-100
+         transition-all duration-200
+         hover:bg-white hover:shadow-soft hover:-translate-y-0.5;
+}
+
+.stat-bubble-icon {
+  @apply w-10 h-10 rounded-lg flex items-center justify-center
+         bg-gradient-to-br from-violet-100 to-indigo-100 
+         text-violet-600 mb-2;
+}
+
+.stat-bubble-value {
+  @apply text-2xl font-bold text-gray-900 tracking-tight;
+}
+
+.stat-bubble-label {
+  @apply text-xs text-gray-500 font-medium uppercase tracking-wide;
+}
+
+/* ==========================================
+   Typography Classes
+   ========================================== */
+.text-title {
+  @apply text-3xl font-bold text-gray-900 tracking-tight;
+}
+
+.text-section {
+  @apply text-xl font-semibold text-gray-800;
+}
+
+.text-card-title {
+  @apply text-lg font-semibold text-gray-800;
+}
+
+.text-body {
+  @apply text-sm text-gray-600 leading-relaxed;
+}
+
+.text-caption {
+  @apply text-xs text-gray-400 font-medium;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-violet-600 to-indigo-600 
+         bg-clip-text text-transparent;
+}
+
+/* ==========================================
+   Chip/Badge Styles
+   ========================================== */
+.chip {
+  @apply inline-flex items-center gap-1.5 px-3 py-1 
+         rounded-full text-xs font-medium
+         bg-gray-100 text-gray-700 border border-gray-200;
+}
+
+.chip-primary {
+  @apply bg-violet-100 text-violet-700 border-violet-200;
+}
+
+.chip-success {
+  @apply bg-emerald-100 text-emerald-700 border-emerald-200;
+}
+
+.chip-warning {
+  @apply bg-amber-100 text-amber-700 border-amber-200;
+}
+
+.chip-glow {
+  @apply chip-primary shadow-glow;
+}
+
+/* ==========================================
+   Pet & Avatar Styles
+   ========================================== */
+.pet-avatar {
+  @apply w-16 h-16 rounded-2xl flex items-center justify-center
+         bg-gradient-to-br from-violet-100 via-indigo-50 to-purple-100
+         text-4xl shadow-soft animate-float;
+}
+
+.pet-avatar-lg {
+  @apply w-24 h-24 rounded-3xl text-6xl;
+}
+
+/* ==========================================
+   Timer Display
+   ========================================== */
+.timer-display {
+  @apply font-mono text-5xl font-bold text-gray-900 tracking-widest;
+}
+
+.timer-display-sm {
+  @apply font-mono text-3xl font-bold text-gray-800 tracking-wider;
+}
+
+/* ==========================================
+   Section Layouts
+   ========================================== */
+.dashboard-grid {
+  @apply grid gap-6;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.dashboard-section {
+  @apply space-y-6;
+}
+
+/* ==========================================
+   Hover & Focus States
+   ========================================== */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-violet-500/50 
+         focus:ring-offset-2 focus:ring-offset-white;
+}
+
+.interactive {
+  @apply transition-all duration-200 cursor-pointer
+         hover:bg-gray-50 active:bg-gray-100;
+}
+
+/* ==========================================
+   Animations
+   ========================================== */
+.animate-in {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+
+/* Streak fire animation */
+.streak-fire {
+  @apply text-orange-500;
+  animation: fireGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes fireGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.8));
+  }
+}

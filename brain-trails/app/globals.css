@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* ============================================
+   🎮 Brain Trails - Cozy UI Theme
+   "Nintendo meets Notion" Aesthetic
+   ============================================ */
+
+:root {
+  /* Core Cozy Colors */
+  --background: #FDFCF5;       /* Soft Clay */
+  --foreground: #2D2D2D;       /* Soft Black */
+  --primary: #E0E9DF;          /* Sage Green (Action) */
+  --accent: #9D4EDD;           /* Neon Purple (XP) */
+  
+  /* Extended Palette */
+  --primary-hover: #C8D4C6;    /* Darker Sage */
+  --accent-light: #B87AE8;     /* Light Purple */
+  --accent-dark: #7B2CBF;      /* Dark Purple */
+  --card: #FFFFFF;             /* Card Background */
+  --card-hover: #F8F7F2;       /* Card Hover */
+  --border: #E8E6DF;           /* Soft Border */
+  --muted: #8A8A8A;            /* Muted Text */
+  
+  /* Shadows */
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-cozy: 0 8px 30px rgba(157, 78, 221, 0.1);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.08);
+  
+  /* Fonts */
+  --font-heading: var(--font-nunito);
+  --font-body: var(--font-quicksand);
+}
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  
+  /* Fonts */
+  --font-sans: var(--font-quicksand);
+  --font-heading: var(--font-nunito);
+  
+  /* Border Radius - Heavy rounded for "Cozy" feel */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
+}
+
+/* Base Styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), system-ui, sans-serif;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* Cozy Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Cozy Button Base */
+.btn-cozy {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-xl);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-cozy:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+/* XP Glow Effect */
+.xp-glow {
+  box-shadow: 0 0 20px rgba(157, 78, 221, 0.4);
+}
+
+/* Selection Color */
+::selection {
+  background: var(--accent);
+  color: white;
+}

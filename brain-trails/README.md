@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Brain Trails 🎮🌿
 
-## Getting Started
+A **gamified study companion** with a cozy "Nintendo meets Notion" aesthetic. Track your learning journey through quests, grow plants while focusing, battle through skill trees, and take magical notes — all wrapped in an RPG adventure theme.
 
-First, run the development server:
+## ✨ Features
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| 🏕️ **Dashboard** | RPG-styled overview with quest log, leaderboard, activity feed, streak heatmap | ✅ Live |
+| 🌱 **Focus Garden** | Pomodoro timer with plant growth, subject/duration picker, session tracking | ✅ Live |
+| ⚔️ **Arcane Archive** | Skill tree visualization for curriculum mastery | ✅ Live |
+| 📜 **Spellbook** | Dual-page note editor (Tiptap), slash commands, .docx import | ✅ Live |
+| 🃏 **Spell Cards** | Flashcard decks with flip cards, shuffle, mastery dots | ✅ Live |
+| 🤖 **AI Familiar** | AI study assistant powered by Google Gemini (summarize, quiz, explain) | ✅ Live |
+| 🌗 **Theme Toggle** | Sun/Moon mode with full app-wide propagation | ✅ Live |
+| 💾 **Note Persistence** | Auto-save notes to localStorage with debounce | ✅ Live |
+| 📤 **Export** | Export notes as HTML or Markdown | ✅ Live |
+
+## 🛠️ Tech Stack
+
+**Frontend:** Next.js 16 · React 19 · Tailwind CSS 4 · Framer Motion · Tiptap Editor · Spline 3D  
+**Backend:** Flask · Google Gemini API · python-dotenv  
+**CI/CD:** GitHub Actions (TypeScript check + build for frontend, flake8 + pytest for backend)
+
+## 🚀 Getting Started
+
+### Frontend
 
 ```bash
+cd brain-trails
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Backend (for AI features)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd brain-trails/backend
+python -m venv venv
+venv\Scripts\activate      # Windows
+pip install -r requirements.txt
 
-## Learn More
+# Add your API key to .env
+echo GEMINI_API_KEY=your_key_here > .env
 
-To learn more about Next.js, take a look at the following resources:
+python app.py
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Backend runs on [http://localhost:5000](http://localhost:5000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📁 Project Structure
 
-## Deploy on Vercel
+```
+brain-trails/
+├── app/                    # Next.js pages
+│   ├── page.tsx           # Dashboard (Camp)
+│   ├── focus/             # Focus Garden
+│   ├── battle/            # Arcane Archive
+│   ├── notes/             # Spellbook
+│   └── flashcards/        # Spell Cards
+├── components/
+│   ├── dashboard/         # Dashboard widgets
+│   ├── focus/             # Focus timer
+│   ├── notes/             # Editor, AI Familiar, sidebar
+│   ├── layout/            # Hotbar, background
+│   └── ui/                # Shared components
+├── context/               # ThemeContext (sun/moon)
+├── hooks/                 # useCardStyles
+├── lib/                   # Utilities (notes storage, markdown export)
+├── constants/             # Game text configuration
+├── backend/               # Flask API server
+│   ├── app.py            # Routes + Gemini AI integration
+│   ├── tests/            # pytest test suite
+│   └── requirements.txt
+└── public/assets/         # Icons, backgrounds
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Testing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Frontend type check
+cd brain-trails && npx tsc --noEmit
+
+# Frontend build
+npm run build
+
+# Backend tests
+cd backend && pytest tests/ -v
+```
+
+## 📄 License
+
+MIT

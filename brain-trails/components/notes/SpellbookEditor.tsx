@@ -51,8 +51,6 @@ export interface SpellbookEditorRef {
 
 const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
   function SpellbookEditor({ onContentChange, initialContent }, ref) {
-    const [title, setTitle] = useState("");
-    const [coverImage, setCoverImage] = useState<string | null>(null);
     const [slashMenuOpen, setSlashMenuOpen] = useState(false);
     const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
     const [slashFilterText, setSlashFilterText] = useState("");
@@ -148,66 +146,8 @@ const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
       insertContent,
     }), [editor, insertContent]);
 
-    const handleCoverImageUpload = () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            setCoverImage(e.target?.result as string);
-          };
-          reader.readAsDataURL(file);
-        }
-      };
-      input.click();
-    };
-
     return (
       <div className="relative">
-        {/* Cover Image Area */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative h-48 mb-8 rounded-t-3xl overflow-hidden group"
-        >
-          {coverImage ? (
-            <>
-              <img
-                src={coverImage}
-                alt="Note cover"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#FDFBF7] to-transparent" />
-            </>
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-teal-100 to-amber-50 flex items-center justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleCoverImageUpload}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
-              >
-                <ImagePlus className="w-4 h-4" />
-                <span className="text-sm font-medium">Add cover image</span>
-              </motion.button>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Title Input */}
-        <div className="mb-6 px-2">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Untitled Spell"
-            className="w-full text-4xl font-bold text-slate-800 placeholder:text-slate-300 bg-transparent border-none outline-none"
-          />
-        </div>
-
         {/* Editor Content */}
         <div ref={editorContainerRef}>
           <EditorContent editor={editor} />

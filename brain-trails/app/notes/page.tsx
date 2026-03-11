@@ -8,7 +8,7 @@ import SpellbookEditor, { type SpellbookEditorRef } from "@/components/notes/Spe
 import AIFamiliar from "@/components/notes/AIFamiliar";
 import NotesSidebar from "@/components/notes/NotesSidebar";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
-import { saveNote, loadNote } from "@/lib/notesStorage";
+import { supabase } from "@/lib/supabase";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
 
 export default function NotesPage() {
@@ -17,7 +17,8 @@ export default function NotesPage() {
   const [rightContent, setRightContent] = useState({ html: "", text: "" });
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [selectedNoteId, setSelectedNoteId] = useState<string | undefined>("note-1");
+  const [selectedNoteId, setSelectedNoteId] = useState<string | undefined>();
+  const [noteTitle, setNoteTitle] = useState("Untitled Note");
   const [isImporting, setIsImporting] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -29,15 +30,63 @@ export default function NotesPage() {
   // Load note content when a note is selected
   useEffect(() => {
     if (!selectedNoteId) return;
-    const savedLeft = loadNote(`${selectedNoteId}-left`);
-    const savedRight = loadNote(`${selectedNoteId}-right`);
-    if (savedLeft && leftEditorRef.current) {
-      leftEditorRef.current.insertContent(savedLeft);
-    }
-    if (savedRight && rightEditorRef.current) {
-      rightEditorRef.current.insertContent(savedRight);
-    }
+
+    const fetchNote = async () => {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('content_html, title')
+        .eq('id', selectedNoteId)
+        .single();
+      
+      if (error) {
+        console.error("Error loading note:", error);
+        return;
+      }
+
+      setNoteTitle(data.title || "Untitled Note");
+
+      try {
+        const content = data.content_html ? JSON.parse(data.content_html) : { left: "", right: "" };
+        if (content.left && leftEditorRef.current) {
+          leftEditorRef.current.insertContent(content.left);
+          setLeftContent({ html: content.left, text: "" }); // Will be synced on next edit
+        } else if (leftEditorRef.current) {
+          leftEditorRef.current.insertContent(""); // clear
+        }
+        
+        if (content.right && rightEditorRef.current) {
+          rightEditorRef.current.insertContent(content.right);
+          setRightContent({ html: content.right, text: "" });
+        } else if (rightEditorRef.current) {
+          rightEditorRef.current.insertContent(""); // clear
+        }
+      } catch (e) {
+        // Fallback if parsing fails (e.g. legacy plain html)
+        if (leftEditorRef.current) leftEditorRef.current.insertContent(data.content_html || "");
+      }
+    };
+
+    fetchNote();
   }, [selectedNoteId]);
+
+  const saveToSupabase = async (noteId: string, leftHtml: string, rightHtml: string, currentTitle: string) => {
+    if (!noteId) return;
+    const payload = JSON.stringify({ left: leftHtml, right: rightHtml });
+    await supabase
+      .from('notes')
+      .update({ content_html: payload, title: currentTitle, updated_at: new Date().toISOString() })
+      .eq('id', noteId);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNoteTitle(e.target.value);
+    if (selectedNoteId) {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        saveToSupabase(selectedNoteId, leftContent.html, rightContent.html, e.target.value);
+      }, 1000);
+    }
+  };
 
   // Debounced auto-save for left page
   const handleLeftContentChange = useCallback((html: string, text: string) => {
@@ -45,10 +94,10 @@ export default function NotesPage() {
     if (selectedNoteId) {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
-        saveNote(`${selectedNoteId}-left`, html);
+        saveToSupabase(selectedNoteId, html, rightContent.html, noteTitle);
       }, 1000);
     }
-  }, [selectedNoteId]);
+  }, [selectedNoteId, rightContent.html, noteTitle]);
 
   // Debounced auto-save for right page
   const handleRightContentChange = useCallback((html: string, text: string) => {
@@ -56,17 +105,23 @@ export default function NotesPage() {
     if (selectedNoteId) {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
-        saveNote(`${selectedNoteId}-right`, html);
+        saveToSupabase(selectedNoteId, leftContent.html, html, noteTitle);
       }, 1000);
     }
-  }, [selectedNoteId]);
+  }, [selectedNoteId, leftContent.html, noteTitle]);
 
   const handleSelectNote = (noteId: string) => {
     // Save current note before switching
     if (selectedNoteId) {
-      saveNote(`${selectedNoteId}-left`, leftContent.html);
-      saveNote(`${selectedNoteId}-right`, rightContent.html);
+      saveToSupabase(selectedNoteId, leftContent.html, rightContent.html, noteTitle);
     }
+    
+    // Clear editors immediately for snappier UI transitions
+    if (leftEditorRef.current) leftEditorRef.current.insertContent("");
+    if (rightEditorRef.current) rightEditorRef.current.insertContent("");
+    setLeftContent({ html: "", text: "" });
+    setRightContent({ html: "", text: "" });
+    
     setSelectedNoteId(noteId);
   };
 
@@ -175,8 +230,15 @@ export default function NotesPage() {
               </motion.button>
             </div>
 
-          <div className="flex items-center gap-2">
-            <h1 className="font-bold text-slate-800">The Spellbook</h1>
+          <div className="flex-1 flex items-center gap-2 max-w-sm ml-4">
+            <input 
+              disabled={!selectedNoteId}
+              type="text" 
+              value={noteTitle} 
+              onChange={handleTitleChange}
+              placeholder="Select or create a note..."
+              className="font-bold text-lg text-slate-800 bg-transparent border-none outline-none w-full placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 rounded-md px-2 py-1 transition-all"
+            />
           </div>
 
           <div className="flex items-center gap-2">

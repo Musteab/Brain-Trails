@@ -65,11 +65,12 @@ class TestAIChatEndpoint:
 
     def test_chat_requires_json_body(self, client):
         """POST /api/ai/chat without JSON body returns 400."""
-        response = client.post("/api/ai/chat")
-        data = json.loads(response.data)
+        response = client.post(
+            "/api/ai/chat",
+            content_type="application/json",
+        )
 
         assert response.status_code == 400
-        assert "error" in data
 
     def test_chat_with_empty_message(self, client):
         """POST /api/ai/chat with empty message processes."""

@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, Flag, FastForward, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 /**
  * Plant growth stages based on progress percentage
@@ -59,6 +61,8 @@ export default function FocusTimer({
   defaultMinutes = 25,
   onBack
 }: FocusTimerProps) {
+  const { user, profile, refreshProfile } = useAuth();
+  
   const totalSessions = 4;
   const totalTime = defaultMinutes * 60;
   const [timeLeft, setTimeLeft] = useState(totalTime);
@@ -95,12 +99,51 @@ export default function FocusTimer({
       setIsActive(false);
       setCompletedSessions((prev) => Math.min(prev + 1, totalSessions));
       setShowReward(true);
+      saveSessionData();
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [isActive, timeLeft]);
+
+  const saveSessionData = async () => {
+    if (!user || !profile) return;
+    const gainedXp = defaultMinutes * 2;
+    const gainedGold = defaultMinutes;
+
+    // 1. Insert into focus_sessions
+    await supabase.from('focus_sessions').insert({
+      user_id: user.id,
+      subject: focusSubject,
+      duration_minutes: defaultMinutes,
+      xp_earned: gainedXp,
+      gold_earned: gainedGold
+    });
+
+    // 2. Insert into adventure_log
+    await supabase.from('adventure_log').insert({
+      user_id: user.id,
+      activity_type: 'focus',
+      xp_earned: gainedXp,
+      metadata: { subject: focusSubject, duration: defaultMinutes }
+    });
+
+    // 3. Update profile XP/Gold
+    const newXp = (profile.xp || 0) + gainedXp;
+    const newGold = (profile.gold || 0) + gainedGold;
+    // Calculate new level (1 level per 1000 XP)
+    const newLevel = Math.max(1, Math.floor(newXp / 1000) + 1);
+
+    await supabase.from('profiles').update({
+      xp: newXp,
+      gold: newGold,
+      level: newLevel
+    }).eq('id', user.id);
+
+    // Refresh context so TopStatsBar updates immediately
+    refreshProfile();
+  };
 
   // Control handlers
   const toggleTimer = useCallback(() => {

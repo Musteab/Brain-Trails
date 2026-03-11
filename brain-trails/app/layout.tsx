@@ -24,6 +24,8 @@ export const metadata: Metadata = {
   description: "Your cozy gamified study companion",
 };
 
+import { AuthProvider } from "@/context/AuthContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,9 +36,11 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} ${quicksand.variable} antialiased`}
       >
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

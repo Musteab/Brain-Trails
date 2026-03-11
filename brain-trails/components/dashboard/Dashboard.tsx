@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import QuestLog from "./QuestLog";
 import StudyRoom from "./StudyRoom";
-import ComboBoard from "./ComboBoard";
+import AdventureLog from "./AdventureLog";
 import TopStatsBar from "./TopStatsBar";
 import LeaderboardPodium from "./LeaderboardPodium";
 import CoopBossRaid from "./CoopBossRaid";
@@ -18,7 +18,7 @@ import { useTheme } from "@/context/ThemeContext";
  * Polished 3-column layout with "juice":
  * - Left Sidebar: Daily Bounties (QuestLog)
  * - Center Stage: 3D Pet Companion (StudyRoom) - scaled up 15%
- * - Right Sidebar: Leaderboard + ComboBoard
+ * - Right Sidebar: Leaderboard + Adventure Log
  * 
  * Features:
  * - Glassmorphism cards with game-aesthetic borders
@@ -31,9 +31,7 @@ export default function Dashboard() {
   const isSun = theme === "sun";
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className={`min-h-screen bg-transparent ${isSun ? "text-slate-800" : "text-white"}`}
     >
       {/* Dynamic Background with Vignette */}
@@ -69,7 +67,7 @@ export default function Dashboard() {
             <aside className="lg:col-span-3 xl:col-span-3 z-0">
               <div className="sticky top-4 flex flex-col gap-3">
                 <LeaderboardPodium />
-                <ComboBoard />
+                <AdventureLog />
               </div>
             </aside>
 
@@ -106,6 +104,6 @@ export default function Dashboard() {
           <Footer />
         </footer>
       </div>
-    </motion.div>
+    </div>
   );
 }

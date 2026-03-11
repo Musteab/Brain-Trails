@@ -60,7 +60,7 @@
 
 /* Base Styles */
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-body), system-ui, sans-serif;
   line-height: 1.6;
@@ -119,8 +119,50 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 20px rgba(157, 78, 221, 0.4);
 }
 
+/* Hide Spline Logo/Watermark */
+canvas + a {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+a[href^="https://spline.design"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Selection Color */
 ::selection {
   background: var(--accent);
   color: white;
+}
+
+/* ============================================
+   📐 Responsive Layout Utilities
+   ============================================ */
+
+/* Dashboard Grid - ensures no overlap on smaller screens */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1280px) {
+  .dashboard-grid {
+    gap: 1rem;
+  }
+}
+
+/* Prevent overflow on small viewports */
+.overflow-safe {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Hotbar safe zone - prevents content from being hidden behind fixed hotbar */
+.hotbar-safe-zone {
+  padding-bottom: calc(80px + 2vh);
 }

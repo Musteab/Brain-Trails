@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito, Quicksand } from "next/font/google";
+import { ThemeProvider } from "@/context/ThemeContext";
 import "./globals.css";
 
 // Nunito - Playful, rounded font for headings (Nintendo feel)
@@ -33,7 +34,9 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} ${quicksand.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

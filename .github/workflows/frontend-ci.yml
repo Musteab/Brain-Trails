@@ -6,11 +6,13 @@ on:
     paths:
       - 'brain-trails/**'
       - '!brain-trails/backend/**'
+      - '.github/workflows/frontend-ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'brain-trails/**'
       - '!brain-trails/backend/**'
+      - '.github/workflows/frontend-ci.yml'
 
 jobs:
   lint-and-build:

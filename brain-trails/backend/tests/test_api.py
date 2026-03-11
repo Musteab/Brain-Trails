@@ -4,15 +4,16 @@ Tests for Brain Trails Flask Backend API.
 Run: pytest tests/ -v
 """
 
-import pytest
 import json
-import sys
 import os
+import sys
 
-# Add backend directory to path
+# Add backend directory to path so we can import app
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app import app
+from app import app  # noqa: E402
+
+import pytest  # noqa: E402
 
 
 @pytest.fixture
@@ -71,7 +72,7 @@ class TestAIChatEndpoint:
         assert "error" in data
 
     def test_chat_with_empty_message(self, client):
-        """POST /api/ai/chat with empty message still returns 400 or processes."""
+        """POST /api/ai/chat with empty message processes."""
         response = client.post(
             "/api/ai/chat",
             data=json.dumps({"message": ""}),

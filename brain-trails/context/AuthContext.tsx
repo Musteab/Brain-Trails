@@ -36,15 +36,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
+  const fetchProfile = async (userId: string, retries = 3) => {
+    let { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
       setProfile(data as Profile);
+    } else if (!data && retries > 0) {
+      // If the profile doesn't exist yet, retry a few times to give the trigger a chance
+      setTimeout(() => fetchProfile(userId, retries - 1), 1000);
+    } else if (!data && retries === 0) {
+      // If retries are exhausted and there's STILL no profile, the trigger probably failed.
+      // Create a fallback profile manually from the client side.
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        const newProfile = {
+          id: currentUser.id,
+          username: currentUser.email?.split('@')[0] || 'Traveler',
+          display_name: currentUser.user_metadata?.full_name || 'Traveler',
+          avatar_url: currentUser.user_metadata?.avatar_url || null,
+        };
+        
+        const { data: insertedProfile, error: insertError } = await supabase
+          .from("profiles")
+          .insert(newProfile)
+          .select()
+          .single();
+          
+        if (!insertError && insertedProfile) {
+          setProfile(insertedProfile as Profile);
+        }
+      }
     }
   };
 

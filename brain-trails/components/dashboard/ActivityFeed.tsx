@@ -40,7 +40,14 @@ const ActivityFeed = memo(function ActivityFeed() {
         return;
       }
 
-      const formattedEvents: ActivityEvent[] = (data || []).map((log: any) => {
+      interface ActivityLogRow {
+        id: string;
+        activity_type: string;
+        created_at: string;
+        profiles: { display_name: string }[] | { display_name: string } | null;
+      }
+
+      const formattedEvents: ActivityEvent[] = (data || []).map((log: ActivityLogRow) => {
         // Map activity types to fun text and icons
         let action = "completed a mysterious task";
         let icon = "✨";
@@ -68,9 +75,11 @@ const ActivityFeed = memo(function ActivityFeed() {
             break;
         }
 
+        const profileData = Array.isArray(log.profiles) ? log.profiles[0] : log.profiles;
+
         return {
           id: log.id,
-          user: log.profiles?.display_name || "Unknown Traveler",
+          user: profileData?.display_name || "Unknown Traveler",
           action,
           time: formatDistanceToNow(new Date(log.created_at), { addSuffix: true }),
           icon,

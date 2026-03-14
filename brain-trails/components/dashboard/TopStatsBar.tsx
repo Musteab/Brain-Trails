@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -113,9 +114,12 @@ export default function TopStatsBar() {
           }`}
         >
           {profile?.avatar_url ? (
-            <img 
+            <Image 
               src={profile.avatar_url} 
-              alt="Avatar" 
+              alt="Avatar"
+              width={24}
+              height={24}
+              unoptimized
               className="w-6 h-6 rounded-full bg-slate-200 border border-slate-300"
             />
           ) : (

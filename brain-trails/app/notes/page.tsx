@@ -60,7 +60,7 @@ export default function NotesPage() {
         } else if (rightEditorRef.current) {
           rightEditorRef.current.insertContent(""); // clear
         }
-      } catch (e) {
+      } catch {
         // Fallback if parsing fails (e.g. legacy plain html)
         if (leftEditorRef.current) leftEditorRef.current.insertContent(data.content_html || "");
       }

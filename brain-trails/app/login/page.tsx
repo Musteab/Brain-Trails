@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogIn, User, Lock, Sparkles, Loader2, Compass } from "lucide-react";
+import { LogIn, User, Lock, Loader2, Compass } from "lucide-react";
 import SplineBackground from "@/components/layout/SplineBackground";
 
 export default function LoginPage() {
@@ -47,8 +47,8 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithGoogle();
-    } catch (err: any) {
-      setError(err?.message || "Failed to continue with Google");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to continue with Google");
     }
   };
 

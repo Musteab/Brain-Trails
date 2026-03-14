@@ -6,7 +6,7 @@ import { RotateCcw, ChevronLeft, ChevronRight, Plus, Shuffle, Brain, BrainCircui
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
-import { useGameStore, useUIStore } from "@/stores";
+import { useGameStore } from "@/stores";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
 
@@ -55,7 +55,6 @@ export default function FlashcardsPage() {
   const { theme } = useTheme();
   const { user, profile, refreshProfile } = useAuth();
   const { awardXp, logActivity } = useGameStore();
-  const addToast = useUIStore((s) => s.addToast);
   const playSound = useSoundEffects();
   const isSun = theme === "sun";
   
@@ -89,7 +88,7 @@ export default function FlashcardsPage() {
         // Sort cards within decks by created_at or id so they have a stable order
         const formattedDecks = data?.map(d => ({
           ...d,
-          cards: (d.cards || []).sort((a: any, b: any) => a.id.localeCompare(b.id))
+          cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id))
         })) || [];
         setDecks(formattedDecks);
       }

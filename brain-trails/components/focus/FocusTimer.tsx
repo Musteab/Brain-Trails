@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, Flag, FastForward, ArrowLeft } from "lucide-react";
+import { Play, Pause, Flag, FastForward, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useGameStore, useUIStore } from "@/stores";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
@@ -51,6 +51,16 @@ interface FocusTimerProps {
 }
 
 /**
+ * Pre-computed particle positions (module-level to avoid Math.random() during render).
+ */
+const PARTICLE_POSITIONS = Array.from({ length: 12 }, () => ({
+  left: `${Math.random() * 100}%`,
+  top: `${Math.random() * 100}%`,
+  duration: 3 + Math.random() * 2,
+  delay: Math.random() * 2,
+}));
+
+/**
  * 🌱 FocusTimer Component
  * 
  * Pomodoro-style focus timer with:
@@ -72,48 +82,21 @@ export default function FocusTimer({
   const totalTime = defaultMinutes * 60;
   const [timeLeft, setTimeLeft] = useState(totalTime);
   const [isActive, setIsActive] = useState(false);
-  const [currentStage, setCurrentStage] = useState<PlantStage>("seed");
   const [completedSessions, setCompletedSessions] = useState(0);
   const [showReward, setShowReward] = useState(false);
 
   // Calculate progress percentage (0 to 100)
   const progressPercentage = ((totalTime - timeLeft) / totalTime) * 100;
 
+  // Derive plant stage from progress (no state needed)
+  const currentStage = getPlantStage(progressPercentage);
+
   // SVG circle parameters
   const circleRadius = 140;
   const circumference = 2 * Math.PI * circleRadius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
 
-  // Update plant stage when progress changes
-  useEffect(() => {
-    const newStage = getPlantStage(progressPercentage);
-    if (newStage !== currentStage) {
-      setCurrentStage(newStage);
-    }
-  }, [progressPercentage, currentStage]);
-
-  // Timer countdown logic
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      setIsActive(false);
-      setCompletedSessions((prev) => Math.min(prev + 1, totalSessions));
-      setShowReward(true);
-      playSound("timerEnd");
-      saveSessionData();
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isActive, timeLeft]);
-
-  const saveSessionData = async () => {
+  const saveSessionData = useCallback(async () => {
     if (!user || !profile) return;
     const gainedXp = defaultMinutes * 2;
     const gainedGold = defaultMinutes;
@@ -139,7 +122,29 @@ export default function FocusTimer({
 
     addToast(`Session complete! +${gainedXp} XP, +${gainedGold} Gold`, "success");
     refreshProfile();
-  };
+  }, [user, profile, defaultMinutes, focusSubject, awardXp, awardGold, logActivity, addToast, refreshProfile]);
+
+  // Timer countdown logic
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && isActive) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: timer completion triggers state transitions
+      setIsActive(false);
+      setCompletedSessions((prev) => Math.min(prev + 1, totalSessions));
+      setShowReward(true);
+      playSound("timerEnd");
+      saveSessionData();
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive, timeLeft, playSound, saveSessionData, totalSessions]);
 
   // Control handlers
   const toggleTimer = useCallback(() => {
@@ -152,7 +157,6 @@ export default function FocusTimer({
   const resetTimer = useCallback(() => {
     setIsActive(false);
     setTimeLeft(totalTime);
-    setCurrentStage("seed");
   }, [totalTime]);
 
   const skipSession = useCallback(() => {
@@ -183,22 +187,22 @@ export default function FocusTimer({
 
       {/* Floating particles/dots for ambiance */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-5">
-        {[...Array(12)].map((_, i) => (
+        {PARTICLE_POSITIONS.map((p, i) => (
           <motion.div
             key={i}
             className="absolute w-2 h-2 rounded-full bg-white/40"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: p.left,
+              top: p.top,
             }}
             animate={{
               y: [0, -20, 0],
               opacity: [0.3, 0.7, 0.3],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: p.duration,
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: p.delay,
             }}
           />
         ))}

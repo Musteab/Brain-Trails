@@ -9,8 +9,7 @@ import { subDays, format, isSameDay } from "date-fns";
 
 // We show about 20 weeks (140 days) to perfectly fit a sidebar component, 
 // rather than full 365 days which requires a massive horizontal space.
-const DAYS_TO_SHOW = 140; 
-const WEEKS_TO_SHOW = Math.ceil(DAYS_TO_SHOW / 7);
+const DAYS_TO_SHOW = 140;
 
 interface DayData {
   date: Date;

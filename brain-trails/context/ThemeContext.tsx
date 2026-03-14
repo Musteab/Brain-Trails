@@ -22,6 +22,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
       if (stored === "sun" || stored === "moon") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: hydrate from localStorage on mount
         setTheme(stored);
       }
     } catch {

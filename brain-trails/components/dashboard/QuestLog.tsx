@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useCardStyles } from "@/hooks/useCardStyles";
-import { CheckCircle2, Circle, Sword, BookOpen, Timer, PenTool } from "lucide-react";
+import { CheckCircle2, Sword, BookOpen, Timer, PenTool } from "lucide-react";
 
 interface Bounty {
   id: string;

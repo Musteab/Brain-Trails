@@ -4,8 +4,6 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { forwardRef, useImperativeHandle, useCallback, useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { ImagePlus } from "lucide-react";
 import { Editor } from "@tiptap/core";
 import SlashCommandMenu from "./SlashCommandMenu";
 import "./spellbook-editor.css";

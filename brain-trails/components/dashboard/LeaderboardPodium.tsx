@@ -140,7 +140,7 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
                   text-2xl ${isSun ? 'bg-white' : 'bg-slate-900'} ${getRankBorder(member.rank)}
                 `}>
                   {member.avatar.startsWith('http') ? (
-                    <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                    <Image src={member.avatar} alt={member.name} width={48} height={48} unoptimized className="w-full h-full object-cover" />
                   ) : (
                     member.avatar
                   )}

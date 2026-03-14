@@ -48,8 +48,8 @@ export default function RegisterPage() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithGoogle();
-    } catch (err: any) {
-      setError(err?.message || "Failed to continue with Google");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to continue with Google");
     }
   };
 

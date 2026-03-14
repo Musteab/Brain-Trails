@@ -59,7 +59,7 @@ function notifyListeners(s: UserSettings) {
 }
 
 export function useSettings() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(cachedSettings);
   const [isLoading, setIsLoading] = useState(!cacheLoaded);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -74,7 +74,10 @@ export function useSettings() {
 
   // Load settings from Supabase on mount
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     // If already cached for this session, skip fetch
     if (cacheLoaded) {
@@ -90,7 +93,12 @@ export function useSettings() {
       .maybeSingle();
 
     if (error) {
-      console.error("[useSettings] load failed:", error);
+      // Supabase returns {} when table doesn't exist — log the message if available, otherwise use defaults silently
+      const msg = error.message || error.code;
+      if (msg) {
+        console.warn("[useSettings] load failed:", msg);
+      }
+      // Fall through to use defaults
     }
 
     const loaded: UserSettings = {
@@ -112,9 +120,10 @@ export function useSettings() {
   }, [user]);
 
   useEffect(() => {
+    if (authLoading) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: fetch user settings from Supabase on mount
     load();
-  }, [load]);
+  }, [load, authLoading]);
 
   // Persist to Supabase (debounced)
   const persist = useCallback(

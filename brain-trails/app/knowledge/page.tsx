@@ -17,7 +17,7 @@ interface PathWithNodes extends KnowledgePath {
 }
 
 export default function KnowledgePage() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { card, isSun, title, muted } = useCardStyles();
   const { addToast } = useUIStore();
 
@@ -29,7 +29,11 @@ export default function KnowledgePage() {
   const [fetchKey, setFetchKey] = useState(0);
 
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
 
     const run = async () => {
@@ -83,7 +87,7 @@ export default function KnowledgePage() {
 
     void run();
     return () => { cancelled = true; };
-  }, [user, addToast, fetchKey]);
+  }, [user, authLoading, addToast, fetchKey]);
 
   const refetchPaths = useCallback(() => {
     setFetchKey((k) => k + 1);

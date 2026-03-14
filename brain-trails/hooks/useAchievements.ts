@@ -21,7 +21,7 @@ interface UseAchievementsReturn {
  * achievement condition, and auto-unlocks any that are newly met.
  */
 export function useAchievements(): UseAchievementsReturn {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { awardXp, awardGold, logActivity } = useGameStore();
   const { addToast } = useUIStore();
 
@@ -31,7 +31,11 @@ export function useAchievements(): UseAchievementsReturn {
 
   // ── Fetch all achievements + user's unlocked achievements ───────────
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     let cancelled = false;
 
@@ -56,7 +60,7 @@ export function useAchievements(): UseAchievementsReturn {
 
     void run();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, authLoading]);
 
   // ── Gather user stats from various tables ───────────────────────────
   const gatherUserStats = useCallback(async (): Promise<Record<string, number>> => {

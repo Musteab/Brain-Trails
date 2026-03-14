@@ -61,7 +61,11 @@ export default function ShopPage() {
 
   // ── Fetch data ─────────────────────────────────────────
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
 
     const run = async () => {
@@ -82,7 +86,7 @@ export default function ShopPage() {
 
     void run();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, authLoading]);
 
   // ── Derived data ───────────────────────────────────────
   const ownedMap = useMemo(() => {

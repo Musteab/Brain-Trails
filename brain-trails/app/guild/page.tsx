@@ -42,7 +42,7 @@ interface GuildRow {
 type TabId = "overview" | "chat" | "raids";
 
 export default function GuildPage() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
   const { addToast } = useUIStore();
   const { card, isSun, title, muted, item: itemStyle } = useCardStyles();
 
@@ -55,7 +55,10 @@ export default function GuildPage() {
   const [joiningGuildId, setJoiningGuildId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
 
@@ -102,8 +105,9 @@ export default function GuildPage() {
   }, [user, profile?.guild_id]);
 
   useEffect(() => {
+    if (authLoading) return;
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, authLoading]);
 
   const handleJoinGuild = async (guild: GuildRow) => {
     if (!user || joiningGuildId) return;

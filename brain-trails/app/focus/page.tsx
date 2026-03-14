@@ -1,24 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FocusTimer from "@/components/focus/FocusTimer";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
+import { useSettings } from "@/hooks/useSettings";
 
 const subjects = ["Math", "Physics", "Biology", "Chemistry", "History", "English", "Computer Science"];
 const durations = [15, 25, 30, 45, 60];
 
 /**
- * 🌿 Focus Garden Page
+ * Focus Garden Page
  *
  * Pomodoro timer with subject selection and duration picker.
- * Users can choose what to study and for how long.
+ * Pre-selects the default duration from user settings.
  */
 export default function FocusPage() {
+  const { settings, isLoading: settingsLoading } = useSettings();
   const [selectedSubject, setSelectedSubject] = useState("Math");
   const [selectedDuration, setSelectedDuration] = useState(25);
   const [customSubject, setCustomSubject] = useState("");
   const [isStarted, setIsStarted] = useState(false);
+
+  // Pre-select duration from user settings once loaded
+  useEffect(() => {
+    if (!settingsLoading && settings.focus_duration) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync initial default from user settings
+      setSelectedDuration(settings.focus_duration);
+    }
+  }, [settingsLoading, settings.focus_duration]);
 
   const activeSubject = customSubject.trim() || selectedSubject;
 

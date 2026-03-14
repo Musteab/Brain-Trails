@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useGameStore } from "@/stores";
+import { resetSettingsCache } from "@/hooks/useSettings";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface Profile {
@@ -171,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setIsLoading(false);
     useGameStore.getState().reset();
+    resetSettingsCache();
     // Force a full navigation to /login so the middleware clears cookies
     // and React state is fully reset (router.push alone won't work because
     // the middleware redirect happens server-side on the next request).

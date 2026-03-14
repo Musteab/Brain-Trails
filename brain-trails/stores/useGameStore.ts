@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
 import type { Json } from "@/lib/database.types";
+import { triggerXPPopup } from "@/components/ui/XPPopup";
+import { triggerLevelUp } from "@/components/ui/LevelUpCelebration";
 
 interface GameStats {
   xp: number;
@@ -67,10 +69,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   awardXp: async (userId: string, amount: number) => {
+    const oldLevel = get().level;
     const newXp = get().xp + amount;
     const newLevel = calculateLevel(newXp);
 
     set({ xp: newXp, level: newLevel });
+
+    // Show floating "+X XP" popup
+    triggerXPPopup(amount);
+
+    // Show level-up celebration if the user levelled up
+    if (newLevel > oldLevel) {
+      triggerLevelUp(newLevel);
+    }
 
     await supabase
       .from("profiles")
@@ -81,6 +92,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   awardGold: async (userId: string, amount: number) => {
     const newGold = get().gold + amount;
     set({ gold: newGold });
+
+    // Show floating "+X Gold" popup
+    triggerXPPopup(0, amount);
 
     await supabase
       .from("profiles")

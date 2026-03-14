@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Send, Users, MessageCircle } from "lucide-react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
@@ -219,9 +220,12 @@ export default function GuildChat({ guildId }: GuildChatProps) {
                   }`}
                 >
                   {msg.profiles?.avatar_url ? (
-                    <img
+                    <Image
                       src={msg.profiles.avatar_url}
                       alt={senderName}
+                      width={32}
+                      height={32}
+                      unoptimized
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (

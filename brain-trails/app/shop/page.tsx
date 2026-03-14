@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingBag,
@@ -13,7 +13,7 @@ import {
   Palette,
   Frame,
   Type,
-  Image,
+  Image as ImageIcon,
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -30,7 +30,7 @@ const CATEGORY_TABS: { key: Cosmetic["category"]; label: string; icon: React.Rea
   { key: "theme",        label: "Themes",      icon: <Palette className="w-4 h-4" /> },
   { key: "avatar_frame", label: "Frames",      icon: <Frame className="w-4 h-4" /> },
   { key: "title",        label: "Titles",       icon: <Type className="w-4 h-4" /> },
-  { key: "background",   label: "Backgrounds", icon: <Image className="w-4 h-4" /> },
+  { key: "background",   label: "Backgrounds", icon: <ImageIcon className="w-4 h-4" /> },
 ];
 
 // ── Rarity styling ───────────────────────────────────────
@@ -49,7 +49,7 @@ const RARITY_STYLES: Record<
 export default function ShopPage() {
   const router = useRouter();
   const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
-  const { isSun, card, muted } = useCardStyles();
+  const { isSun, muted } = useCardStyles();
   const { addToast } = useUIStore();
 
   const [cosmetics, setCosmetics] = useState<Cosmetic[]>([]);
@@ -60,24 +60,29 @@ export default function ShopPage() {
   const [equippingId, setEquippingId] = useState<string | null>(null);
 
   // ── Fetch data ─────────────────────────────────────────
-  const fetchData = useCallback(async () => {
-    if (!user) return;
-    setIsLoading(true);
-
-    const [cosmeticsRes, userCosmeticsRes] = await Promise.all([
-      supabase.from("cosmetics").select("*"),
-      supabase.from("user_cosmetics").select("*").eq("user_id", user.id),
-    ]);
-
-    if (cosmeticsRes.data) setCosmetics(cosmeticsRes.data);
-    if (userCosmeticsRes.data) setUserCosmetics(userCosmeticsRes.data);
-
-    setIsLoading(false);
-  }, [user]);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!user) return;
+    let cancelled = false;
+
+    const run = async () => {
+      setIsLoading(true);
+
+      const [cosmeticsRes, userCosmeticsRes] = await Promise.all([
+        supabase.from("cosmetics").select("*"),
+        supabase.from("user_cosmetics").select("*").eq("user_id", user.id),
+      ]);
+
+      if (cancelled) return;
+
+      if (cosmeticsRes.data) setCosmetics(cosmeticsRes.data);
+      if (userCosmeticsRes.data) setUserCosmetics(userCosmeticsRes.data);
+
+      setIsLoading(false);
+    };
+
+    void run();
+    return () => { cancelled = true; };
+  }, [user]);
 
   // ── Derived data ───────────────────────────────────────
   const ownedMap = useMemo(() => {

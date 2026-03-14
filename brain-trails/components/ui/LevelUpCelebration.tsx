@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Star } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
@@ -26,32 +26,70 @@ export function useLevelUpCelebration() {
   return { showLevelUp };
 }
 
+// ── Pre-generated random values for particles ──────────────
+// Seeded per-index so the values are stable across renders.
+function buildParticleData(count: number) {
+  const data: {
+    x: number;
+    size: number;
+    duration: number;
+    colorIdx: number;
+    yEnd: number;
+    xDrift: number;
+    rotate: number;
+  }[] = [];
+
+  // Simple seeded pseudo-random (mulberry32)
+  const seed = 42;
+  let s = seed;
+  const rand = () => {
+    s |= 0;
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  for (let i = 0; i < count; i++) {
+    data.push({
+      x: rand() * 100,
+      size: 4 + rand() * 8,
+      duration: 2 + rand() * 2,
+      colorIdx: Math.floor(rand() * 5),
+      yEnd: -200 - rand() * 400,
+      xDrift: (rand() - 0.5) * 20,
+      rotate: rand() * 720,
+    });
+  }
+  return data;
+}
+
+const PARTICLE_DATA = buildParticleData(40);
+
 // ── Particle component ──────────────────────────────────
-function Particle({ delay, isSun }: { delay: number; isSun: boolean }) {
-  const x = Math.random() * 100; // vw percentage
-  const size = 4 + Math.random() * 8;
-  const duration = 2 + Math.random() * 2;
+function Particle({ index, delay, isSun }: { index: number; delay: number; isSun: boolean }) {
+  const p = PARTICLE_DATA[index];
   const colors = isSun
     ? ["bg-amber-400", "bg-purple-400", "bg-emerald-400", "bg-pink-400", "bg-blue-400"]
     : ["bg-amber-300", "bg-purple-300", "bg-emerald-300", "bg-pink-300", "bg-blue-300"];
-  const color = colors[Math.floor(Math.random() * colors.length)];
+  const color = colors[p.colorIdx];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: "100vh", x: `${x}vw` }}
+      initial={{ opacity: 0, y: "100vh", x: `${p.x}vw` }}
       animate={{
         opacity: [0, 1, 1, 0],
-        y: [100, -200 - Math.random() * 400],
-        x: `${x + (Math.random() - 0.5) * 20}vw`,
-        rotate: Math.random() * 720,
+        y: [100, p.yEnd],
+        x: `${p.x + p.xDrift}vw`,
+        rotate: p.rotate,
       }}
       transition={{
-        duration,
+        duration: p.duration,
         delay,
         ease: "easeOut",
       }}
       className={`absolute rounded-full ${color}`}
-      style={{ width: size, height: size }}
+      style={{ width: p.size, height: p.size }}
     />
   );
 }
@@ -82,7 +120,7 @@ export default function LevelUpCelebration() {
   const handleDismiss = () => setData(null);
 
   // Generate particle indices
-  const particles = Array.from({ length: 40 }, (_, i) => i);
+  const particles = useMemo(() => Array.from({ length: 40 }, (_, i) => i), []);
 
   return (
     <AnimatePresence>
@@ -105,7 +143,7 @@ export default function LevelUpCelebration() {
           {/* Particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {particles.map((i) => (
-              <Particle key={i} delay={i * 0.05} isSun={isSun} />
+              <Particle key={i} index={i} delay={i * 0.05} isSun={isSun} />
             ))}
           </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Shield, Swords, UserMinus, ArrowUp, ArrowDown, Users, MoreVertical } from "lucide-react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useUIStore } from "@/stores";
@@ -226,9 +227,12 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
                     }`}
                   >
                     {member.profiles?.avatar_url ? (
-                      <img
+                      <Image
                         src={member.profiles.avatar_url}
                         alt={member.profiles.display_name || "User"}
+                        width={40}
+                        height={40}
+                        unoptimized
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (

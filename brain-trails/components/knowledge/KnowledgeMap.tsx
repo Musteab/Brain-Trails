@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import NodeEditor from "@/components/knowledge/NodeEditor";
 import NodeDetail from "@/components/knowledge/NodeDetail";
-import { useTheme } from "@/context/ThemeContext";
-import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import type { KnowledgePath, KnowledgeNode } from "@/lib/database.types";
 
@@ -80,8 +78,6 @@ function layoutSubtree(
 }
 
 export default function KnowledgeMap({ path, nodes, onNodesChanged }: KnowledgeMapProps) {
-  const { theme } = useTheme();
-  const { user } = useAuth();
   const { isSun } = useCardStyles();
 
   const [zoom, setZoom] = useState(1);
@@ -185,13 +181,11 @@ export default function KnowledgeMap({ path, nodes, onNodesChanged }: KnowledgeM
 
     // Node shape & styling based on type
     let nodeShape = "rounded-2xl";
-    let nodeSize = `w-[${NODE_W}px] min-h-[${NODE_H}px]`;
     let typeIcon = "";
     let borderColor = "";
 
     if (node.node_type === "boss") {
       nodeShape = "rounded-2xl";
-      nodeSize = "w-[180px] min-h-[90px]";
       typeIcon = "\u2694\uFE0F"; // sword
       borderColor = node.is_completed
         ? isSun ? "border-amber-400" : "border-amber-500"

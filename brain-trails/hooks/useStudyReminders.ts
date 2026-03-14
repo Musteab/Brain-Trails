@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/context/AuthContext";
 
@@ -40,20 +40,18 @@ function sendNotification(title: string, body: string) {
   }
 }
 
+function getPermission(): NotificationPermission {
+  if (typeof window !== "undefined" && "Notification" in window) {
+    return Notification.permission;
+  }
+  return "default";
+}
+
 export function useStudyReminders() {
   const { settings, isLoading } = useSettings();
   const { profile } = useAuth();
-  const [permissionStatus, setPermissionStatus] =
-    useState<NotificationPermission>("default");
   const nudgeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const streakCheckRef = useRef<boolean>(false);
-
-  // Track permission status
-  useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      setPermissionStatus(Notification.permission);
-    }
-  }, []);
 
   // Request permission
   const requestPermission = useCallback(async () => {
@@ -61,7 +59,6 @@ export function useStudyReminders() {
       return "denied" as NotificationPermission;
 
     const result = await Notification.requestPermission();
-    setPermissionStatus(result);
     return result;
   }, []);
 
@@ -74,7 +71,7 @@ export function useStudyReminders() {
         "Notification" in window &&
         Notification.permission === "default"
       ) {
-        requestPermission();
+        void requestPermission();
       }
     }
   }, [settings.streak_reminders, settings.study_nudges, isLoading, requestPermission]);
@@ -83,7 +80,7 @@ export function useStudyReminders() {
   useEffect(() => {
     if (isLoading || streakCheckRef.current) return;
     if (!settings.streak_reminders || !profile) return;
-    if (permissionStatus !== "granted") return;
+    if (getPermission() !== "granted") return;
 
     streakCheckRef.current = true;
     const streakDays = profile.streak_days ?? 0;
@@ -100,12 +97,12 @@ export function useStudyReminders() {
 
       return () => clearTimeout(timeout);
     }
-  }, [isLoading, settings.streak_reminders, profile, permissionStatus]);
+  }, [isLoading, settings.streak_reminders, profile]);
 
   // Study nudges — every 2 hours
   useEffect(() => {
     if (isLoading) return;
-    if (!settings.study_nudges || permissionStatus !== "granted") {
+    if (!settings.study_nudges || getPermission() !== "granted") {
       if (nudgeIntervalRef.current) {
         clearInterval(nudgeIntervalRef.current);
         nudgeIntervalRef.current = null;
@@ -124,7 +121,7 @@ export function useStudyReminders() {
         nudgeIntervalRef.current = null;
       }
     };
-  }, [isLoading, settings.study_nudges, permissionStatus]);
+  }, [isLoading, settings.study_nudges]);
 
   // Test notification
   const sendTestNotification = useCallback(() => {
@@ -135,7 +132,7 @@ export function useStudyReminders() {
   }, []);
 
   return {
-    permissionStatus,
+    get permissionStatus() { return getPermission(); },
     requestPermission,
     sendTestNotification,
   };

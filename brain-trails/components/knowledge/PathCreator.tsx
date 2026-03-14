@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useUIStore } from "@/stores";

@@ -30,31 +30,33 @@ export function useAchievements(): UseAchievementsReturn {
   const [isLoading, setIsLoading] = useState(true);
 
   // ── Fetch all achievements + user's unlocked achievements ───────────
-  const fetchData = useCallback(async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    const [achievementsRes, userAchievementsRes] = await Promise.all([
-      supabase.from("achievements").select("*"),
-      supabase
-        .from("user_achievements")
-        .select("*")
-        .eq("user_id", user.id),
-    ]);
-
-    if (achievementsRes.data) setAchievements(achievementsRes.data);
-    if (userAchievementsRes.data) setUserAchievements(userAchievementsRes.data);
-
-    setIsLoading(false);
-  }, [user]);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!user) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      setIsLoading(true);
+
+      const [achievementsRes, userAchievementsRes] = await Promise.all([
+        supabase.from("achievements").select("*"),
+        supabase
+          .from("user_achievements")
+          .select("*")
+          .eq("user_id", user.id),
+      ]);
+
+      if (cancelled) return;
+
+      if (achievementsRes.data) setAchievements(achievementsRes.data);
+      if (userAchievementsRes.data) setUserAchievements(userAchievementsRes.data);
+
+      setIsLoading(false);
+    };
+
+    void run();
+    return () => { cancelled = true; };
+  }, [user]);
 
   // ── Gather user stats from various tables ───────────────────────────
   const gatherUserStats = useCallback(async (): Promise<Record<string, number>> => {

@@ -62,7 +62,7 @@ export default function XPPopup() {
   return (
     <div className="fixed top-20 right-6 z-[90] flex flex-col items-end gap-2 pointer-events-none">
       <AnimatePresence>
-        {popups.map((popup, i) => (
+        {popups.map((popup) => (
           <motion.div
             key={popup.id}
             initial={{ opacity: 0, y: 20, scale: 0.8 }}

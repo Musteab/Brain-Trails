@@ -6,7 +6,6 @@ import { Plus, Map, Trash2, ChevronLeft } from "lucide-react";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import KnowledgeMap from "@/components/knowledge/KnowledgeMap";
 import PathCreator from "@/components/knowledge/PathCreator";
-import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useUIStore } from "@/stores";
@@ -18,7 +17,6 @@ interface PathWithNodes extends KnowledgePath {
 }
 
 export default function KnowledgePage() {
-  const { theme } = useTheme();
   const { user } = useAuth();
   const { card, isSun, title, muted } = useCardStyles();
   const { addToast } = useUIStore();
@@ -28,57 +26,68 @@ export default function KnowledgePage() {
   const [selectedPath, setSelectedPath] = useState<PathWithNodes | null>(null);
   const [showCreator, setShowCreator] = useState(false);
   const [editingPath, setEditingPath] = useState<KnowledgePath | null>(null);
-
-  const fetchPaths = useCallback(async () => {
-    if (!user) return;
-
-    // Fetch paths first
-    const { data: pathData, error: pathError } = await supabase
-      .from("knowledge_paths")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true });
-
-    if (pathError) {
-      console.error("Error fetching paths:", pathError.message ?? pathError);
-      addToast("Failed to load knowledge paths", "error");
-      setIsLoading(false);
-      return;
-    }
-
-    const pathList = pathData ?? [];
-
-    // Fetch all nodes for this user's paths in one query
-    if (pathList.length > 0) {
-      const pathIds = pathList.map((p) => p.id);
-      const { data: nodeData } = await supabase
-        .from("knowledge_nodes")
-        .select("*")
-        .in("path_id", pathIds);
-
-      const nodesByPath: Record<string, KnowledgeNode[]> = {};
-      (nodeData ?? []).forEach((node) => {
-        const pid = node.path_id;
-        if (!nodesByPath[pid]) nodesByPath[pid] = [];
-        nodesByPath[pid].push(node as KnowledgeNode);
-      });
-
-      setPaths(
-        pathList.map((p) => ({
-          ...(p as KnowledgePath),
-          knowledge_nodes: nodesByPath[p.id] ?? [],
-        }))
-      );
-    } else {
-      setPaths([]);
-    }
-
-    setIsLoading(false);
-  }, [user, addToast]);
+  const [fetchKey, setFetchKey] = useState(0);
 
   useEffect(() => {
-    fetchPaths();
-  }, [fetchPaths]);
+    if (!user) return;
+    let cancelled = false;
+
+    const run = async () => {
+      // Fetch paths first
+      const { data: pathData, error: pathError } = await supabase
+        .from("knowledge_paths")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+      if (cancelled) return;
+
+      if (pathError) {
+        console.error("Error fetching paths:", pathError.message ?? pathError);
+        addToast("Failed to load knowledge paths", "error");
+        setIsLoading(false);
+        return;
+      }
+
+      const pathList = pathData ?? [];
+
+      // Fetch all nodes for this user's paths in one query
+      if (pathList.length > 0) {
+        const pathIds = pathList.map((p) => p.id);
+        const { data: nodeData } = await supabase
+          .from("knowledge_nodes")
+          .select("*")
+          .in("path_id", pathIds);
+
+        if (cancelled) return;
+
+        const nodesByPath: Record<string, KnowledgeNode[]> = {};
+        (nodeData ?? []).forEach((node) => {
+          const pid = node.path_id;
+          if (!nodesByPath[pid]) nodesByPath[pid] = [];
+          nodesByPath[pid].push(node as KnowledgeNode);
+        });
+
+        setPaths(
+          pathList.map((p) => ({
+            ...(p as KnowledgePath),
+            knowledge_nodes: nodesByPath[p.id] ?? [],
+          }))
+        );
+      } else {
+        setPaths([]);
+      }
+
+      setIsLoading(false);
+    };
+
+    void run();
+    return () => { cancelled = true; };
+  }, [user, addToast, fetchKey]);
+
+  const refetchPaths = useCallback(() => {
+    setFetchKey((k) => k + 1);
+  }, []);
 
   const handleDeletePath = async (e: React.MouseEvent, pathId: string) => {
     e.stopPropagation();
@@ -97,7 +106,7 @@ export default function KnowledgePage() {
   const handlePathCreated = () => {
     setShowCreator(false);
     setEditingPath(null);
-    fetchPaths();
+    refetchPaths();
   };
 
   const handleEditPath = (e: React.MouseEvent, path: KnowledgePath) => {
@@ -161,7 +170,7 @@ export default function KnowledgePage() {
             <KnowledgeMap
               path={selectedPath}
               nodes={selectedPath.knowledge_nodes}
-              onNodesChanged={fetchPaths}
+              onNodesChanged={refetchPaths}
             />
           </div>
         </div>

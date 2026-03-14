@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useTheme } from "@/context/ThemeContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useUIStore } from "@/stores";
 import { supabase } from "@/lib/supabase";

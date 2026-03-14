@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Medal, Star, Shield, Crown, Swords } from "lucide-react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useCardStyles } from "@/hooks/useCardStyles";
 
@@ -131,9 +132,12 @@ export default function GuildLeaderboard({ guildId }: GuildLeaderboardProps) {
                   }`}
                 >
                   {entry.profiles?.avatar_url ? (
-                    <img
+                    <Image
                       src={entry.profiles.avatar_url}
                       alt={entry.profiles.display_name || "User"}
+                      width={36}
+                      height={36}
+                      unoptimized
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (

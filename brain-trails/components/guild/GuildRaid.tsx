@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Swords, Heart, Flame, Trophy, Plus, Clock, Target, BookOpen, Timer } from "lucide-react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useUIStore } from "@/stores";
@@ -375,9 +376,12 @@ export default function GuildRaid({ guildId, isLeader }: GuildRaidProps) {
                           }`}
                         >
                           {c.profiles?.avatar_url ? (
-                            <img
+                            <Image
                               src={c.profiles.avatar_url}
                               alt=""
+                              width={28}
+                              height={28}
+                              unoptimized
                               className="w-full h-full rounded-full object-cover"
                             />
                           ) : (

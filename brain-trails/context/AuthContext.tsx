@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string, retries = 3) => {
+  const fetchProfile = async (userId: string, retries = 3): Promise<void> => {
     let { data, error } = await supabase
       .from("profiles")
       .select("*")
@@ -45,9 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!error && data) {
       setProfile(data as Profile);
+      setIsLoading(false);
     } else if (!data && retries > 0) {
-      // If the profile doesn't exist yet, retry a few times to give the trigger a chance
-      setTimeout(() => fetchProfile(userId, retries - 1), 1000);
+      // Create a proper promise delay so we block the `await fetchProfile` call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return fetchProfile(userId, retries - 1);
     } else if (!data && retries === 0) {
       // If retries are exhausted and there's STILL no profile, the trigger probably failed.
       // Create a fallback profile manually from the client side.
@@ -60,16 +62,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           avatar_url: currentUser.user_metadata?.avatar_url || null,
         };
         
-        const { data: insertedProfile, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from("profiles")
-          .insert(newProfile)
-          .select()
-          .single();
+          .insert(newProfile);
           
-        if (!insertError && insertedProfile) {
-          setProfile(insertedProfile as Profile);
+        if (insertError) {
+          console.error("AuthContext: Fallback profile insertion failed:", insertError);
+          // Inject a mock profile so the user isn't hard-blocked
+          setProfile({
+            id: currentUser.id,
+            username: currentUser.email?.split('@')[0] || 'Traveler',
+            display_name: currentUser.user_metadata?.full_name || 'Traveler',
+            avatar_url: currentUser.user_metadata?.avatar_url || null,
+            role: 'student',
+            xp: 0,
+            level: 1,
+            gold: 0,
+            streak_days: 0
+          });
+        } else {
+          // Also set up default settings for the new user, mimicking the trigger
+          await supabase.from("user_settings").insert({ user_id: currentUser.id });
+          
+          setProfile(newProfile as unknown as Profile);
         }
+      } else {
+         console.error("AuthContext: Could not get current user for fallback creation.");
       }
+      setIsLoading(false); // Make sure to release the loading lock on the hack boundaries
     }
   };
 
@@ -80,31 +100,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+    let isFetchingProfile = false;
+
+    const refreshContext = async (sessionUser: User | null) => {
+      if (!mounted) return;
+      
+      setUser(sessionUser);
+      
+      if (sessionUser) {
+        if (!isFetchingProfile) {
+          isFetchingProfile = true;
+          await fetchProfile(sessionUser.id);
+          isFetchingProfile = false;
+        }
+      } else {
+        setProfile(null);
+      }
+      setIsLoading(false);
+    };
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      }
-      setIsLoading(false);
+      refreshContext(session?.user ?? null);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        setIsLoading(false);
+        refreshContext(session?.user ?? null);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, username: string) => {

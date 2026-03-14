@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -14,8 +14,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { signIn, signInWithGoogle } = useAuth();
+  const { user, profile, signIn, signInWithGoogle } = useAuth();
   const router = useRouter();
+
+  // Auto-redirect if already logged in (catches background auth state changes)
+  useEffect(() => {
+    if (user && profile) {
+      router.push("/");
+    }
+  }, [user, profile, router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();

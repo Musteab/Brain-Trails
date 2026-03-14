@@ -9,6 +9,46 @@ import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
 
 /**
+ * Update the user's streak. If the last study date was yesterday, increment.
+ * If it was today, do nothing (already counted). Otherwise, reset to 1.
+ */
+async function updateStreak(userId: string): Promise<void> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("streak_days, streak_last_date")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!profile) return;
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+
+  if (profile.streak_last_date === todayStr) {
+    // Already counted today
+    return;
+  }
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+  let newStreak: number;
+  if (profile.streak_last_date === yesterdayStr) {
+    // Consecutive day — increment
+    newStreak = (profile.streak_days || 0) + 1;
+  } else {
+    // Streak broken — reset to 1
+    newStreak = 1;
+  }
+
+  await supabase
+    .from("profiles")
+    .update({ streak_days: newStreak, streak_last_date: todayStr })
+    .eq("id", userId);
+}
+
+/**
  * Plant growth stages based on progress percentage
  */
 type PlantStage = "seed" | "sprout" | "smallTree" | "bigTree";
@@ -119,6 +159,9 @@ export default function FocusTimer({
       subject: focusSubject,
       duration: defaultMinutes,
     });
+
+    // 4. Update daily streak
+    await updateStreak(user.id);
 
     addToast(`Session complete! +${gainedXp} XP, +${gainedGold} Gold`, "success");
     refreshProfile();

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { gameText } from "@/constants/gameText";
 
 /**
  * Hotbar item configuration with emoji/sticker-style icons
@@ -15,11 +16,17 @@ interface HotbarItem {
 }
 
 const hotbarItems: HotbarItem[] = [
-  { id: "dashboard", emoji: "⛺", label: "Camp", href: "/" },
-  { id: "focus", emoji: "🌿", label: "Focus", href: "/focus" },
-  { id: "battle", emoji: "⚔️", label: "Battle", href: "/battle" },
-  { id: "notes", emoji: "📜", label: "Scrolls", href: "/notes" },
-  { id: "flashcards", emoji: "🃏", label: "Cards", href: "/flashcards" },
+  { id: "dashboard", emoji: "⛺", label: gameText.hotbar.home, href: "/" },
+  { id: "focus", emoji: "🌿", label: gameText.hotbar.focus, href: "/focus" },
+  { id: "battle", emoji: "⚔️", label: gameText.hotbar.battle, href: "/battle" },
+  { id: "notes", emoji: "📜", label: gameText.study.notes, href: "/notes" },
+  { id: "flashcards", emoji: "🃏", label: gameText.hotbar.cards, href: "/flashcards" },
+  { id: "knowledge", emoji: "🗺️", label: gameText.hotbar.knowledge, href: "/knowledge" },
+  { id: "guild", emoji: "🛡️", label: gameText.hotbar.guild, href: "/guild" },
+  { id: "achievements", emoji: "🏆", label: gameText.hotbar.achievements, href: "/achievements" },
+  { id: "shop", emoji: "🛒", label: gameText.hotbar.shop, href: "/shop" },
+  { id: "report", emoji: "📊", label: gameText.hotbar.report, href: "/report" },
+  { id: "settings", emoji: "⚙️", label: gameText.navigation.settings, href: "/settings" },
 ];
 
 /**
@@ -58,7 +65,7 @@ function HotbarButton({
     >
       {/* Emoji Icon */}
       <motion.span 
-        className="text-xl drop-shadow-sm"
+        className={`${isExpanded ? "text-xl" : "text-lg"} drop-shadow-sm`}
         animate={isActive ? { scale: [1, 1.15, 1] } : {}}
         transition={{ duration: 0.3 }}
       >
@@ -159,7 +166,7 @@ export default function TravelerHotbar() {
         layout
         animate={{
           padding: isExpanded ? "12px 20px" : "8px 12px",
-          gap: isExpanded ? "8px" : "4px",
+          gap: isExpanded ? "8px" : "2px",
         }}
         transition={{
           type: "spring",

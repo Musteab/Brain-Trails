@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Share2, Download, Upload, Loader2, Check, Sparkles, PanelLeftClose, PanelLeft, FileText, FileCode } from "lucide-react";
+import { ArrowLeft, Share2, Download, Upload, Loader2, Check, Sparkles, PanelLeftClose, PanelLeft, FileText, FileCode, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SpellbookEditor, { type SpellbookEditorRef } from "@/components/notes/SpellbookEditor";
 import AIFamiliar from "@/components/notes/AIFamiliar";
@@ -19,6 +19,7 @@ export default function NotesPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedNoteId, setSelectedNoteId] = useState<string | undefined>();
   const [noteTitle, setNoteTitle] = useState("Untitled Note");
+  const [isNoteLoading, setIsNoteLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -32,6 +33,7 @@ export default function NotesPage() {
     if (!selectedNoteId) return;
 
     const fetchNote = async () => {
+      setIsNoteLoading(true);
       const { data, error } = await supabase
         .from('notes')
         .select('content_html, title')
@@ -40,6 +42,7 @@ export default function NotesPage() {
       
       if (error) {
         console.error("Error loading note:", error);
+        setIsNoteLoading(false);
         return;
       }
 
@@ -63,6 +66,8 @@ export default function NotesPage() {
       } catch {
         // Fallback if parsing fails (e.g. legacy plain html)
         if (leftEditorRef.current) leftEditorRef.current.insertContent(data.content_html || "");
+      } finally {
+        setIsNoteLoading(false);
       }
     };
 
@@ -285,7 +290,25 @@ export default function NotesPage() {
       </motion.header>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="relative z-10 flex-1 flex items-start justify-center px-4 py-8 pb-32 overflow-x-auto">
-        {/* Two-page book layout */}
+        {/* Empty state — no note selected */}
+        {!selectedNoteId && (
+          <div className="flex flex-col items-center justify-center py-32 text-center">
+            <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
+            <h2 className="text-xl font-bold text-slate-500 font-[family-name:var(--font-nunito)] mb-2">No note selected</h2>
+            <p className="text-sm text-slate-400 max-w-sm">Select a note from the sidebar or create a new one to start writing.</p>
+          </div>
+        )}
+
+        {/* Loading state */}
+        {selectedNoteId && isNoteLoading && (
+          <div className="flex flex-col items-center justify-center py-32">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3" />
+            <p className="text-sm text-slate-400">Loading note...</p>
+          </div>
+        )}
+
+        {/* Two-page book layout — only shown when a note is selected and loaded */}
+        {selectedNoteId && !isNoteLoading && (
         <div className="flex gap-1 perspective-1000">
           {/* Left Page */}
           <motion.div
@@ -342,6 +365,7 @@ export default function NotesPage() {
             </div>
           </motion.div>
         </div>
+        )}
       </motion.div>
       </div>
 

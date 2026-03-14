@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UserPlus, User, Lock, Mail, Loader2, Sparkles } from "lucide-react";
-import SplineBackground from "@/components/layout/SplineBackground";
+import BackgroundLayer from "@/components/layout/BackgroundLayer";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -57,7 +57,7 @@ export default function RegisterPage() {
     <div className="min-h-screen relative flex items-center justify-center p-4">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <SplineBackground />
+        <BackgroundLayer />
       </div>
 
       {/* Register Card */}

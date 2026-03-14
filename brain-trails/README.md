@@ -21,7 +21,7 @@ A **gamified study companion** with a cozy "Nintendo meets Notion" aesthetic. Tr
 
 ## Tech Stack
 
-**Frontend:** Next.js 16 - React 19 - Tailwind CSS 4 - Framer Motion - Tiptap Editor - Spline 3D - Zustand 5
+**Frontend:** Next.js 16 - React 19 - Tailwind CSS 4 - Framer Motion - Tiptap Editor - Zustand 5
 **Backend:** Flask - Google Gemini API - python-dotenv
 **Database:** Supabase (PostgreSQL) with Row Level Security
 **Auth:** Supabase Auth (email/password + Google OAuth)

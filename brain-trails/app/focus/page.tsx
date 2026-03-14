@@ -1,26 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FocusTimer from "@/components/focus/FocusTimer";
+import CramMode from "@/components/focus/CramMode";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
+import { useSettings } from "@/hooks/useSettings";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { gameText } from "@/constants/gameText";
 
-const subjects = ["Math", "Physics", "Biology", "Chemistry", "History", "English", "Computer Science"];
+const DEFAULT_SUBJECTS = ["Math", "Physics", "Biology", "Chemistry", "History", "English", "Computer Science"];
 const durations = [15, 25, 30, 45, 60];
 
 /**
- * 🌿 Focus Garden Page
+ * Focus Garden Page
  *
  * Pomodoro timer with subject selection and duration picker.
- * Users can choose what to study and for how long.
+ * Subjects are derived from the user's decks and past focus sessions,
+ * falling back to a default list for new users.
  */
 export default function FocusPage() {
+  const { settings, isLoading: settingsLoading } = useSettings();
+  const { user } = useAuth();
+  const [subjects, setSubjects] = useState<string[]>(DEFAULT_SUBJECTS);
   const [selectedSubject, setSelectedSubject] = useState("Math");
   const [selectedDuration, setSelectedDuration] = useState(25);
   const [customSubject, setCustomSubject] = useState("");
+  const [cramMode, setCramMode] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
 
+  // Pre-select duration from user settings once loaded
+  useEffect(() => {
+    if (!settingsLoading && settings.focus_duration) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync initial default from user settings
+      setSelectedDuration(settings.focus_duration);
+    }
+  }, [settingsLoading, settings.focus_duration]);
+
+  // Fetch user's subjects from decks + past focus sessions
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchSubjects = async () => {
+      const [decksRes, sessionsRes] = await Promise.all([
+        supabase.from("decks").select("name").eq("user_id", user.id),
+        supabase.from("focus_sessions").select("subject").eq("user_id", user.id),
+      ]);
+
+      const userSubjects = new Set<string>();
+
+      if (decksRes.data) {
+        for (const d of decksRes.data) {
+          if (d.name) userSubjects.add(d.name);
+        }
+      }
+      if (sessionsRes.data) {
+        for (const s of sessionsRes.data) {
+          if (s.subject) userSubjects.add(s.subject);
+        }
+      }
+
+      if (userSubjects.size > 0) {
+        setSubjects(Array.from(userSubjects));
+        setSelectedSubject(Array.from(userSubjects)[0]);
+      }
+    };
+
+    fetchSubjects();
+  }, [user]);
+
   const activeSubject = customSubject.trim() || selectedSubject;
+
+  if (isStarted && cramMode) {
+    return (
+      <CramMode
+        subject={activeSubject}
+        focusMinutes={selectedDuration}
+        onExit={() => setIsStarted(false)}
+      />
+    );
+  }
 
   if (isStarted) {
     return (
@@ -57,7 +117,7 @@ export default function FocusPage() {
               🌿
             </motion.div>
             <h1 className="text-3xl font-bold text-white font-[family-name:var(--font-nunito)] drop-shadow-md">
-              Focus Garden
+              {gameText.study.focus}
             </h1>
             <p className="text-white/70 mt-2 font-[family-name:var(--font-quicksand)]">
               What will you grow today?
@@ -95,7 +155,7 @@ export default function FocusPage() {
           </div>
 
           {/* Duration Selection */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/50 mb-6">
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/50 mb-4">
             <label className="text-sm font-bold text-slate-700 font-[family-name:var(--font-nunito)] block mb-3">
               ⏱️ Duration
             </label>
@@ -117,6 +177,42 @@ export default function FocusPage() {
             </div>
           </div>
 
+          {/* Cram Mode Toggle */}
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/50 mb-6">
+            <button
+              onClick={() => setCramMode((v) => !v)}
+              className="w-full flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-700 font-[family-name:var(--font-nunito)]">
+                  🧠 Cram Mode
+                </span>
+              </div>
+              <div
+                className={`w-11 h-6 rounded-full relative transition-colors ${
+                  cramMode ? "bg-purple-500" : "bg-slate-300"
+                }`}
+              >
+                <motion.div
+                  layout
+                  className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md"
+                  style={{ left: cramMode ? "calc(100% - 1.375rem)" : "0.125rem" }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              </div>
+            </button>
+            {cramMode && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="text-xs text-slate-500 mt-3 font-[family-name:var(--font-quicksand)] leading-relaxed"
+              >
+                Distraction-free mode. Auto-cycles focus &amp; flashcard review.
+              </motion.p>
+            )}
+          </div>
+
           {/* Start Button */}
           <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
@@ -124,7 +220,7 @@ export default function FocusPage() {
             onClick={() => setIsStarted(true)}
             className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-bold text-lg shadow-xl shadow-emerald-500/30 hover:bg-emerald-600 transition-colors font-[family-name:var(--font-nunito)]"
           >
-            🌱 Start Growing
+            🌱 {gameText.actions.start}
           </motion.button>
         </motion.div>
       </div>

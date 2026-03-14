@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useGameStore } from "@/stores";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
+import { gameText } from "@/constants/gameText";
 
 interface Flashcard {
   id: string;
@@ -86,10 +87,11 @@ export default function FlashcardsPage() {
         console.error("Error fetching decks:", error);
       } else {
         // Sort cards within decks by created_at or id so they have a stable order
-        const formattedDecks = data?.map(d => ({
+        const raw = (data ?? []) as unknown as Deck[];
+        const formattedDecks = raw.map(d => ({
           ...d,
           cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id))
-        })) || [];
+        }));
         setDecks(formattedDecks);
       }
       setIsLoading(false);
@@ -142,7 +144,14 @@ export default function FlashcardsPage() {
       .single();
 
     if (!error && data) {
-      setDecks([...decks, { ...data, cards: [] }]);
+      const created: Deck = {
+        id: data.id,
+        name: data.name,
+        emoji: data.emoji,
+        color: data.color,
+        cards: [],
+      };
+      setDecks([...decks, created]);
       setNewDeckName("");
       setShowNewDeck(false);
     }
@@ -266,7 +275,7 @@ export default function FlashcardsPage() {
           >
             <div>
               <h1 className={`text-4xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-                🃏 Spell Cards
+                🃏 {gameText.study.flashcards}
               </h1>
               <p className={`mt-2 ${isSun ? "text-slate-600" : "text-slate-400"} font-[family-name:var(--font-quicksand)]`}>
                 Choose a deck to study, or create a new one.

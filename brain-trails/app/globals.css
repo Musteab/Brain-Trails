@@ -119,19 +119,6 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 20px rgba(157, 78, 221, 0.4);
 }
 
-/* Hide Spline Logo/Watermark */
-canvas + a {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-a[href^="https://spline.design"] {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
 /* Selection Color */
 ::selection {
   background: var(--accent);

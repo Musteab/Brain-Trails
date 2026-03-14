@@ -64,6 +64,21 @@ CREATE TABLE IF NOT EXISTS cards (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Boss battle results
+CREATE TABLE IF NOT EXISTS boss_battles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  boss_id TEXT NOT NULL,
+  deck_id UUID REFERENCES decks(id) ON DELETE SET NULL,
+  result TEXT NOT NULL CHECK (result IN ('victory', 'defeat')),
+  damage_dealt INTEGER DEFAULT 0,
+  cards_answered INTEGER DEFAULT 0,
+  cards_correct INTEGER DEFAULT 0,
+  xp_earned INTEGER DEFAULT 0,
+  gold_earned INTEGER DEFAULT 0,
+  completed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Adventure log (GitHub-style activity tracking)
 CREATE TABLE IF NOT EXISTS adventure_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,6 +110,7 @@ ALTER TABLE focus_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE decks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE boss_battles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE adventure_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
 
@@ -138,6 +154,10 @@ CREATE POLICY "Users can view own settings" ON user_settings FOR SELECT USING (a
 CREATE POLICY "Users can insert own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id);
 
+-- Boss battles: users can view/create their own
+CREATE POLICY "Users can view own battles" ON boss_battles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own battles" ON boss_battles FOR INSERT WITH CHECK (auth.uid() = user_id);
+
 -- ============================================
 -- Trigger: auto-create profile on signup
 -- ============================================
@@ -175,3 +195,5 @@ CREATE INDEX IF NOT EXISTS idx_adventure_log_user ON adventure_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_adventure_log_date ON adventure_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_cards_deck ON cards(deck_id);
 CREATE INDEX IF NOT EXISTS idx_decks_user ON decks(user_id);
+CREATE INDEX IF NOT EXISTS idx_boss_battles_user ON boss_battles(user_id);
+CREATE INDEX IF NOT EXISTS idx_boss_battles_date ON boss_battles(completed_at);

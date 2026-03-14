@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Nunito, Quicksand } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -26,8 +26,22 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Brain Trails 🎮",
+  title: "Brain Trails",
   description: "Your cozy gamified study companion",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Brain Trails",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#7c3aed",
 };
 
 export default function RootLayout({

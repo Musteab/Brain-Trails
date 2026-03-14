@@ -31,18 +31,48 @@ export default function KnowledgePage() {
 
   const fetchPaths = useCallback(async () => {
     if (!user) return;
-    const { data, error } = await supabase
+
+    // Fetch paths first
+    const { data: pathData, error: pathError } = await supabase
       .from("knowledge_paths")
-      .select(`*, knowledge_nodes ( * )`)
+      .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching paths:", error);
+    if (pathError) {
+      console.error("Error fetching paths:", pathError.message ?? pathError);
       addToast("Failed to load knowledge paths", "error");
-    } else {
-      setPaths((data ?? []) as unknown as PathWithNodes[]);
+      setIsLoading(false);
+      return;
     }
+
+    const pathList = pathData ?? [];
+
+    // Fetch all nodes for this user's paths in one query
+    if (pathList.length > 0) {
+      const pathIds = pathList.map((p) => p.id);
+      const { data: nodeData } = await supabase
+        .from("knowledge_nodes")
+        .select("*")
+        .in("path_id", pathIds);
+
+      const nodesByPath: Record<string, KnowledgeNode[]> = {};
+      (nodeData ?? []).forEach((node) => {
+        const pid = node.path_id;
+        if (!nodesByPath[pid]) nodesByPath[pid] = [];
+        nodesByPath[pid].push(node as KnowledgeNode);
+      });
+
+      setPaths(
+        pathList.map((p) => ({
+          ...(p as KnowledgePath),
+          knowledge_nodes: nodesByPath[p.id] ?? [],
+        }))
+      );
+    } else {
+      setPaths([]);
+    }
+
     setIsLoading(false);
   }, [user, addToast]);
 

@@ -4,6 +4,9 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ToastContainer from "@/components/ui/ToastContainer";
+import CommandPalette from "@/components/ui/CommandPalette";
+import XPPopup from "@/components/ui/XPPopup";
+import LevelUpCelebration from "@/components/ui/LevelUpCelebration";
 import "./globals.css";
 
 // Nunito - Playful, rounded font for headings (Nintendo feel)
@@ -43,6 +46,9 @@ export default function RootLayout({
             <ErrorBoundary>
               {children}
               <ToastContainer />
+              <CommandPalette />
+              <XPPopup />
+              <LevelUpCelebration />
             </ErrorBoundary>
           </ThemeProvider>
         </AuthProvider>

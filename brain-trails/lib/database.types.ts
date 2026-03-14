@@ -18,6 +18,7 @@ export interface Database {
           username: string | null;
           display_name: string | null;
           avatar_url: string | null;
+          avatar_frame: string;
           bio: string;
           role: "student" | "guild_leader" | "admin";
           xp: number;
@@ -25,6 +26,7 @@ export interface Database {
           gold: number;
           streak_days: number;
           streak_last_date: string | null;
+          guild_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -33,6 +35,7 @@ export interface Database {
           username?: string | null;
           display_name?: string | null;
           avatar_url?: string | null;
+          avatar_frame?: string;
           bio?: string;
           role?: "student" | "guild_leader" | "admin";
           xp?: number;
@@ -40,6 +43,7 @@ export interface Database {
           gold?: number;
           streak_days?: number;
           streak_last_date?: string | null;
+          guild_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -48,6 +52,7 @@ export interface Database {
           username?: string | null;
           display_name?: string | null;
           avatar_url?: string | null;
+          avatar_frame?: string;
           bio?: string;
           role?: "student" | "guild_leader" | "admin";
           xp?: number;
@@ -55,6 +60,7 @@ export interface Database {
           gold?: number;
           streak_days?: number;
           streak_last_date?: string | null;
+          guild_id?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -65,6 +71,7 @@ export interface Database {
           user_id: string;
           subject: string;
           duration_minutes: number;
+          mode: "normal" | "cram";
           completed_at: string;
           xp_earned: number;
           gold_earned: number;
@@ -74,6 +81,7 @@ export interface Database {
           user_id: string;
           subject: string;
           duration_minutes: number;
+          mode?: "normal" | "cram";
           completed_at?: string;
           xp_earned?: number;
           gold_earned?: number;
@@ -81,6 +89,7 @@ export interface Database {
         Update: {
           subject?: string;
           duration_minutes?: number;
+          mode?: "normal" | "cram";
           completed_at?: string;
           xp_earned?: number;
           gold_earned?: number;
@@ -259,7 +268,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          activity_type: "focus" | "flashcard" | "note" | "quest" | "login";
+          activity_type: "focus" | "flashcard" | "note" | "quest" | "login" | "boss" | "guild" | "achievement" | "streak";
           xp_earned: number;
           metadata: Json;
           created_at: string;
@@ -267,13 +276,13 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          activity_type: "focus" | "flashcard" | "note" | "quest" | "login";
+          activity_type: "focus" | "flashcard" | "note" | "quest" | "login" | "boss" | "guild" | "achievement" | "streak";
           xp_earned?: number;
           metadata?: Json;
           created_at?: string;
         };
         Update: {
-          activity_type?: "focus" | "flashcard" | "note" | "quest" | "login";
+          activity_type?: "focus" | "flashcard" | "note" | "quest" | "login" | "boss" | "guild" | "achievement" | "streak";
           xp_earned?: number;
           metadata?: Json;
         };
@@ -292,29 +301,47 @@ export interface Database {
           user_id: string;
           theme: "sun" | "moon" | "auto";
           accent_color: string;
+          font_size: "small" | "medium" | "large";
           focus_duration: number;
           break_duration: number;
+          cram_mode_enabled: boolean;
+          ambient_sound: "none" | "rain" | "cafe" | "forest" | "lofi";
           sound_enabled: boolean;
           notifications_enabled: boolean;
+          streak_reminders: boolean;
+          guild_notifications: boolean;
+          study_nudges: boolean;
           updated_at: string;
         };
         Insert: {
           user_id: string;
           theme?: "sun" | "moon" | "auto";
           accent_color?: string;
+          font_size?: "small" | "medium" | "large";
           focus_duration?: number;
           break_duration?: number;
+          cram_mode_enabled?: boolean;
+          ambient_sound?: "none" | "rain" | "cafe" | "forest" | "lofi";
           sound_enabled?: boolean;
           notifications_enabled?: boolean;
+          streak_reminders?: boolean;
+          guild_notifications?: boolean;
+          study_nudges?: boolean;
           updated_at?: string;
         };
         Update: {
           theme?: "sun" | "moon" | "auto";
           accent_color?: string;
+          font_size?: "small" | "medium" | "large";
           focus_duration?: number;
           break_duration?: number;
+          cram_mode_enabled?: boolean;
+          ambient_sound?: "none" | "rain" | "cafe" | "forest" | "lofi";
           sound_enabled?: boolean;
           notifications_enabled?: boolean;
+          streak_reminders?: boolean;
+          guild_notifications?: boolean;
+          study_nudges?: boolean;
           updated_at?: string;
         };
         Relationships: [
@@ -323,6 +350,472 @@ export interface Database {
             columns: ["user_id"];
             isOneToOne: true;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      knowledge_paths: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          description: string;
+          emoji: string;
+          color: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          description?: string;
+          emoji?: string;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          emoji?: string;
+          color?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_paths_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      knowledge_nodes: {
+        Row: {
+          id: string;
+          path_id: string;
+          parent_node_id: string | null;
+          name: string;
+          description: string;
+          node_type: "topic" | "boss" | "checkpoint";
+          required_focus_minutes: number;
+          required_card_reviews: number;
+          required_mastery_pct: number;
+          focus_minutes_logged: number;
+          card_reviews_logged: number;
+          mastery_pct: number;
+          is_unlocked: boolean;
+          is_completed: boolean;
+          completed_at: string | null;
+          boss_deck_id: string | null;
+          boss_hp: number;
+          position_x: number;
+          position_y: number;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          path_id: string;
+          parent_node_id?: string | null;
+          name: string;
+          description?: string;
+          node_type?: "topic" | "boss" | "checkpoint";
+          required_focus_minutes?: number;
+          required_card_reviews?: number;
+          required_mastery_pct?: number;
+          focus_minutes_logged?: number;
+          card_reviews_logged?: number;
+          mastery_pct?: number;
+          is_unlocked?: boolean;
+          is_completed?: boolean;
+          completed_at?: string | null;
+          boss_deck_id?: string | null;
+          boss_hp?: number;
+          position_x?: number;
+          position_y?: number;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          parent_node_id?: string | null;
+          name?: string;
+          description?: string;
+          node_type?: "topic" | "boss" | "checkpoint";
+          required_focus_minutes?: number;
+          required_card_reviews?: number;
+          required_mastery_pct?: number;
+          focus_minutes_logged?: number;
+          card_reviews_logged?: number;
+          mastery_pct?: number;
+          is_unlocked?: boolean;
+          is_completed?: boolean;
+          completed_at?: string | null;
+          boss_deck_id?: string | null;
+          boss_hp?: number;
+          position_x?: number;
+          position_y?: number;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_nodes_path_id_fkey";
+            columns: ["path_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_paths";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "knowledge_nodes_parent_node_id_fkey";
+            columns: ["parent_node_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "knowledge_nodes_boss_deck_id_fkey";
+            columns: ["boss_deck_id"];
+            isOneToOne: false;
+            referencedRelation: "decks";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      guilds: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          emblem: string;
+          leader_id: string;
+          max_members: number;
+          member_count: number;
+          weekly_xp: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string;
+          emblem?: string;
+          leader_id: string;
+          max_members?: number;
+          member_count?: number;
+          weekly_xp?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          emblem?: string;
+          leader_id?: string;
+          max_members?: number;
+          member_count?: number;
+          weekly_xp?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guilds_leader_id_fkey";
+            columns: ["leader_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      guild_members: {
+        Row: {
+          id: string;
+          guild_id: string;
+          user_id: string;
+          role: "member" | "officer" | "leader";
+          weekly_xp: number;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          guild_id: string;
+          user_id: string;
+          role?: "member" | "officer" | "leader";
+          weekly_xp?: number;
+          joined_at?: string;
+        };
+        Update: {
+          role?: "member" | "officer" | "leader";
+          weekly_xp?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey";
+            columns: ["guild_id"];
+            isOneToOne: false;
+            referencedRelation: "guilds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guild_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      guild_messages: {
+        Row: {
+          id: string;
+          guild_id: string;
+          user_id: string;
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          guild_id: string;
+          user_id: string;
+          content: string;
+          created_at?: string;
+        };
+        Update: {
+          content?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guild_messages_guild_id_fkey";
+            columns: ["guild_id"];
+            isOneToOne: false;
+            referencedRelation: "guilds";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guild_messages_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      guild_raids: {
+        Row: {
+          id: string;
+          guild_id: string;
+          topic: string;
+          boss_hp: number;
+          current_hp: number;
+          status: "active" | "victory" | "expired";
+          week_start: string;
+          xp_reward: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          guild_id: string;
+          topic: string;
+          boss_hp?: number;
+          current_hp?: number;
+          status?: "active" | "victory" | "expired";
+          week_start?: string;
+          xp_reward?: number;
+          created_at?: string;
+        };
+        Update: {
+          topic?: string;
+          boss_hp?: number;
+          current_hp?: number;
+          status?: "active" | "victory" | "expired";
+          xp_reward?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guild_raids_guild_id_fkey";
+            columns: ["guild_id"];
+            isOneToOne: false;
+            referencedRelation: "guilds";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      guild_raid_contributions: {
+        Row: {
+          id: string;
+          raid_id: string;
+          user_id: string;
+          damage_dealt: number;
+          focus_minutes: number;
+          cards_reviewed: number;
+          contributed_at: string;
+        };
+        Insert: {
+          id?: string;
+          raid_id: string;
+          user_id: string;
+          damage_dealt?: number;
+          focus_minutes?: number;
+          cards_reviewed?: number;
+          contributed_at?: string;
+        };
+        Update: {
+          damage_dealt?: number;
+          focus_minutes?: number;
+          cards_reviewed?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guild_raid_contributions_raid_id_fkey";
+            columns: ["raid_id"];
+            isOneToOne: false;
+            referencedRelation: "guild_raids";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guild_raid_contributions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      achievements: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: "study" | "social" | "combat" | "exploration" | "streak";
+          xp_reward: number;
+          gold_reward: number;
+          condition_type: string;
+          condition_value: number;
+          rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          icon: string;
+          category: "study" | "social" | "combat" | "exploration" | "streak";
+          xp_reward?: number;
+          gold_reward?: number;
+          condition_type: string;
+          condition_value?: number;
+          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          icon?: string;
+          category?: "study" | "social" | "combat" | "exploration" | "streak";
+          xp_reward?: number;
+          gold_reward?: number;
+          condition_type?: string;
+          condition_value?: number;
+          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+        };
+        Relationships: [];
+      };
+      user_achievements: {
+        Row: {
+          id: string;
+          user_id: string;
+          achievement_id: string;
+          unlocked_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          achievement_id: string;
+          unlocked_at?: string;
+        };
+        Update: {
+          unlocked_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey";
+            columns: ["achievement_id"];
+            isOneToOne: false;
+            referencedRelation: "achievements";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      cosmetics: {
+        Row: {
+          id: string;
+          name: string;
+          description: string;
+          category: "theme" | "avatar_frame" | "title" | "background";
+          preview_data: Json;
+          gold_cost: number;
+          level_required: number;
+          rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
+        };
+        Insert: {
+          id: string;
+          name: string;
+          description: string;
+          category: "theme" | "avatar_frame" | "title" | "background";
+          preview_data?: Json;
+          gold_cost?: number;
+          level_required?: number;
+          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          category?: "theme" | "avatar_frame" | "title" | "background";
+          preview_data?: Json;
+          gold_cost?: number;
+          level_required?: number;
+          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+        };
+        Relationships: [];
+      };
+      user_cosmetics: {
+        Row: {
+          id: string;
+          user_id: string;
+          cosmetic_id: string;
+          equipped: boolean;
+          purchased_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          cosmetic_id: string;
+          equipped?: boolean;
+          purchased_at?: string;
+        };
+        Update: {
+          equipped?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_cosmetics_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_cosmetics_cosmetic_id_fkey";
+            columns: ["cosmetic_id"];
+            isOneToOne: false;
+            referencedRelation: "cosmetics";
             referencedColumns: ["id"];
           }
         ];
@@ -345,3 +838,14 @@ export type Card = Database["public"]["Tables"]["cards"]["Row"];
 export type BossBattle = Database["public"]["Tables"]["boss_battles"]["Row"];
 export type AdventureLogEntry = Database["public"]["Tables"]["adventure_log"]["Row"];
 export type UserSettings = Database["public"]["Tables"]["user_settings"]["Row"];
+export type KnowledgePath = Database["public"]["Tables"]["knowledge_paths"]["Row"];
+export type KnowledgeNode = Database["public"]["Tables"]["knowledge_nodes"]["Row"];
+export type Guild = Database["public"]["Tables"]["guilds"]["Row"];
+export type GuildMember = Database["public"]["Tables"]["guild_members"]["Row"];
+export type GuildMessage = Database["public"]["Tables"]["guild_messages"]["Row"];
+export type GuildRaid = Database["public"]["Tables"]["guild_raids"]["Row"];
+export type GuildRaidContribution = Database["public"]["Tables"]["guild_raid_contributions"]["Row"];
+export type Achievement = Database["public"]["Tables"]["achievements"]["Row"];
+export type UserAchievement = Database["public"]["Tables"]["user_achievements"]["Row"];
+export type Cosmetic = Database["public"]["Tables"]["cosmetics"]["Row"];
+export type UserCosmetic = Database["public"]["Tables"]["user_cosmetics"]["Row"];

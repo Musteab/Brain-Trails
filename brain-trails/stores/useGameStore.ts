@@ -21,7 +21,7 @@ interface GameStoreState extends GameStats {
   /** Log an activity to adventure_log */
   logActivity: (
     userId: string,
-    activityType: "focus" | "flashcard" | "note" | "quest" | "login",
+    activityType: "focus" | "flashcard" | "note" | "quest" | "login" | "boss" | "guild" | "achievement" | "streak",
     xpEarned: number,
     metadata?: Record<string, Json>
   ) => Promise<void>;

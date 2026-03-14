@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import SplineCompanion from "../ui/SplineCompanion";
+import OwlCompanion from "../ui/OwlCompanion";
 import { useCardStyles } from "@/hooks/useCardStyles";
 
 /**
@@ -40,9 +40,9 @@ function StatusBar({
 }
 
 /**
- * 🏠 StudyRoom Component (3D Robot Companion Center)
+ * 🦉 StudyRoom Component (Owl Scholar Companion Center)
  * 
- * Main center piece with 3D robot companion, status bars, and speech bubble.
+ * Main center piece with animated owl companion, status bars, and speech bubble.
  * Scaled up 15% to be the dominant "protagonist" of the screen.
  */
 export default function StudyRoom() {
@@ -73,19 +73,18 @@ export default function StudyRoom() {
         </p>
       </motion.div>
 
-      {/* Main 3D Robot Companion - Increased Height + Grounding Shadow */}
+      {/* Owl Scholar Companion */}
       <div className="w-full h-[340px] flex items-center justify-center relative">
         {/* Contact/Grounding Shadow */}
         <div 
-          className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[70%] h-8 rounded-[100%] blur-xl ${
-            isSun ? "bg-emerald-900/30" : "bg-black/50"
+          className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-[40%] h-6 rounded-[100%] blur-xl ${
+            isSun ? "bg-amber-900/20" : "bg-purple-900/40"
           }`}
-          style={{ transform: "translateX(-50%) translateY(50%)" }}
         />
         
-        <SplineCompanion 
-          scene="https://prod.spline.design/cskB7JZp87S0b0nT/scene.splinecode"
-          className="w-full h-full rounded-2xl relative z-10"
+        <OwlCompanion 
+          mood="idle"
+          className="relative z-10"
         />
       </div>
 

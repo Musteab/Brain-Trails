@@ -5,19 +5,24 @@ import { motion } from "framer-motion";
 import FocusTimer from "@/components/focus/FocusTimer";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { useSettings } from "@/hooks/useSettings";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { gameText } from "@/constants/gameText";
 
-const subjects = ["Math", "Physics", "Biology", "Chemistry", "History", "English", "Computer Science"];
+const DEFAULT_SUBJECTS = ["Math", "Physics", "Biology", "Chemistry", "History", "English", "Computer Science"];
 const durations = [15, 25, 30, 45, 60];
 
 /**
  * Focus Garden Page
  *
  * Pomodoro timer with subject selection and duration picker.
- * Pre-selects the default duration from user settings.
+ * Subjects are derived from the user's decks and past focus sessions,
+ * falling back to a default list for new users.
  */
 export default function FocusPage() {
   const { settings, isLoading: settingsLoading } = useSettings();
+  const { user } = useAuth();
+  const [subjects, setSubjects] = useState<string[]>(DEFAULT_SUBJECTS);
   const [selectedSubject, setSelectedSubject] = useState("Math");
   const [selectedDuration, setSelectedDuration] = useState(25);
   const [customSubject, setCustomSubject] = useState("");
@@ -30,6 +35,38 @@ export default function FocusPage() {
       setSelectedDuration(settings.focus_duration);
     }
   }, [settingsLoading, settings.focus_duration]);
+
+  // Fetch user's subjects from decks + past focus sessions
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchSubjects = async () => {
+      const [decksRes, sessionsRes] = await Promise.all([
+        supabase.from("decks").select("name").eq("user_id", user.id),
+        supabase.from("focus_sessions").select("subject").eq("user_id", user.id),
+      ]);
+
+      const userSubjects = new Set<string>();
+
+      if (decksRes.data) {
+        for (const d of decksRes.data) {
+          if (d.name) userSubjects.add(d.name);
+        }
+      }
+      if (sessionsRes.data) {
+        for (const s of sessionsRes.data) {
+          if (s.subject) userSubjects.add(s.subject);
+        }
+      }
+
+      if (userSubjects.size > 0) {
+        setSubjects(Array.from(userSubjects));
+        setSelectedSubject(Array.from(userSubjects)[0]);
+      }
+    };
+
+    fetchSubjects();
+  }, [user]);
 
   const activeSubject = customSubject.trim() || selectedSubject;
 

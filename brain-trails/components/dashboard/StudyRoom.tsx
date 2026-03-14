@@ -1,9 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import OwlCompanion from "../ui/OwlCompanion";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { gameText } from "@/constants/gameText";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+
+/** Daily study goal in minutes (100% = this many minutes studied) */
+const DAILY_STUDY_GOAL_MINUTES = 120;
+/** Daily session goal (100% = this many completed sessions) */
+const DAILY_SESSION_GOAL = 4;
 
 /**
  * Status bar component (Energy/Focus style)
@@ -21,7 +29,7 @@ function StatusBar({
   color: string;
   isSun: boolean;
 }) {
-  const percentage = (value / maxValue) * 100;
+  const percentage = Math.min((value / maxValue) * 100, 100);
   
   return (
     <div className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-sm border ${
@@ -40,23 +48,76 @@ function StatusBar({
   );
 }
 
+/** Speech bubble messages based on today's progress */
+function getSpeechBubble(studyMinutes: number, sessions: number): string {
+  if (studyMinutes === 0) return "Ready to study? Let's go!";
+  if (studyMinutes >= DAILY_STUDY_GOAL_MINUTES) return "Outstanding work today, traveler!";
+  if (sessions >= DAILY_SESSION_GOAL) return "You've crushed your session goal!";
+  if (studyMinutes >= 60) return "Great progress! Keep it up!";
+  if (studyMinutes >= 30) return "Nice start! You're on a roll!";
+  return "Good first step! Keep going!";
+}
+
+/** Owl mood based on today's progress */
+function getOwlMood(studyMinutes: number): "idle" | "studying" | "celebrating" | "sleepy" {
+  if (studyMinutes >= DAILY_STUDY_GOAL_MINUTES) return "celebrating";
+  if (studyMinutes >= 60) return "celebrating";
+  if (studyMinutes >= 30) return "studying";
+  return "idle";
+}
+
 /**
- * 🦉 StudyRoom Component (Owl Scholar Companion Center)
+ * StudyRoom Component (Owl Scholar Companion Center)
  * 
  * Main center piece with animated owl companion, status bars, and speech bubble.
- * Scaled up 15% to be the dominant "protagonist" of the screen.
+ * Status bars reflect today's real focus session data from Supabase.
  */
 export default function StudyRoom() {
   const { card, isSun } = useCardStyles();
+  const { user } = useAuth();
+  const [todayMinutes, setTodayMinutes] = useState(0);
+  const [todaySessions, setTodaySessions] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchTodayStats = async () => {
+      // Start of today (UTC)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      const { data, error } = await supabase
+        .from("focus_sessions")
+        .select("duration_minutes")
+        .eq("user_id", user.id)
+        .gte("completed_at", todayISO);
+
+      if (error) {
+        console.error("StudyRoom: failed to fetch today's sessions:", error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const totalMinutes = data.reduce((sum, s) => sum + s.duration_minutes, 0);
+        setTodayMinutes(totalMinutes);
+        setTodaySessions(data.length);
+      }
+    };
+
+    fetchTodayStats();
+  }, [user]);
+
+  const speechBubble = getSpeechBubble(todayMinutes, todaySessions);
+  const owlMood = getOwlMood(todayMinutes);
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.1 }}
-      className={`${card} p-5 flex flex-col relative z-10`}
+      className={`${card} p-4 sm:p-5 flex flex-col relative z-10 lg:scale-105`}
       style={{ 
-        transform: "scale(1.05)", 
         transformOrigin: "center center" 
       }}
     >
@@ -70,12 +131,12 @@ export default function StudyRoom() {
         }`}
       >
         <p className={`text-sm font-medium font-[family-name:var(--font-quicksand)] ${isSun ? "text-purple-700" : "text-white"}`}>
-          Ready to study? Let&apos;s go! 🚀
+          {speechBubble}
         </p>
       </motion.div>
 
       {/* Owl Scholar Companion */}
-      <div className="w-full h-[340px] flex items-center justify-center relative">
+      <div className="w-full h-[260px] sm:h-[340px] flex items-center justify-center relative">
         {/* Contact/Grounding Shadow */}
         <div 
           className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-[40%] h-6 rounded-[100%] blur-xl ${
@@ -84,24 +145,24 @@ export default function StudyRoom() {
         />
         
         <OwlCompanion 
-          mood="idle"
+          mood={owlMood}
           className="relative z-10"
         />
       </div>
 
-      {/* Status Bars */}
+      {/* Status Bars — today's real data */}
       <div className="flex justify-center gap-4 mt-4">
         <StatusBar 
           label={gameText.study.study} 
-          value={85} 
-          maxValue={100} 
+          value={todayMinutes} 
+          maxValue={DAILY_STUDY_GOAL_MINUTES} 
           color="bg-green-400"
           isSun={isSun}
         />
         <StatusBar 
           label={gameText.study.focus} 
-          value={72} 
-          maxValue={100} 
+          value={todaySessions} 
+          maxValue={DAILY_SESSION_GOAL} 
           color="bg-blue-400"
           isSun={isSun}
         />

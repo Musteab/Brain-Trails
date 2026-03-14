@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Send, X, Loader2, Wand2, BookOpen, HelpCircle, PenTool } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 interface Message {
   id: string;
@@ -33,6 +34,8 @@ const quickActions: QuickAction[] = [
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle }: AIFamiliarProps) {
+  const { theme } = useTheme();
+  const isSun = theme === "sun";
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -141,25 +144,29 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 400, opacity: 0 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed right-0 top-0 h-full w-80 z-50 flex flex-col bg-white/95 backdrop-blur-xl border-l border-slate-200 shadow-2xl"
+        className={`fixed right-0 top-0 h-full w-80 z-50 flex flex-col backdrop-blur-xl shadow-2xl border-l ${
+          isSun
+            ? "bg-white/95 border-slate-200"
+            : "bg-slate-900/95 border-white/10"
+        }`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50">
+        <div className={`p-4 border-b ${isSun ? "border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50" : "border-white/10 bg-gradient-to-r from-violet-950/50 to-purple-950/50"}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-violet-500 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-slate-800">AI Familiar</h3>
-                <p className="text-xs text-slate-500">Study companion</p>
+                <h3 className={`font-bold text-sm ${isSun ? "text-slate-800" : "text-white"}`}>AI Familiar</h3>
+                <p className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Study companion</p>
               </div>
             </div>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={onToggle}
-              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+              className={`p-1.5 rounded-lg ${isSun ? "hover:bg-slate-100 text-slate-400" : "hover:bg-white/10 text-slate-400"}`}
             >
               <X className="w-4 h-4" />
             </motion.button>
@@ -167,7 +174,7 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
         </div>
 
         {/* Quick Actions */}
-        <div className="p-3 border-b border-slate-100 flex flex-wrap gap-1.5">
+        <div className={`p-3 border-b ${isSun ? "border-slate-100" : "border-white/10"} flex flex-wrap gap-1.5`}>
           {quickActions.map((action) => (
             <motion.button
               key={action.label}
@@ -175,7 +182,11 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
               whileTap={{ scale: 0.97 }}
               onClick={() => sendMessage(action.prompt)}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-medium transition-colors disabled:opacity-50"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors disabled:opacity-50 ${
+                isSun
+                  ? "bg-violet-50 hover:bg-violet-100 text-violet-700"
+                  : "bg-violet-500/20 hover:bg-violet-500/30 text-violet-300"
+              }`}
             >
               {action.icon}
               {action.label}
@@ -196,7 +207,9 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
                 className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
                   msg.role === "user"
                     ? "bg-violet-500 text-white rounded-br-md"
-                    : "bg-slate-100 text-slate-700 rounded-bl-md"
+                    : isSun
+                      ? "bg-slate-100 text-slate-700 rounded-bl-md"
+                      : "bg-white/10 text-slate-200 rounded-bl-md"
                 }`}
               >
                 {msg.content}
@@ -205,9 +218,9 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
           ))}
           {isLoading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-              <div className="bg-slate-100 px-4 py-3 rounded-2xl rounded-bl-md flex items-center gap-2">
+              <div className={`px-4 py-3 rounded-2xl rounded-bl-md flex items-center gap-2 ${isSun ? "bg-slate-100" : "bg-white/10"}`}>
                 <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
-                <span className="text-xs text-slate-500">Thinking...</span>
+                <span className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Thinking...</span>
               </div>
             </motion.div>
           )}
@@ -215,14 +228,18 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
         </div>
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="p-3 border-t border-slate-100 bg-slate-50">
+        <form onSubmit={handleSubmit} className={`p-3 border-t ${isSun ? "border-slate-100 bg-slate-50" : "border-white/10 bg-slate-800/50"}`}>
           <div className="flex items-center gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask your familiar..."
-              className="flex-1 px-3 py-2 bg-white rounded-xl border border-slate-200 text-sm outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+              className={`flex-1 px-3 py-2 rounded-xl border text-sm outline-none transition-colors ${
+                isSun
+                  ? "bg-white border-slate-200 focus:border-violet-300 focus:ring-2 focus:ring-violet-100 text-slate-800 placeholder:text-slate-400"
+                  : "bg-slate-800 border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 text-white placeholder:text-slate-500"
+              }`}
               disabled={isLoading}
             />
             <motion.button

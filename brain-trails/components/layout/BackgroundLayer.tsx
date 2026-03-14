@@ -12,7 +12,7 @@ import { useTheme } from "@/context/ThemeContext";
  * 
  * Includes radial gradient overlay for focus effect
  */
-export default function SplineBackground() {
+export default function BackgroundLayer() {
   const { theme } = useTheme();
 
   if (theme === "moon") {

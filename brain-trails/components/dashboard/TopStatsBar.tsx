@@ -4,10 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, LogOut, ChevronDown, User as UserIcon, Settings } from "lucide-react";
+import { Zap, LogOut, ChevronDown, User as UserIcon, Settings, Users } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePresence } from "@/hooks/usePresence";
 import { gameText } from "@/constants/gameText";
 
 /**
@@ -22,6 +23,7 @@ export default function TopStatsBar() {
   const router = useRouter();
   const { theme } = useTheme();
   const { profile, user, signOut, isLoading } = useAuth();
+  const onlineCount = usePresence();
   const isSun = theme === "sun";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   
@@ -42,22 +44,45 @@ export default function TopStatsBar() {
       animate={{ y: 0, opacity: 1 }}
       className="w-full flex items-center justify-between"
     >
-      {/* Left: Gold Display */}
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border-2 ${
-          isSun 
-            ? "bg-amber-100/80 border-amber-300" 
-            : "bg-amber-500/20 border-amber-400/30"
-        }`}
-      >
-        <span className="text-lg">🪙</span>
-        {isLoading ? (
-          <div className={`w-8 h-4 rounded animate-pulse ${isSun ? "bg-amber-200" : "bg-amber-500/40"}`} />
-        ) : (
-          <span className={`font-bold text-sm ${isSun ? "text-amber-700" : "text-amber-300"}`}>{gold}</span>
-        )}
-      </motion.div>
+      {/* Left: Gold Display + Presence */}
+      <div className="flex items-center gap-2">
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border-2 ${
+            isSun 
+              ? "bg-amber-100/80 border-amber-300" 
+              : "bg-amber-500/20 border-amber-400/30"
+          }`}
+        >
+          <span className="text-lg">🪙</span>
+          {isLoading ? (
+            <div className={`w-8 h-4 rounded animate-pulse ${isSun ? "bg-amber-200" : "bg-amber-500/40"}`} />
+          ) : (
+            <span className={`font-bold text-sm ${isSun ? "text-amber-700" : "text-amber-300"}`}>{gold}</span>
+          )}
+        </motion.div>
+
+        {/* Online Travelers Presence */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-sm border ${
+            isSun
+              ? "bg-emerald-50/80 border-emerald-200"
+              : "bg-emerald-500/10 border-emerald-400/20"
+          }`}
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <Users className={`w-3.5 h-3.5 ${isSun ? "text-emerald-600" : "text-emerald-400"}`} />
+          <span className={`text-xs font-medium ${isSun ? "text-emerald-700" : "text-emerald-300"}`}>
+            {onlineCount} {onlineCount === 1 ? "Traveler" : "Travelers"}
+          </span>
+        </motion.div>
+      </div>
 
       {/* Center: Level, XP Progress & Theme Toggle */}
       <div className="flex items-center gap-3">

@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(sessionUser);
       
       if (sessionUser) {
-        console.log("AuthContext: fetching profile for", sessionUser.id);
+        // Fetch profile on login
         await fetchProfile(sessionUser.id);
       } else {
         setProfile(null);
@@ -129,7 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // INITIAL_SESSION fires on mount and covers getSession().
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        console.log("AuthContext: auth state changed, event:", _event, "session:", session ? "exists" : "null");
         setSession(session);
         await handleSession(session?.user ?? null);
       }

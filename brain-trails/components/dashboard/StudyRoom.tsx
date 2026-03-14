@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import OwlCompanion from "../ui/OwlCompanion";
 import { useCardStyles } from "@/hooks/useCardStyles";
+import { gameText } from "@/constants/gameText";
 
 /**
  * Status bar component (Energy/Focus style)
@@ -91,14 +92,14 @@ export default function StudyRoom() {
       {/* Status Bars */}
       <div className="flex justify-center gap-4 mt-4">
         <StatusBar 
-          label="Energy" 
+          label={gameText.study.study} 
           value={85} 
           maxValue={100} 
           color="bg-green-400"
           isSun={isSun}
         />
         <StatusBar 
-          label="Focus" 
+          label={gameText.study.focus} 
           value={72} 
           maxValue={100} 
           color="bg-blue-400"

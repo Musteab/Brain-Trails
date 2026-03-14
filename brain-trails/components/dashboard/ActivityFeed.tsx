@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { formatDistanceToNow } from "date-fns";
+import { gameText } from "@/constants/gameText";
 
 interface ActivityEvent {
   id: string;
@@ -55,19 +56,19 @@ const ActivityFeed = memo(function ActivityFeed() {
 
         switch (log.activity_type) {
           case 'focus':
-            action = "Completed a focus session";
+            action = `Completed a ${gameText.time.pomodoro.toLowerCase()}`;
             icon = "⏱️";
             break;
           case 'flashcard':
-            action = "Reviewed flashcards";
+            action = `Reviewed ${gameText.study.flashcards.toLowerCase()}`;
             icon = "📚";
             break;
           case 'note':
-            action = "Scribed a magical note";
+            action = "Scribed a magical scroll";
             icon = "📜";
             break;
           case 'quest':
-            action = "Completed a heroic bounty";
+            action = `Completed a heroic ${gameText.tasks.todo.toLowerCase()}`;
             icon = "⚔️";
             break;
           case 'login':
@@ -130,7 +131,7 @@ const ActivityFeed = memo(function ActivityFeed() {
           <h3 className={`${title} text-base font-bold`}>
             Adventure Feed
           </h3>
-          <p className={`${subtitle} text-xs`}>Your recent activity</p>
+          <p className={`${subtitle} text-xs`}>Your recent {gameText.tasks.tasks.toLowerCase()}</p>
         </div>
       </div>
 
@@ -143,7 +144,7 @@ const ActivityFeed = memo(function ActivityFeed() {
           ))
         ) : events.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center text-sm opacity-50">
-            No activity yet. Start a focus session or review flashcards!
+            {gameText.status.empty}
           </div>
         ) : (
           <AnimatePresence>

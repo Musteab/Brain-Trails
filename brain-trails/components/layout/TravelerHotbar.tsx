@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { gameText } from "@/constants/gameText";
 
 /**
  * Hotbar item configuration with emoji/sticker-style icons
@@ -15,12 +16,12 @@ interface HotbarItem {
 }
 
 const hotbarItems: HotbarItem[] = [
-  { id: "dashboard", emoji: "⛺", label: "Camp", href: "/" },
-  { id: "focus", emoji: "🌿", label: "Focus", href: "/focus" },
-  { id: "battle", emoji: "⚔️", label: "Battle", href: "/battle" },
-  { id: "notes", emoji: "📜", label: "Scrolls", href: "/notes" },
-  { id: "flashcards", emoji: "🃏", label: "Cards", href: "/flashcards" },
-  { id: "settings", emoji: "⚙️", label: "Settings", href: "/settings" },
+  { id: "dashboard", emoji: "⛺", label: gameText.hotbar.home, href: "/" },
+  { id: "focus", emoji: "🌿", label: gameText.hotbar.focus, href: "/focus" },
+  { id: "battle", emoji: "⚔️", label: gameText.hotbar.battle, href: "/battle" },
+  { id: "notes", emoji: "📜", label: gameText.study.notes, href: "/notes" },
+  { id: "flashcards", emoji: "🃏", label: gameText.hotbar.cards, href: "/flashcards" },
+  { id: "settings", emoji: "⚙️", label: gameText.navigation.settings, href: "/settings" },
 ];
 
 /**

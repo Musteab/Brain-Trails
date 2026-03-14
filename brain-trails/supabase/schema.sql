@@ -1,6 +1,10 @@
 -- ============================================
--- Brain Trails - Database Schema
--- Run this in Supabase SQL Editor
+-- Brain Trails - Full Database Schema
+-- Run this in Supabase SQL Editor for a fresh setup.
+--
+-- For incremental changes, see supabase/migrations/
+-- which contains the same schema split into individual
+-- migration files (one per table/feature).
 -- ============================================
 
 -- Users profile (extends Supabase auth.users)

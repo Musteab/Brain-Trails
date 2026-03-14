@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import FocusTimer from "@/components/focus/FocusTimer";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { useSettings } from "@/hooks/useSettings";
+import { gameText } from "@/constants/gameText";
 
 const subjects = ["Math", "Physics", "Biology", "Chemistry", "History", "English", "Computer Science"];
 const durations = [15, 25, 30, 45, 60];
@@ -67,7 +68,7 @@ export default function FocusPage() {
               🌿
             </motion.div>
             <h1 className="text-3xl font-bold text-white font-[family-name:var(--font-nunito)] drop-shadow-md">
-              Focus Garden
+              {gameText.study.focus}
             </h1>
             <p className="text-white/70 mt-2 font-[family-name:var(--font-quicksand)]">
               What will you grow today?
@@ -134,7 +135,7 @@ export default function FocusPage() {
             onClick={() => setIsStarted(true)}
             className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-bold text-lg shadow-xl shadow-emerald-500/30 hover:bg-emerald-600 transition-colors font-[family-name:var(--font-nunito)]"
           >
-            🌱 Start Growing
+            🌱 {gameText.actions.start}
           </motion.button>
         </motion.div>
       </div>

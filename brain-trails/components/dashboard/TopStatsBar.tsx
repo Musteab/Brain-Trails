@@ -8,6 +8,7 @@ import { Zap, LogOut, ChevronDown, User as UserIcon, Settings } from "lucide-rea
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { gameText } from "@/constants/gameText";
 
 /**
  * 🎮 TopStatsBar Component
@@ -135,7 +136,7 @@ export default function TopStatsBar() {
               <div className={`h-3 w-16 mb-0.5 rounded animate-pulse ${isSun ? "bg-slate-200" : "bg-white/20"}`} />
             ) : (
               <p className={`text-xs font-bold leading-tight ${isSun ? "text-slate-700" : "text-slate-200"}`}>
-                {profile?.display_name || user?.email?.split('@')[0] || "Traveler"}
+                {profile?.display_name || user?.email?.split('@')[0] || gameText.user.user}
               </p>
             )}
           </div>
@@ -166,7 +167,7 @@ export default function TopStatsBar() {
                   }`}
                 >
                   <Settings className="w-4 h-4" />
-                  Settings
+                  {gameText.navigation.settings}
                 </button>
                 <button
                   onClick={handleSignOut}
@@ -177,7 +178,7 @@ export default function TopStatsBar() {
                   }`}
                 >
                   <LogOut className="w-4 h-4" />
-                  Logout
+                  {gameText.navigation.logout}
                 </button>
               </div>
             </motion.div>

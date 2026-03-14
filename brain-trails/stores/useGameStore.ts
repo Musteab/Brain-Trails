@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import type { Json } from "@/lib/database.types";
 
 interface GameStats {
   xp: number;
@@ -22,7 +23,7 @@ interface GameStoreState extends GameStats {
     userId: string,
     activityType: "focus" | "flashcard" | "note" | "quest" | "login",
     xpEarned: number,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, Json>
   ) => Promise<void>;
   /** Reset store (on logout) */
   reset: () => void;

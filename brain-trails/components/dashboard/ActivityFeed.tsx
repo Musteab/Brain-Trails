@@ -4,33 +4,35 @@ import { useEffect, useState, memo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { formatDistanceToNow } from "date-fns";
 
 interface ActivityEvent {
   id: string;
-  user: string;
   action: string;
   time: string;
   icon: string;
+  xp: number;
 }
 
 const ActivityFeed = memo(function ActivityFeed() {
   const { card, title, subtitle, isSun } = useCardStyles();
+  const { user } = useAuth();
   const [events, setEvents] = useState<ActivityEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) return;
+
     const fetchFeed = async () => {
-      // Fetch latest 6 global activities
+      // Fetch the current user's latest 6 activities.
+      // RLS restricts adventure_log to own rows only, so a global feed
+      // would return empty for other users' entries. Keep it personal.
       const { data, error } = await supabase
         .from('adventure_log')
-        .select(`
-          id,
-          activity_type,
-          created_at,
-          profiles:user_id ( display_name )
-        `)
+        .select('id, activity_type, xp_earned, created_at')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(6);
 
@@ -43,46 +45,43 @@ const ActivityFeed = memo(function ActivityFeed() {
       interface ActivityLogRow {
         id: string;
         activity_type: string;
+        xp_earned: number;
         created_at: string;
-        profiles: { display_name: string }[] | { display_name: string } | null;
       }
 
       const formattedEvents: ActivityEvent[] = (data || []).map((log: ActivityLogRow) => {
-        // Map activity types to fun text and icons
         let action = "completed a mysterious task";
         let icon = "✨";
 
         switch (log.activity_type) {
           case 'focus':
-            action = "completed a focus session";
+            action = "Completed a focus session";
             icon = "⏱️";
             break;
           case 'flashcard':
-            action = "mastered flashcards";
+            action = "Reviewed flashcards";
             icon = "📚";
             break;
           case 'note':
-            action = "scribed a new magical note";
+            action = "Scribed a magical note";
             icon = "📜";
             break;
           case 'quest':
-            action = "completed a heroic bounty";
+            action = "Completed a heroic bounty";
             icon = "⚔️";
             break;
           case 'login':
-            action = "entered the realm";
+            action = "Entered the realm";
             icon = "🚪";
             break;
         }
 
-        const profileData = Array.isArray(log.profiles) ? log.profiles[0] : log.profiles;
-
         return {
           id: log.id,
-          user: profileData?.display_name || "Unknown Traveler",
           action,
           time: formatDistanceToNow(new Date(log.created_at), { addSuffix: true }),
           icon,
+          xp: log.xp_earned ?? 0,
         };
       });
 
@@ -92,10 +91,15 @@ const ActivityFeed = memo(function ActivityFeed() {
 
     fetchFeed();
 
-    // Listen for live global activity (if RLS allows, otherwise falls back to static fetch for now)
+    // Listen for new activities for this user
     const channel = supabase
-      .channel('global_activity')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'adventure_log' }, () => {
+      .channel('user_activity')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'adventure_log',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
         fetchFeed();
       })
       .subscribe();
@@ -103,7 +107,7 @@ const ActivityFeed = memo(function ActivityFeed() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   return (
     <motion.div
@@ -124,9 +128,9 @@ const ActivityFeed = memo(function ActivityFeed() {
         </div>
         <div>
           <h3 className={`${title} text-base font-bold`}>
-            Realm Feed
+            Adventure Feed
           </h3>
-          <p className={`${subtitle} text-xs`}>Live study activity</p>
+          <p className={`${subtitle} text-xs`}>Your recent activity</p>
         </div>
       </div>
 
@@ -139,7 +143,7 @@ const ActivityFeed = memo(function ActivityFeed() {
           ))
         ) : events.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center text-sm opacity-50">
-            It is very quiet in the realm right now...
+            No activity yet. Start a focus session or review flashcards!
           </div>
         ) : (
           <AnimatePresence>
@@ -165,9 +169,11 @@ const ActivityFeed = memo(function ActivityFeed() {
                 {/* Event Content */}
                 <div className="flex-1 min-w-0 leading-tight">
                   <p className={`text-xs font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-700" : "text-white"}`}>
-                    <span className={`font-bold ${isSun ? "text-indigo-600" : "text-indigo-400"}`}>{event.user}</span>{" "}
-                    <span className={isSun ? "text-slate-500" : "text-slate-400"}>{event.action}</span>
+                    {event.action}
                   </p>
+                  {event.xp > 0 && (
+                    <span className="text-[10px] font-bold text-amber-500">+{event.xp} XP</span>
+                  )}
                 </div>
 
                 {/* Time */}

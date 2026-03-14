@@ -39,9 +39,10 @@ export default function LoginPage() {
     if (signInError) {
       setError(signInError.message);
       setIsSubmitting(false);
-    } else {
-      router.push("/");
     }
+    // On success, don't manually router.push here.
+    // The onAuthStateChange listener in AuthContext will set user + profile,
+    // and the useEffect below will redirect once both are ready.
   };
 
   const handleGoogleLogin = async () => {

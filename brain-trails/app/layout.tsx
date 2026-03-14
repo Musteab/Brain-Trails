@@ -7,6 +7,7 @@ import ToastContainer from "@/components/ui/ToastContainer";
 import CommandPalette from "@/components/ui/CommandPalette";
 import XPPopup from "@/components/ui/XPPopup";
 import LevelUpCelebration from "@/components/ui/LevelUpCelebration";
+import AppInitializer from "@/components/ui/AppInitializer";
 import "./globals.css";
 
 // Nunito - Playful, rounded font for headings (Nintendo feel)
@@ -63,6 +64,7 @@ export default function RootLayout({
               <CommandPalette />
               <XPPopup />
               <LevelUpCelebration />
+              <AppInitializer />
             </ErrorBoundary>
           </ThemeProvider>
         </AuthProvider>

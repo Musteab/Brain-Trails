@@ -26,6 +26,23 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Safely add columns that may be missing on existing profiles tables
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='avatar_frame') THEN
+    ALTER TABLE profiles ADD COLUMN avatar_frame TEXT DEFAULT 'default';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='bio') THEN
+    ALTER TABLE profiles ADD COLUMN bio TEXT DEFAULT '';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='guild_id') THEN
+    ALTER TABLE profiles ADD COLUMN guild_id UUID;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='streak_last_date') THEN
+    ALTER TABLE profiles ADD COLUMN streak_last_date DATE;
+  END IF;
+END $$;
+
 -- Focus timer sessions
 CREATE TABLE IF NOT EXISTS focus_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -180,9 +197,27 @@ CREATE TABLE IF NOT EXISTS guilds (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Add FK from profiles.guild_id to guilds (after guilds table exists)
-ALTER TABLE profiles ADD CONSTRAINT fk_profiles_guild
-  FOREIGN KEY (guild_id) REFERENCES guilds(id) ON DELETE SET NULL;
+-- Add guild_id column to profiles if it doesn't exist, then add FK
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'guild_id'
+  ) THEN
+    ALTER TABLE profiles ADD COLUMN guild_id UUID;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'fk_profiles_guild' AND table_schema = 'public'
+  ) THEN
+    ALTER TABLE profiles ADD CONSTRAINT fk_profiles_guild
+      FOREIGN KEY (guild_id) REFERENCES guilds(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS guild_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -299,110 +334,96 @@ ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cosmetics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_cosmetics ENABLE ROW LEVEL SECURITY;
 
+-- Helper: safely create a policy (skip if it already exists)
+-- We use DO $$ blocks with exception handling so re-running is idempotent.
+
 -- Profiles: users can read all profiles, edit only their own
-CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+DO $$ BEGIN CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Focus sessions: users can only see/create their own
-CREATE POLICY "Users can view own sessions" ON focus_sessions FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own sessions" ON focus_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Users can view own sessions" ON focus_sessions FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own sessions" ON focus_sessions FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Notes: users can only see/edit their own
-CREATE POLICY "Users can view own notes" ON notes FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own notes" ON notes FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own notes" ON notes FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete own notes" ON notes FOR DELETE USING (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Users can view own notes" ON notes FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own notes" ON notes FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can update own notes" ON notes FOR UPDATE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can delete own notes" ON notes FOR DELETE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Decks: users can only see/edit their own
-CREATE POLICY "Users can view own decks" ON decks FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own decks" ON decks FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own decks" ON decks FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete own decks" ON decks FOR DELETE USING (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Users can view own decks" ON decks FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own decks" ON decks FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can update own decks" ON decks FOR UPDATE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can delete own decks" ON decks FOR DELETE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Cards: users can manage cards in their own decks
-CREATE POLICY "Users can view own cards" ON cards FOR SELECT
-  USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
-CREATE POLICY "Users can insert own cards" ON cards FOR INSERT
-  WITH CHECK (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
-CREATE POLICY "Users can update own cards" ON cards FOR UPDATE
-  USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
-CREATE POLICY "Users can delete own cards" ON cards FOR DELETE
-  USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
+DO $$ BEGIN CREATE POLICY "Users can view own cards" ON cards FOR SELECT USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own cards" ON cards FOR INSERT WITH CHECK (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can update own cards" ON cards FOR UPDATE USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can delete own cards" ON cards FOR DELETE USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Adventure log: users can see/create their own
-CREATE POLICY "Users can view own log" ON adventure_log FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own log" ON adventure_log FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Users can view own log" ON adventure_log FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own log" ON adventure_log FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Settings: users can only manage their own
-CREATE POLICY "Users can view own settings" ON user_settings FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Users can view own settings" ON user_settings FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can update own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Boss battles: users can view/create their own
-CREATE POLICY "Users can view own battles" ON boss_battles FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own battles" ON boss_battles FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Users can view own battles" ON boss_battles FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own battles" ON boss_battles FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Knowledge paths: users can only manage their own
-CREATE POLICY "Users can view own paths" ON knowledge_paths FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own paths" ON knowledge_paths FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own paths" ON knowledge_paths FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete own paths" ON knowledge_paths FOR DELETE USING (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Users can view own paths" ON knowledge_paths FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own paths" ON knowledge_paths FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can update own paths" ON knowledge_paths FOR UPDATE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can delete own paths" ON knowledge_paths FOR DELETE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Knowledge nodes: users can manage nodes in their own paths
-CREATE POLICY "Users can view own nodes" ON knowledge_nodes FOR SELECT
-  USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
-CREATE POLICY "Users can insert own nodes" ON knowledge_nodes FOR INSERT
-  WITH CHECK (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
-CREATE POLICY "Users can update own nodes" ON knowledge_nodes FOR UPDATE
-  USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
-CREATE POLICY "Users can delete own nodes" ON knowledge_nodes FOR DELETE
-  USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
+DO $$ BEGIN CREATE POLICY "Users can view own nodes" ON knowledge_nodes FOR SELECT USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can insert own nodes" ON knowledge_nodes FOR INSERT WITH CHECK (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can update own nodes" ON knowledge_nodes FOR UPDATE USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can delete own nodes" ON knowledge_nodes FOR DELETE USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Guilds: anyone can view guilds, members can update, leader can delete
-CREATE POLICY "Guilds are viewable by everyone" ON guilds FOR SELECT USING (true);
-CREATE POLICY "Anyone can create a guild" ON guilds FOR INSERT WITH CHECK (auth.uid() = leader_id);
-CREATE POLICY "Leaders can update own guild" ON guilds FOR UPDATE USING (auth.uid() = leader_id);
-CREATE POLICY "Leaders can delete own guild" ON guilds FOR DELETE USING (auth.uid() = leader_id);
+DO $$ BEGIN CREATE POLICY "Guilds are viewable by everyone" ON guilds FOR SELECT USING (true); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Anyone can create a guild" ON guilds FOR INSERT WITH CHECK (auth.uid() = leader_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Leaders can update own guild" ON guilds FOR UPDATE USING (auth.uid() = leader_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Leaders can delete own guild" ON guilds FOR DELETE USING (auth.uid() = leader_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Guild members: guild members can view, user can join/leave
-CREATE POLICY "Guild members are viewable by guild members" ON guild_members FOR SELECT
-  USING (guild_id IN (SELECT guild_id FROM guild_members gm WHERE gm.user_id = auth.uid()));
-CREATE POLICY "Users can join guilds" ON guild_members FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can leave guilds" ON guild_members FOR DELETE USING (auth.uid() = user_id);
-CREATE POLICY "Leaders can manage members" ON guild_members FOR UPDATE
-  USING (guild_id IN (SELECT id FROM guilds WHERE leader_id = auth.uid()));
+DO $$ BEGIN CREATE POLICY "Guild members are viewable by guild members" ON guild_members FOR SELECT USING (guild_id IN (SELECT guild_id FROM guild_members gm WHERE gm.user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can join guilds" ON guild_members FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can leave guilds" ON guild_members FOR DELETE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Leaders can manage members" ON guild_members FOR UPDATE USING (guild_id IN (SELECT id FROM guilds WHERE leader_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Guild messages: guild members can view and send
-CREATE POLICY "Members can view guild messages" ON guild_messages FOR SELECT
-  USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
-CREATE POLICY "Members can send guild messages" ON guild_messages FOR INSERT
-  WITH CHECK (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
+DO $$ BEGIN CREATE POLICY "Members can view guild messages" ON guild_messages FOR SELECT USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Members can send guild messages" ON guild_messages FOR INSERT WITH CHECK (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Guild raids: guild members can view, leaders can create
-CREATE POLICY "Members can view raids" ON guild_raids FOR SELECT
-  USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
-CREATE POLICY "Leaders can create raids" ON guild_raids FOR INSERT
-  WITH CHECK (guild_id IN (SELECT id FROM guilds WHERE leader_id = auth.uid()));
-CREATE POLICY "System can update raids" ON guild_raids FOR UPDATE
-  USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
+DO $$ BEGIN CREATE POLICY "Members can view raids" ON guild_raids FOR SELECT USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Leaders can create raids" ON guild_raids FOR INSERT WITH CHECK (guild_id IN (SELECT id FROM guilds WHERE leader_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "System can update raids" ON guild_raids FOR UPDATE USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid())); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Guild raid contributions
-CREATE POLICY "Members can view contributions" ON guild_raid_contributions FOR SELECT
-  USING (raid_id IN (SELECT id FROM guild_raids WHERE guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid())));
-CREATE POLICY "Members can contribute" ON guild_raid_contributions FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Members can view contributions" ON guild_raid_contributions FOR SELECT USING (raid_id IN (SELECT id FROM guild_raids WHERE guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()))); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Members can contribute" ON guild_raid_contributions FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Achievements: everyone can view definitions, users manage their own unlocks
-CREATE POLICY "Achievements are viewable by everyone" ON achievements FOR SELECT USING (true);
-CREATE POLICY "Users can view own achievement unlocks" ON user_achievements FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can unlock achievements" ON user_achievements FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Achievements are viewable by everyone" ON achievements FOR SELECT USING (true); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can view own achievement unlocks" ON user_achievements FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can unlock achievements" ON user_achievements FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Cosmetics: everyone can view shop, users manage their own purchases
-CREATE POLICY "Cosmetics are viewable by everyone" ON cosmetics FOR SELECT USING (true);
-CREATE POLICY "Users can view own cosmetics" ON user_cosmetics FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can purchase cosmetics" ON user_cosmetics FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can equip cosmetics" ON user_cosmetics FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN CREATE POLICY "Cosmetics are viewable by everyone" ON cosmetics FOR SELECT USING (true); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can view own cosmetics" ON user_cosmetics FOR SELECT USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can purchase cosmetics" ON user_cosmetics FOR INSERT WITH CHECK (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE POLICY "Users can equip cosmetics" ON user_cosmetics FOR UPDATE USING (auth.uid() = user_id); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ============================================
 -- Trigger: auto-create profile on signup

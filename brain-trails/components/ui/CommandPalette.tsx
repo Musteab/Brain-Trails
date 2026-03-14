@@ -14,6 +14,7 @@ import {
   Trophy,
   ShoppingBag,
   Settings,
+  BarChart3,
   Play,
   FilePlus,
   Sun,
@@ -64,6 +65,7 @@ export default function CommandPalette() {
       { id: "nav-achievements", label: "Achievements",  icon: <Trophy className="w-4 h-4" />,      category: "navigate", action: () => router.push("/achievements") },
       { id: "nav-shop",         label: "Shop",          icon: <ShoppingBag className="w-4 h-4" />, category: "navigate", action: () => router.push("/shop") },
       { id: "nav-settings",     label: "Settings",      icon: <Settings className="w-4 h-4" />,    category: "navigate", action: () => router.push("/settings") },
+      { id: "nav-report",       label: "Weekly Report", icon: <BarChart3 className="w-4 h-4" />,   category: "navigate", action: () => router.push("/report") },
       // Quick actions
       { id: "act-focus",        label: "Start Focus Session", icon: <Play className="w-4 h-4" />,    category: "action", action: () => router.push("/focus") },
       { id: "act-note",         label: "Create Note",         icon: <FilePlus className="w-4 h-4" />, category: "action", action: () => router.push("/notes") },

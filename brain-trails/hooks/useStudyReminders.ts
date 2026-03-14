@@ -30,8 +30,8 @@ function sendNotification(title: string, body: string) {
   try {
     new Notification(title, {
       body,
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
+      icon: "/icon-192.svg",
+      badge: "/icon-192.svg",
       tag: "brain-trails-reminder",
       renotify: true,
     } as NotificationOptions);

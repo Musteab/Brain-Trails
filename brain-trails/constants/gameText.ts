@@ -181,6 +181,7 @@ export const gameText = {
     guild: "Guild",
     achievements: "Trophies",
     shop: "Shop",
+    report: "Report",
   },
 } as const;
 

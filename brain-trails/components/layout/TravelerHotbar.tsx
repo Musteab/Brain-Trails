@@ -25,6 +25,7 @@ const hotbarItems: HotbarItem[] = [
   { id: "guild", emoji: "🛡️", label: gameText.hotbar.guild, href: "/guild" },
   { id: "achievements", emoji: "🏆", label: gameText.hotbar.achievements, href: "/achievements" },
   { id: "shop", emoji: "🛒", label: gameText.hotbar.shop, href: "/shop" },
+  { id: "report", emoji: "📊", label: gameText.hotbar.report, href: "/report" },
   { id: "settings", emoji: "⚙️", label: gameText.navigation.settings, href: "/settings" },
 ];
 

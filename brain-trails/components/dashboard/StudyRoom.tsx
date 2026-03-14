@@ -46,7 +46,7 @@ function StatusBar({
  * Scaled up 15% to be the dominant "protagonist" of the screen.
  */
 export default function StudyRoom() {
-  const { card, title, isSun } = useCardStyles();
+  const { card, isSun } = useCardStyles();
 
   return (
     <motion.div
@@ -69,7 +69,7 @@ export default function StudyRoom() {
         }`}
       >
         <p className={`text-sm font-medium font-[family-name:var(--font-quicksand)] ${isSun ? "text-purple-700" : "text-white"}`}>
-          Ready to study? Let's go! 🚀
+          Ready to study? Let&apos;s go! 🚀
         </p>
       </motion.div>
 

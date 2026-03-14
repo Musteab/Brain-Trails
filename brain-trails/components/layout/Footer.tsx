@@ -18,7 +18,7 @@ export default function Footer() {
         <p className={`font-serif italic text-lg mb-4 font-[family-name:var(--font-quicksand)] ${
           isSun ? "text-slate-600" : "text-slate-300"
         }`}>
-          "Every quest completed brings you closer to mastery..."
+          &ldquo;Every quest completed brings you closer to mastery...&rdquo;
         </p>
         
         {/* Signature with 3D Companion */}

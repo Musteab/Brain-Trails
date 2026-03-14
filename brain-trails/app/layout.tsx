@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Nunito, Quicksand } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { AuthProvider } from "@/context/AuthContext";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import ToastContainer from "@/components/ui/ToastContainer";
 import "./globals.css";
 
 // Nunito - Playful, rounded font for headings (Nintendo feel)
@@ -30,13 +33,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${nunito.variable} ${quicksand.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <ErrorBoundary>
+              {children}
+              <ToastContainer />
+            </ErrorBoundary>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

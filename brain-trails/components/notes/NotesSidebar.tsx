@@ -1,77 +1,112 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import {
   FolderOpen,
   Folder,
   FileText,
   ChevronRight,
   Plus,
-  MoreHorizontal,
   Trash2,
-  Edit2,
 } from "lucide-react";
 
 export interface NoteItem {
   id: string;
   title: string;
   type: "note";
+  folder: string;
 }
 
 export interface FolderItem {
-  id: string;
+  id: string; // The physical folder name
   title: string;
   type: "folder";
-  children: (NoteItem | FolderItem)[];
+  children: NoteItem[];
   isExpanded?: boolean;
 }
-
-export type TreeItem = NoteItem | FolderItem;
 
 interface NotesSidebarProps {
   onSelectNote: (noteId: string) => void;
   selectedNoteId?: string;
 }
 
-const initialTree: FolderItem[] = [
-  {
-    id: "folder-1",
-    title: "Mathematics",
-    type: "folder",
-    isExpanded: true,
-    children: [
-      { id: "note-1", title: "Chapter 3 Notes", type: "note" },
-      { id: "note-2", title: "Formula Sheet", type: "note" },
-    ],
-  },
-  {
-    id: "folder-2",
-    title: "Physics",
-    type: "folder",
-    isExpanded: false,
-    children: [
-      { id: "note-3", title: "Mechanics", type: "note" },
-      { id: "note-4", title: "Thermodynamics", type: "note" },
-    ],
-  },
-  {
-    id: "folder-3",
-    title: "Biology",
-    type: "folder",
-    isExpanded: false,
-    children: [
-      { id: "note-5", title: "Cell Structure", type: "note" },
-    ],
-  },
-];
-
 export default function NotesSidebar({ onSelectNote, selectedNoteId }: NotesSidebarProps) {
-  const [tree, setTree] = useState<FolderItem[]>(initialTree);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; itemId: string } | null>(null);
+  const { user } = useAuth();
+  const [folders, setFolders] = useState<FolderItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load notes from Supabase
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchNotes = async () => {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('id, title, folder')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error("Error loading notes:", error);
+        setIsLoading(false);
+        return;
+      }
+
+      // Group by folder
+      const folderMap = new Map<string, FolderItem>();
+      
+      // Initialize a Root folder if it doesn't exist
+      folderMap.set("root", {
+        id: "root",
+        title: "My Spellbooks",
+        type: "folder",
+        children: [],
+        isExpanded: true,
+      });
+
+      (data || []).forEach((note) => {
+        const folderName = note.folder || "root";
+        if (!folderMap.has(folderName)) {
+          folderMap.set(folderName, {
+            id: folderName,
+            title: folderName.charAt(0).toUpperCase() + folderName.slice(1),
+            type: "folder",
+            children: [],
+            isExpanded: true,
+          });
+        }
+        folderMap.get(folderName)!.children.push({
+          id: note.id,
+          title: note.title,
+          type: "note",
+          folder: folderName,
+        });
+      });
+
+      setFolders(Array.from(folderMap.values()));
+      setIsLoading(false);
+    };
+
+    fetchNotes();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel('notes_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notes', filter: `user_id=eq.${user.id}` }, () => {
+        fetchNotes();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const toggleFolder = (folderId: string) => {
-    setTree((prev) =>
+    setFolders((prev) =>
       prev.map((folder) =>
         folder.id === folderId
           ? { ...folder, isExpanded: !folder.isExpanded }
@@ -81,50 +116,90 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId }: NotesSide
   };
 
   const handleAddFolder = () => {
-    const newFolder: FolderItem = {
-      id: `folder-${Date.now()}`,
-      title: "New Folder",
-      type: "folder",
-      isExpanded: false,
-      children: [],
-    };
-    setTree((prev) => [...prev, newFolder]);
+    const newFolderName = `Folder ${folders.length}`;
+    if (folders.find(f => f.id === newFolderName)) return;
+
+    setFolders((prev) => [
+      ...prev,
+      {
+        id: newFolderName,
+        title: newFolderName,
+        type: "folder",
+        children: [],
+        isExpanded: true,
+      }
+    ]);
   };
 
-  const handleAddNote = (folderId: string) => {
-    const newNote: NoteItem = {
-      id: `note-${Date.now()}`,
-      title: "Untitled Note",
-      type: "note",
-    };
-    setTree((prev) =>
-      prev.map((folder) =>
-        folder.id === folderId
-          ? { ...folder, children: [...folder.children, newNote], isExpanded: true }
-          : folder
-      )
-    );
-    onSelectNote(newNote.id);
+  const handleAddNote = async (folderId: string) => {
+    if (!user) return;
+
+    // Create directly in Supabase. Realtime listener will update the UI automatically
+    const { data, error } = await supabase
+      .from('notes')
+      .insert({
+        user_id: user.id,
+        title: "Untitled Note",
+        folder: folderId,
+        content_html: JSON.stringify({ left: "", right: "" })
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error("Error creating note:", error);
+      alert("Failed to create note");
+      return;
+    }
+
+    if (data) {
+      onSelectNote(data.id);
+    }
+  };
+
+  const handleDeleteNote = async (e: React.MouseEvent, noteId: string) => {
+    e.stopPropagation();
+    if (!user || !confirm("Are you sure you want to delete this note?")) return;
+
+    const { error } = await supabase
+      .from('notes')
+      .delete()
+      .eq('id', noteId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error("Error deleting note:", error);
+      alert("Failed to delete note");
+    } else if (selectedNoteId === noteId) {
+      // If deleted note was selected, clear selection
+      onSelectNote(""); 
+    }
   };
 
   const renderNote = (note: NoteItem, depth: number = 1) => {
     const isSelected = selectedNoteId === note.id;
     return (
-      <motion.button
+      <div
         key={note.id}
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        onClick={() => onSelectNote(note.id)}
-        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all ${
+        className={`relative group w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all ${
           isSelected
             ? "bg-emerald-100 text-emerald-700"
-            : "hover:bg-slate-100 text-slate-600"
+            : "hover:bg-slate-100 text-slate-600 cursor-pointer"
         }`}
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
+        onClick={() => onSelectNote(note.id)}
       >
         <FileText className={`w-4 h-4 flex-shrink-0 ${isSelected ? "text-emerald-600" : "text-slate-400"}`} />
-        <span className="text-sm truncate">{note.title}</span>
-      </motion.button>
+        <span className="text-sm truncate flex-1">{note.title}</span>
+        
+        {/* Delete button (shows on hover) */}
+        <button
+          onClick={(e) => handleDeleteNote(e, note.id)}
+          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-opacity"
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
+      </div>
     );
   };
 
@@ -153,6 +228,7 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId }: NotesSide
             )}
             <span className="text-sm font-medium">{folder.title}</span>
           </motion.button>
+          
           <motion.button
             initial={{ opacity: 0 }}
             whileHover={{ scale: 1.1 }}
@@ -171,10 +247,12 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId }: NotesSide
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              {folder.children.map((child) =>
-                child.type === "note"
-                  ? renderNote(child as NoteItem, depth + 1)
-                  : renderFolder(child as FolderItem, depth + 1)
+              {folder.children.length > 0 ? (
+                folder.children.map((child) => renderNote(child, depth + 1))
+              ) : (
+                <div style={{ paddingLeft: `${(depth + 1) * 16 + 12}px` }} className="text-xs text-slate-400 py-1 font-italic">
+                  Empty folder (add a note)
+                </div>
               )}
             </motion.div>
           )}
@@ -195,13 +273,19 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId }: NotesSide
           <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
             <FolderOpen className="w-4 h-4 text-emerald-600" />
           </div>
-          <h2 className="font-bold text-slate-800">My Notes</h2>
+          <h2 className="font-bold text-slate-800">My Spellbooks</h2>
         </div>
       </div>
 
       {/* Tree */}
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-        {tree.map((folder) => renderFolder(folder))}
+        {isLoading ? (
+          <div className="p-4 flex justify-center">
+            <div className="animate-spin w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full" />
+          </div>
+        ) : (
+          folders.map((folder) => renderFolder(folder))
+        )}
       </div>
 
       {/* Add Folder Button */}
@@ -213,7 +297,7 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId }: NotesSide
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
-          <span>New Folder</span>
+          <span>New Spellbook</span>
         </motion.button>
       </div>
     </motion.div>

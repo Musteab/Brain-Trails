@@ -7,7 +7,6 @@ import { useCardStyles } from "@/hooks/useCardStyles";
 export default function CoopBossRaid() {
   const { card, isSun } = useCardStyles();
   const bossHp = 65; // Current boss HP percentage
-  const bossMaxHp = 100;
 
   return (
     <motion.div

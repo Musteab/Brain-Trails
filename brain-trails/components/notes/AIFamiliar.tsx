@@ -74,7 +74,18 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
       });
 
       if (!response.ok) {
-        throw new Error(`Backend returned ${response.status}`);
+        const errData = await response.json().catch(() => null);
+        const errMsg = errData?.error || `Backend returned ${response.status}`;
+
+        const errorMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: `⚠️ ${errMsg}`,
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, errorMessage]);
+        return;
       }
 
       const data = await response.json();
@@ -90,7 +101,7 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
     } catch (error) {
       console.error("AI chat error:", error);
 
-      // Fallback to helpful offline message
+      // Network error — backend is unreachable
       const fallbackMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: "assistant",

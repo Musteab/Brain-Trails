@@ -21,6 +21,10 @@ const hotbarItems: HotbarItem[] = [
   { id: "battle", emoji: "⚔️", label: gameText.hotbar.battle, href: "/battle" },
   { id: "notes", emoji: "📜", label: gameText.study.notes, href: "/notes" },
   { id: "flashcards", emoji: "🃏", label: gameText.hotbar.cards, href: "/flashcards" },
+  { id: "knowledge", emoji: "🗺️", label: gameText.hotbar.knowledge, href: "/knowledge" },
+  { id: "guild", emoji: "🛡️", label: gameText.hotbar.guild, href: "/guild" },
+  { id: "achievements", emoji: "🏆", label: gameText.hotbar.achievements, href: "/achievements" },
+  { id: "shop", emoji: "🛒", label: gameText.hotbar.shop, href: "/shop" },
   { id: "settings", emoji: "⚙️", label: gameText.navigation.settings, href: "/settings" },
 ];
 
@@ -60,7 +64,7 @@ function HotbarButton({
     >
       {/* Emoji Icon */}
       <motion.span 
-        className="text-xl drop-shadow-sm"
+        className={`${isExpanded ? "text-xl" : "text-lg"} drop-shadow-sm`}
         animate={isActive ? { scale: [1, 1.15, 1] } : {}}
         transition={{ duration: 0.3 }}
       >
@@ -161,7 +165,7 @@ export default function TravelerHotbar() {
         layout
         animate={{
           padding: isExpanded ? "12px 20px" : "8px 12px",
-          gap: isExpanded ? "8px" : "4px",
+          gap: isExpanded ? "8px" : "2px",
         }}
         transition={{
           type: "spring",

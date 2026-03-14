@@ -6,6 +6,7 @@ import { RotateCcw, ChevronLeft, ChevronRight, Plus, Shuffle, Brain, BrainCircui
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import { useGameStore, useUIStore } from "@/stores";
 import { supabase } from "@/lib/supabase";
 
 interface Flashcard {
@@ -52,6 +53,8 @@ const COLORS = [
 export default function FlashcardsPage() {
   const { theme } = useTheme();
   const { user, profile, refreshProfile } = useAuth();
+  const { awardXp, logActivity } = useGameStore();
+  const addToast = useUIStore((s) => s.addToast);
   const isSun = theme === "sun";
   
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -218,22 +221,14 @@ export default function FlashcardsPage() {
       .eq('id', currentCard.id);
 
     // Also award some DB XP for studying
-    if (profile) {
+    if (profile && user) {
       const gainedXp = 2; // small amount per card
-      const newXp = (profile.xp || 0) + gainedXp;
-      const newLevel = Math.max(1, Math.floor(newXp / 1000) + 1);
 
-      await supabase.from('profiles').update({
-        xp: newXp,
-        level: newLevel
-      }).eq('id', user?.id);
-
-      // Log the flashcard review activity
-      await supabase.from('adventure_log').insert({
-        user_id: user?.id,
-        activity_type: 'flashcard',
-        xp_earned: gainedXp,
-        metadata: { deck_id: selectedDeck.id, deck_name: selectedDeck.name, card_id: currentCard.id }
+      await awardXp(user.id, gainedXp);
+      await logActivity(user.id, 'flashcard', gainedXp, {
+        deck_id: selectedDeck.id,
+        deck_name: selectedDeck.name,
+        card_id: currentCard.id,
       });
 
       refreshProfile();

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, Flag, FastForward, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useGameStore, useUIStore } from "@/stores";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -62,6 +63,8 @@ export default function FocusTimer({
   onBack
 }: FocusTimerProps) {
   const { user, profile, refreshProfile } = useAuth();
+  const { awardXp, awardGold, logActivity } = useGameStore();
+  const addToast = useUIStore((s) => s.addToast);
   
   const totalSessions = 4;
   const totalTime = defaultMinutes * 60;
@@ -121,27 +124,17 @@ export default function FocusTimer({
       gold_earned: gainedGold
     });
 
-    // 2. Insert into adventure_log
-    await supabase.from('adventure_log').insert({
-      user_id: user.id,
-      activity_type: 'focus',
-      xp_earned: gainedXp,
-      metadata: { subject: focusSubject, duration: defaultMinutes }
+    // 2. Award XP and Gold via the game store (handles Supabase sync)
+    await awardXp(user.id, gainedXp);
+    await awardGold(user.id, gainedGold);
+
+    // 3. Log activity
+    await logActivity(user.id, 'focus', gainedXp, {
+      subject: focusSubject,
+      duration: defaultMinutes,
     });
 
-    // 3. Update profile XP/Gold
-    const newXp = (profile.xp || 0) + gainedXp;
-    const newGold = (profile.gold || 0) + gainedGold;
-    // Calculate new level (1 level per 1000 XP)
-    const newLevel = Math.max(1, Math.floor(newXp / 1000) + 1);
-
-    await supabase.from('profiles').update({
-      xp: newXp,
-      gold: newGold,
-      level: newLevel
-    }).eq('id', user.id);
-
-    // Refresh context so TopStatsBar updates immediately
+    addToast(`Session complete! +${gainedXp} XP, +${gainedGold} Gold`, "success");
     refreshProfile();
   };
 

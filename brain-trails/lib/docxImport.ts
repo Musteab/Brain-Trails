@@ -19,7 +19,7 @@ export async function importDocx(file: File): Promise<DocxImportResult> {
         resolve({
           html: htmlResult.value,
           plainText: textResult.value,
-          messages: htmlResult.messages.map((m: any) => m.message),
+          messages: htmlResult.messages.map((m: { message: string }) => m.message),
         });
       } catch (error) {
         reject(new Error("Failed to parse document: " + error));

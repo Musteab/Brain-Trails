@@ -147,6 +147,7 @@ export default function SlashCommandMenu({
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset selection when filter changes
     setSelectedIndex(0);
   }, [filterText]);
 
@@ -174,12 +175,6 @@ export default function SlashCommandMenu({
     },
     [editor, filterText, onClose]
   );
-
-  const executeSelectedCommand = useCallback(() => {
-    if (filteredCommands[selectedIndex]) {
-      executeCommand(filteredCommands[selectedIndex]);
-    }
-  }, [filteredCommands, selectedIndex, executeCommand]);
 
   useEffect(() => {
     if (!isOpen) return;

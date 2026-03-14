@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Sparkles, X } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 
 interface CardForgeProps {
   onForge?: () => void;

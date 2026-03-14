@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
+import { useGameStore } from "@/stores";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface Profile {
@@ -45,6 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!error && data) {
       setProfile(data as Profile);
+      // Sync game stats to Zustand store
+      useGameStore.getState().loadStats(userId);
       setIsLoading(false);
     } else if (!data && retries > 0) {
       // Create a proper promise delay so we block the `await fetchProfile` call
@@ -168,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setProfile(null);
     setSession(null);
+    useGameStore.getState().reset();
   };
 
   return (

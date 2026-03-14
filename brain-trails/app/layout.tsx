@@ -3,6 +3,7 @@ import { Nunito, Quicksand } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import ToastContainer from "@/components/ui/ToastContainer";
 import "./globals.css";
 
 // Nunito - Playful, rounded font for headings (Nintendo feel)
@@ -41,6 +42,7 @@ export default function RootLayout({
           <ThemeProvider>
             <ErrorBoundary>
               {children}
+              <ToastContainer />
             </ErrorBoundary>
           </ThemeProvider>
         </AuthProvider>

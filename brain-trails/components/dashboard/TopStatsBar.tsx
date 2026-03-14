@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
+import { Zap, LogOut, ChevronDown, User as UserIcon, Settings } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -17,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
  * - User Profile Dropdown / Logout (right)
  */
 export default function TopStatsBar() {
+  const router = useRouter();
   const { theme } = useTheme();
   const { profile, user, signOut, isLoading } = useAuth();
   const isSun = theme === "sun";
@@ -155,6 +157,17 @@ export default function TopStatsBar() {
               }`}
             >
               <div className="py-1">
+                <button
+                  onClick={() => { setDropdownOpen(false); router.push("/settings"); }}
+                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors ${
+                    isSun 
+                      ? "text-slate-700 hover:bg-slate-50" 
+                      : "text-slate-300 hover:bg-white/5"
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </button>
                 <button
                   onClick={handleSignOut}
                   className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors ${

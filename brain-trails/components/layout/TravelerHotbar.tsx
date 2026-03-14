@@ -20,6 +20,7 @@ const hotbarItems: HotbarItem[] = [
   { id: "battle", emoji: "⚔️", label: "Battle", href: "/battle" },
   { id: "notes", emoji: "📜", label: "Scrolls", href: "/notes" },
   { id: "flashcards", emoji: "🃏", label: "Cards", href: "/flashcards" },
+  { id: "settings", emoji: "⚙️", label: "Settings", href: "/settings" },
 ];
 
 /**

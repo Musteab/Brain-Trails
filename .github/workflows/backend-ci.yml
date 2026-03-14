@@ -5,10 +5,12 @@ on:
     branches: [main, 'feature/**']
     paths:
       - 'brain-trails/backend/**'
+      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'brain-trails/backend/**'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   lint-and-test:

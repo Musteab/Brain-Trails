@@ -7,6 +7,7 @@ import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useGameStore, useUIStore } from "@/stores";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
 
 interface Flashcard {
@@ -55,6 +56,7 @@ export default function FlashcardsPage() {
   const { user, profile, refreshProfile } = useAuth();
   const { awardXp, logActivity } = useGameStore();
   const addToast = useUIStore((s) => s.addToast);
+  const playSound = useSoundEffects();
   const isSun = theme === "sun";
   
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -190,6 +192,7 @@ export default function FlashcardsPage() {
 
   const handleGradeCard = async (quality: number) => {
     if (!currentCard || !selectedDeck) return;
+    playSound(quality >= 2 ? "success" : "click");
 
     // Very simple SM-2 inspired grading
     // quality: 0 (Again), 1 (Hard), 2 (Good), 3 (Easy)
@@ -496,7 +499,7 @@ export default function FlashcardsPage() {
         ) : currentCard && (
           <motion.div
             key={currentCard.id + (isFlipped ? "-back" : "-front")}
-            onClick={() => setIsFlipped(!isFlipped)}
+            onClick={() => { playSound("cardFlip"); setIsFlipped(!isFlipped); }}
             className="w-full cursor-pointer perspective-1000"
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, Flag, FastForward, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useGameStore, useUIStore } from "@/stores";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -65,6 +66,7 @@ export default function FocusTimer({
   const { user, profile, refreshProfile } = useAuth();
   const { awardXp, awardGold, logActivity } = useGameStore();
   const addToast = useUIStore((s) => s.addToast);
+  const playSound = useSoundEffects();
   
   const totalSessions = 4;
   const totalTime = defaultMinutes * 60;
@@ -102,6 +104,7 @@ export default function FocusTimer({
       setIsActive(false);
       setCompletedSessions((prev) => Math.min(prev + 1, totalSessions));
       setShowReward(true);
+      playSound("timerEnd");
       saveSessionData();
     }
 
@@ -140,8 +143,11 @@ export default function FocusTimer({
 
   // Control handlers
   const toggleTimer = useCallback(() => {
-    setIsActive((prev) => !prev);
-  }, []);
+    setIsActive((prev) => {
+      if (!prev) playSound("timerStart");
+      return !prev;
+    });
+  }, [playSound]);
 
   const resetTimer = useCallback(() => {
     setIsActive(false);

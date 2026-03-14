@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogIn, User, Lock, Loader2, Compass } from "lucide-react";
-import SplineBackground from "@/components/layout/SplineBackground";
+import BackgroundLayer from "@/components/layout/BackgroundLayer";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -39,9 +39,10 @@ export default function LoginPage() {
     if (signInError) {
       setError(signInError.message);
       setIsSubmitting(false);
-    } else {
-      router.push("/");
     }
+    // On success, don't manually router.push here.
+    // The onAuthStateChange listener in AuthContext will set user + profile,
+    // and the useEffect below will redirect once both are ready.
   };
 
   const handleGoogleLogin = async () => {
@@ -56,7 +57,7 @@ export default function LoginPage() {
     <div className="min-h-screen relative flex items-center justify-center p-4">
       {/* Background */}
       <div className="absolute inset-0 z-0">
-        <SplineBackground />
+        <BackgroundLayer />
       </div>
 
       {/* Login Card */}

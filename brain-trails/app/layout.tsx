@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Nunito, Quicksand } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { AuthProvider } from "@/context/AuthContext";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import "./globals.css";
 
 // Nunito - Playful, rounded font for headings (Nintendo feel)
@@ -24,8 +26,6 @@ export const metadata: Metadata = {
   description: "Your cozy gamified study companion",
 };
 
-import { AuthProvider } from "@/context/AuthContext";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,7 +39,9 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ThemeProvider>
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </ThemeProvider>
         </AuthProvider>
       </body>

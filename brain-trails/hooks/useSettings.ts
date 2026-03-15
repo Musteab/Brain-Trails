@@ -13,12 +13,12 @@ export interface UserSettings {
   focus_duration: number; // minutes
   break_duration: number; // minutes
   sound_enabled: boolean;
-  font_size: "small" | "medium" | "large";
-  cram_mode_enabled: boolean;
-  ambient_sound: "none" | "rain" | "cafe" | "forest" | "lofi";
+  notifications_enabled: boolean;
   streak_reminders: boolean;
   guild_notifications: boolean;
   study_nudges: boolean;
+  cram_mode_enabled: boolean;
+  ambient_sound: "none" | "rain" | "cafe" | "forest" | "lofi";
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -26,12 +26,12 @@ const DEFAULT_SETTINGS: UserSettings = {
   focus_duration: 25,
   break_duration: 5,
   sound_enabled: true,
-  font_size: "medium",
-  cram_mode_enabled: true,
-  ambient_sound: "none",
+  notifications_enabled: true,
   streak_reminders: true,
   guild_notifications: true,
-  study_nudges: false,
+  study_nudges: true,
+  cram_mode_enabled: false,
+  ambient_sound: "none",
 };
 
 /**
@@ -59,7 +59,7 @@ function notifyListeners(s: UserSettings) {
 }
 
 export function useSettings() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(cachedSettings);
   const [isLoading, setIsLoading] = useState(!cacheLoaded);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -74,10 +74,7 @@ export function useSettings() {
 
   // Load settings from Supabase on mount
   const load = useCallback(async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
+    if (!user) return;
 
     // If already cached for this session, skip fetch
     if (cacheLoaded) {
@@ -88,17 +85,12 @@ export function useSettings() {
 
     const { data, error } = await supabase
       .from("user_settings")
-      .select("theme, focus_duration, break_duration, sound_enabled, font_size, cram_mode_enabled, ambient_sound, streak_reminders, guild_notifications, study_nudges")
+      .select("theme, focus_duration, break_duration, sound_enabled, notifications_enabled, streak_reminders, guild_notifications, study_nudges, cram_mode_enabled, ambient_sound")
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (error) {
-      // Supabase returns {} when table doesn't exist — log the message if available, otherwise use defaults silently
-      const msg = error.message || error.code;
-      if (msg) {
-        console.warn("[useSettings] load failed:", msg);
-      }
-      // Fall through to use defaults
+      console.error("[useSettings] load failed:", error);
     }
 
     const loaded: UserSettings = {
@@ -106,12 +98,12 @@ export function useSettings() {
       focus_duration: data?.focus_duration ?? DEFAULT_SETTINGS.focus_duration,
       break_duration: data?.break_duration ?? DEFAULT_SETTINGS.break_duration,
       sound_enabled: data?.sound_enabled ?? DEFAULT_SETTINGS.sound_enabled,
-      font_size: data?.font_size ?? DEFAULT_SETTINGS.font_size,
-      cram_mode_enabled: data?.cram_mode_enabled ?? DEFAULT_SETTINGS.cram_mode_enabled,
-      ambient_sound: data?.ambient_sound ?? DEFAULT_SETTINGS.ambient_sound,
+      notifications_enabled: data?.notifications_enabled ?? DEFAULT_SETTINGS.notifications_enabled,
       streak_reminders: data?.streak_reminders ?? DEFAULT_SETTINGS.streak_reminders,
       guild_notifications: data?.guild_notifications ?? DEFAULT_SETTINGS.guild_notifications,
       study_nudges: data?.study_nudges ?? DEFAULT_SETTINGS.study_nudges,
+      cram_mode_enabled: data?.cram_mode_enabled ?? DEFAULT_SETTINGS.cram_mode_enabled,
+      ambient_sound: data?.ambient_sound ?? DEFAULT_SETTINGS.ambient_sound,
     };
 
     cacheLoaded = true;
@@ -120,10 +112,9 @@ export function useSettings() {
   }, [user]);
 
   useEffect(() => {
-    if (authLoading) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: fetch user settings from Supabase on mount
     load();
-  }, [load, authLoading]);
+  }, [load]);
 
   // Persist to Supabase (debounced)
   const persist = useCallback(
@@ -144,12 +135,12 @@ export function useSettings() {
               focus_duration: next.focus_duration,
               break_duration: next.break_duration,
               sound_enabled: next.sound_enabled,
-              font_size: next.font_size,
-              cram_mode_enabled: next.cram_mode_enabled,
-              ambient_sound: next.ambient_sound,
+              notifications_enabled: next.notifications_enabled,
               streak_reminders: next.streak_reminders,
               guild_notifications: next.guild_notifications,
               study_nudges: next.study_nudges,
+              cram_mode_enabled: next.cram_mode_enabled,
+              ambient_sound: next.ambient_sound,
               updated_at: new Date().toISOString(),
             },
             { onConflict: "user_id" }

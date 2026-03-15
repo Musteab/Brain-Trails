@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import FocusTimer from "@/components/focus/FocusTimer";
-import CramMode from "@/components/focus/CramMode";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { useSettings } from "@/hooks/useSettings";
 import { useAuth } from "@/context/AuthContext";
@@ -27,7 +26,6 @@ export default function FocusPage() {
   const [selectedSubject, setSelectedSubject] = useState("Math");
   const [selectedDuration, setSelectedDuration] = useState(25);
   const [customSubject, setCustomSubject] = useState("");
-  const [cramMode, setCramMode] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
 
   // Pre-select duration from user settings once loaded
@@ -71,16 +69,6 @@ export default function FocusPage() {
   }, [user]);
 
   const activeSubject = customSubject.trim() || selectedSubject;
-
-  if (isStarted && cramMode) {
-    return (
-      <CramMode
-        subject={activeSubject}
-        focusMinutes={selectedDuration}
-        onExit={() => setIsStarted(false)}
-      />
-    );
-  }
 
   if (isStarted) {
     return (
@@ -155,7 +143,7 @@ export default function FocusPage() {
           </div>
 
           {/* Duration Selection */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/50 mb-4">
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/50 mb-6">
             <label className="text-sm font-bold text-slate-700 font-[family-name:var(--font-nunito)] block mb-3">
               ⏱️ Duration
             </label>
@@ -175,42 +163,6 @@ export default function FocusPage() {
                 </motion.button>
               ))}
             </div>
-          </div>
-
-          {/* Cram Mode Toggle */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-lg border border-white/50 mb-6">
-            <button
-              onClick={() => setCramMode((v) => !v)}
-              className="w-full flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-slate-700 font-[family-name:var(--font-nunito)]">
-                  🧠 Cram Mode
-                </span>
-              </div>
-              <div
-                className={`w-11 h-6 rounded-full relative transition-colors ${
-                  cramMode ? "bg-purple-500" : "bg-slate-300"
-                }`}
-              >
-                <motion.div
-                  layout
-                  className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md"
-                  style={{ left: cramMode ? "calc(100% - 1.375rem)" : "0.125rem" }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              </div>
-            </button>
-            {cramMode && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="text-xs text-slate-500 mt-3 font-[family-name:var(--font-quicksand)] leading-relaxed"
-              >
-                Distraction-free mode. Auto-cycles focus &amp; flashcard review.
-              </motion.p>
-            )}
           </div>
 
           {/* Start Button */}

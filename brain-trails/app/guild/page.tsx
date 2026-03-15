@@ -62,46 +62,50 @@ export default function GuildPage() {
 
     setLoading(true);
 
-    // Check if user is in a guild
-    if (profile?.guild_id) {
-      // Fetch user's guild
-      const { data: guild } = await supabase
-        .from("guilds")
-        .select("*")
-        .eq("id", profile.guild_id)
-        .single();
-
-      if (guild) {
-        setMyGuild(guild);
-
-        // Get user's role
-        const { data: membership } = await supabase
-          .from("guild_members")
-          .select("role")
-          .eq("guild_id", guild.id)
-          .eq("user_id", user.id)
+    try {
+      // Check if user is in a guild
+      if (profile?.guild_id) {
+        // Fetch user's guild
+        const { data: guild } = await supabase
+          .from("guilds")
+          .select("*")
+          .eq("id", profile.guild_id)
           .single();
 
-        if (membership) {
-          setMyRole(membership.role);
+        if (guild) {
+          setMyGuild(guild);
+
+          // Get user's role
+          const { data: membership } = await supabase
+            .from("guild_members")
+            .select("role")
+            .eq("guild_id", guild.id)
+            .eq("user_id", user.id)
+            .single();
+
+          if (membership) {
+            setMyRole(membership.role);
+          }
+        }
+      } else {
+        setMyGuild(null);
+
+        // Fetch available guilds
+        const { data: availableGuilds } = await supabase
+          .from("guilds")
+          .select("*")
+          .order("weekly_xp", { ascending: false })
+          .limit(50);
+
+        if (availableGuilds) {
+          setGuilds(availableGuilds);
         }
       }
-    } else {
-      setMyGuild(null);
-
-      // Fetch available guilds
-      const { data: availableGuilds } = await supabase
-        .from("guilds")
-        .select("*")
-        .order("weekly_xp", { ascending: false })
-        .limit(50);
-
-      if (availableGuilds) {
-        setGuilds(availableGuilds);
-      }
+    } catch (err) {
+      console.error("Error fetching guild data (exception):", err);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }, [user, profile?.guild_id]);
 
   useEffect(() => {

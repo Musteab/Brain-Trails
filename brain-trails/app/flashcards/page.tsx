@@ -54,7 +54,7 @@ const COLORS = [
 
 export default function FlashcardsPage() {
   const { theme } = useTheme();
-  const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { awardXp, logActivity } = useGameStore();
   const playSound = useSoundEffects();
   const isSun = theme === "sun";
@@ -71,11 +71,7 @@ export default function FlashcardsPage() {
   const [newDeckName, setNewDeckName] = useState("");
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
+    if (!user) return;
     
     const fetchDecks = async () => {
       const { data, error } = await supabase
@@ -102,7 +98,7 @@ export default function FlashcardsPage() {
     };
 
     fetchDecks();
-  }, [user, authLoading]);
+  }, [user]);
 
   const currentCard = selectedDeck?.cards[currentIndex];
 

@@ -1,13 +1,9 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Nunito, Quicksand } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ToastContainer from "@/components/ui/ToastContainer";
-import CommandPalette from "@/components/ui/CommandPalette";
-import XPPopup from "@/components/ui/XPPopup";
-import LevelUpCelebration from "@/components/ui/LevelUpCelebration";
-import AppInitializer from "@/components/ui/AppInitializer";
 import "./globals.css";
 
 // Nunito - Playful, rounded font for headings (Nintendo feel)
@@ -27,22 +23,8 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Brain Trails",
+  title: "Brain Trails 🎮",
   description: "Your cozy gamified study companion",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Brain Trails",
-  },
-};
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: "#7c3aed",
 };
 
 export default function RootLayout({
@@ -61,10 +43,6 @@ export default function RootLayout({
             <ErrorBoundary>
               {children}
               <ToastContainer />
-              <CommandPalette />
-              <XPPopup />
-              <LevelUpCelebration />
-              <AppInitializer />
             </ErrorBoundary>
           </ThemeProvider>
         </AuthProvider>

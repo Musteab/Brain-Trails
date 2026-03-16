@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, LogOut, ChevronDown, User as UserIcon, Settings, Users } from "lucide-react";
+import { Zap, LogOut, ChevronDown, User as UserIcon, Settings, Users, Command } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -86,6 +86,23 @@ export default function TopStatsBar() {
 
       {/* Center: Level, XP Progress & Theme Toggle */}
       <div className="flex items-center gap-3">
+        {/* Command Palette Toggle */}
+        <button
+          onClick={() => {
+            const ev = new CustomEvent("open-command-palette");
+            window.dispatchEvent(ev);
+          }}
+          className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 transition-colors ${
+            isSun
+              ? "bg-white/60 border-slate-200 text-slate-500 hover:bg-white"
+              : "bg-slate-800/60 border-slate-700 text-slate-400 hover:bg-slate-700"
+          }`}
+          title="Open Command Palette (Ctrl+/)"
+        >
+          <Command className="w-3.5 h-3.5" />
+          <span className="text-xs font-bold">Menu</span>
+        </button>
+
         {/* Theme Toggle */}
         <ThemeToggle />
 

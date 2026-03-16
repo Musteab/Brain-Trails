@@ -20,8 +20,6 @@ import {
   AlertTriangle,
   Loader2,
   Pencil,
-  BookOpen,
-  Bell,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -719,121 +717,6 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </div>
-            </SettingRow>
-          </Section>
-
-          {/* ===== STUDY PREFERENCES SECTION ===== */}
-          <Section
-            icon={
-              <BookOpen
-                className={`w-5 h-5 ${isSun ? "text-cyan-600" : "text-cyan-400"}`}
-              />
-            }
-            label="Study Preferences"
-          >
-            <SettingRow label="Text Size" description="Adjust reading font size">
-              <div className="flex gap-1">
-                {([
-                  { value: "small" as const, label: "Small" },
-                  { value: "medium" as const, label: "Medium" },
-                  { value: "large" as const, label: "Large" },
-                ]).map(({ value, label }) => (
-                  <motion.button
-                    key={value}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => update({ font_size: value })}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      settings.font_size === value
-                        ? "bg-emerald-500 text-white shadow"
-                        : isSun
-                        ? "bg-white/60 text-slate-500"
-                        : "bg-white/10 text-slate-400"
-                    }`}
-                  >
-                    {label}
-                  </motion.button>
-                ))}
-              </div>
-            </SettingRow>
-
-            <SettingRow
-              label="Cram Mode"
-              description="Enable fullscreen distraction-free mode"
-            >
-              <Toggle
-                enabled={settings.cram_mode_enabled}
-                onToggle={() => update({ cram_mode_enabled: !settings.cram_mode_enabled })}
-              />
-            </SettingRow>
-
-            <SettingRow
-              label="Ambient Sound"
-              description="Background soundscape during focus"
-            >
-              <div className="flex gap-1">
-                {([
-                  { value: "none" as const, label: "None" },
-                  { value: "rain" as const, label: "Rain" },
-                  { value: "cafe" as const, label: "Cafe" },
-                  { value: "forest" as const, label: "Forest" },
-                  { value: "lofi" as const, label: "Lofi" },
-                ]).map(({ value, label }) => (
-                  <motion.button
-                    key={value}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => update({ ambient_sound: value })}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      settings.ambient_sound === value
-                        ? "bg-emerald-500 text-white shadow"
-                        : isSun
-                        ? "bg-white/60 text-slate-500"
-                        : "bg-white/10 text-slate-400"
-                    }`}
-                  >
-                    {label}
-                  </motion.button>
-                ))}
-              </div>
-            </SettingRow>
-          </Section>
-
-          {/* ===== NOTIFICATIONS SECTION ===== */}
-          <Section
-            icon={
-              <Bell
-                className={`w-5 h-5 ${isSun ? "text-orange-600" : "text-orange-400"}`}
-              />
-            }
-            label="Notifications"
-          >
-            <SettingRow
-              label="Streak Reminders"
-              description="Get reminded to maintain your daily streak"
-            >
-              <Toggle
-                enabled={settings.streak_reminders}
-                onToggle={() => update({ streak_reminders: !settings.streak_reminders })}
-              />
-            </SettingRow>
-
-            <SettingRow
-              label="Guild Notifications"
-              description="Receive updates from your guild"
-            >
-              <Toggle
-                enabled={settings.guild_notifications}
-                onToggle={() => update({ guild_notifications: !settings.guild_notifications })}
-              />
-            </SettingRow>
-
-            <SettingRow
-              label="Study Nudges"
-              description="Gentle reminders to start studying"
-            >
-              <Toggle
-                enabled={settings.study_nudges}
-                onToggle={() => update({ study_nudges: !settings.study_nudges })}
-              />
             </SettingRow>
           </Section>
 

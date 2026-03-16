@@ -101,32 +101,6 @@ export const gameText = {
   },
 
   // ============================================
-  // 🏰 Guild & Social
-  // ============================================
-  guild: {
-    guild: "Guild",
-    create: "Found a Guild",
-    join: "Join Guild",
-    leave: "Leave Guild",
-    chat: "Guild Hall",
-    raid: "Guild Raid",
-    members: "Guild Members",
-    leaderboard: "Guild Rankings",
-  },
-
-  // ============================================
-  // 🛒 Shop & Cosmetics
-  // ============================================
-  shop: {
-    shop: "Merchant",
-    buy: "Purchase",
-    equip: "Equip",
-    unequip: "Unequip",
-    owned: "In Inventory",
-    cosmetics: "Cosmetics",
-  },
-
-  // ============================================
   // 🎒 Items & Resources
   // ============================================
   items: {
@@ -177,11 +151,6 @@ export const gameText = {
     inventory: "Bag",
     battle: "Battle",
     cards: "Cards",
-    knowledge: "Map",
-    guild: "Guild",
-    achievements: "Trophies",
-    shop: "Shop",
-    report: "Report",
   },
 } as const;
 
@@ -197,5 +166,3 @@ export type ItemsText = typeof gameText.items;
 export type ActionsText = typeof gameText.actions;
 export type StatusText = typeof gameText.status;
 export type HotbarText = typeof gameText.hotbar;
-export type GuildText = typeof gameText.guild;
-export type ShopText = typeof gameText.shop;

@@ -27,6 +27,7 @@ export interface Database {
           streak_days: number;
           streak_last_date: string | null;
           guild_id: string | null;
+          onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -44,6 +45,7 @@ export interface Database {
           streak_days?: number;
           streak_last_date?: string | null;
           guild_id?: string | null;
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -61,6 +63,7 @@ export interface Database {
           streak_days?: number;
           streak_last_date?: string | null;
           guild_id?: string | null;
+          onboarding_completed?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -70,6 +73,7 @@ export interface Database {
           id: string;
           user_id: string;
           subject: string;
+          subject_id: string | null;
           duration_minutes: number;
           mode: "normal" | "cram";
           completed_at: string;
@@ -80,6 +84,7 @@ export interface Database {
           id?: string;
           user_id: string;
           subject: string;
+          subject_id?: string | null;
           duration_minutes: number;
           mode?: "normal" | "cram";
           completed_at?: string;
@@ -88,6 +93,7 @@ export interface Database {
         };
         Update: {
           subject?: string;
+          subject_id?: string | null;
           duration_minutes?: number;
           mode?: "normal" | "cram";
           completed_at?: string;
@@ -111,6 +117,7 @@ export interface Database {
           title: string;
           content_html: string;
           folder: string;
+          subject_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -120,6 +127,7 @@ export interface Database {
           title?: string;
           content_html?: string;
           folder?: string;
+          subject_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -127,6 +135,7 @@ export interface Database {
           title?: string;
           content_html?: string;
           folder?: string;
+          subject_id?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -146,6 +155,7 @@ export interface Database {
           name: string;
           emoji: string;
           color: string;
+          subject_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -154,12 +164,14 @@ export interface Database {
           name: string;
           emoji?: string;
           color?: string;
+          subject_id?: string | null;
           created_at?: string;
         };
         Update: {
           name?: string;
           emoji?: string;
           color?: string;
+          subject_id?: string | null;
         };
         Relationships: [
           {
@@ -820,6 +832,245 @@ export interface Database {
           }
         ];
       };
+      semesters: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          start_date: string | null;
+          end_date: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_active?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "semesters_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      subjects: {
+        Row: {
+          id: string;
+          user_id: string;
+          semester_id: string | null;
+          name: string;
+          code: string;
+          emoji: string;
+          color: string;
+          description: string;
+          professor: string;
+          credit_hours: number;
+          target_grade: string;
+          is_archived: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          semester_id?: string | null;
+          name: string;
+          code?: string;
+          emoji?: string;
+          color?: string;
+          description?: string;
+          professor?: string;
+          credit_hours?: number;
+          target_grade?: string;
+          is_archived?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          semester_id?: string | null;
+          name?: string;
+          code?: string;
+          emoji?: string;
+          color?: string;
+          description?: string;
+          professor?: string;
+          credit_hours?: number;
+          target_grade?: string;
+          is_archived?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subjects_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "subjects_semester_id_fkey";
+            columns: ["semester_id"];
+            isOneToOne: false;
+            referencedRelation: "semesters";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      topics: {
+        Row: {
+          id: string;
+          subject_id: string;
+          name: string;
+          description: string;
+          sort_order: number;
+          mastery_pct: number;
+          is_completed: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          subject_id: string;
+          name: string;
+          description?: string;
+          sort_order?: number;
+          mastery_pct?: number;
+          is_completed?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          sort_order?: number;
+          mastery_pct?: number;
+          is_completed?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "topics_subject_id_fkey";
+            columns: ["subject_id"];
+            isOneToOne: false;
+            referencedRelation: "subjects";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      exams: {
+        Row: {
+          id: string;
+          subject_id: string;
+          name: string;
+          exam_type: "exam" | "quiz" | "assignment" | "project" | "presentation" | "other";
+          exam_date: string;
+          duration_minutes: number | null;
+          location: string;
+          weight_pct: number;
+          notes: string;
+          reminder_24h: boolean;
+          reminder_48h: boolean;
+          reminder_1week: boolean;
+          cram_mode_enabled: boolean;
+          score: number | null;
+          max_score: number;
+          is_completed: boolean;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          subject_id: string;
+          name: string;
+          exam_type?: "exam" | "quiz" | "assignment" | "project" | "presentation" | "other";
+          exam_date: string;
+          duration_minutes?: number | null;
+          location?: string;
+          weight_pct?: number;
+          notes?: string;
+          reminder_24h?: boolean;
+          reminder_48h?: boolean;
+          reminder_1week?: boolean;
+          cram_mode_enabled?: boolean;
+          score?: number | null;
+          max_score?: number;
+          is_completed?: boolean;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          exam_type?: "exam" | "quiz" | "assignment" | "project" | "presentation" | "other";
+          exam_date?: string;
+          duration_minutes?: number | null;
+          location?: string;
+          weight_pct?: number;
+          notes?: string;
+          reminder_24h?: boolean;
+          reminder_48h?: boolean;
+          reminder_1week?: boolean;
+          cram_mode_enabled?: boolean;
+          score?: number | null;
+          max_score?: number;
+          is_completed?: boolean;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "exams_subject_id_fkey";
+            columns: ["subject_id"];
+            isOneToOne: false;
+            referencedRelation: "subjects";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      exam_topics: {
+        Row: {
+          id: string;
+          exam_id: string;
+          topic_id: string;
+        };
+        Insert: {
+          id?: string;
+          exam_id: string;
+          topic_id: string;
+        };
+        Update: {
+          exam_id?: string;
+          topic_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "exam_topics_exam_id_fkey";
+            columns: ["exam_id"];
+            isOneToOne: false;
+            referencedRelation: "exams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "exam_topics_topic_id_fkey";
+            columns: ["topic_id"];
+            isOneToOne: false;
+            referencedRelation: "topics";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Functions: {};
@@ -849,3 +1100,8 @@ export type Achievement = Database["public"]["Tables"]["achievements"]["Row"];
 export type UserAchievement = Database["public"]["Tables"]["user_achievements"]["Row"];
 export type Cosmetic = Database["public"]["Tables"]["cosmetics"]["Row"];
 export type UserCosmetic = Database["public"]["Tables"]["user_cosmetics"]["Row"];
+export type Semester = Database["public"]["Tables"]["semesters"]["Row"];
+export type Subject = Database["public"]["Tables"]["subjects"]["Row"];
+export type Topic = Database["public"]["Tables"]["topics"]["Row"];
+export type Exam = Database["public"]["Tables"]["exams"]["Row"];
+export type ExamTopic = Database["public"]["Tables"]["exam_topics"]["Row"];

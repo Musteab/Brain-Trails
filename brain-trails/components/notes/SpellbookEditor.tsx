@@ -5,6 +5,21 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { forwardRef, useImperativeHandle, useCallback, useState, useEffect, useRef } from "react";
 import { Editor } from "@tiptap/core";
+
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import Highlight from '@tiptap/extension-highlight';
+import Typography from '@tiptap/extension-typography';
+import CharacterCount from '@tiptap/extension-character-count';
+import { ToggleList, Callout } from './extensions';
+import { useGameStore } from '@/stores';
+import { useAuth } from "@/context/AuthContext";
+import { useUIStore } from "@/stores";
+
 import SlashCommandMenu from "./SlashCommandMenu";
 import "./spellbook-editor.css";
 
@@ -53,14 +68,38 @@ const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
     const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
     const [slashFilterText, setSlashFilterText] = useState("");
     const editorContainerRef = useRef<HTMLDivElement>(null);
+    const { awardXp } = useGameStore();
+    const { user } = useAuth();
+    const { addToast } = useUIStore();
+    const prevCheckedCount = useRef(0);
 
     const editor = useEditor({
       extensions: [
+        
         StarterKit,
         Placeholder.configure({
           placeholder: "Type / for commands...",
           emptyEditorClass: "is-editor-empty",
         }),
+        TaskList,
+        TaskItem.configure({
+          nested: true,
+          onReadOnlyChecked: () => {
+            return false;
+          },
+        }),
+        Table.configure({
+          resizable: true,
+        }),
+        TableRow,
+        TableHeader,
+        TableCell,
+        Highlight,
+        Typography,
+        CharacterCount,
+        ToggleList,
+        Callout,
+
       ],
       content: initialContent || welcomeContent,
       immediatelyRender: false,
@@ -77,8 +116,31 @@ const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
           return false;
         },
       },
-      onUpdate: ({ editor }) => {
+      
+      
+      onUpdate: ({ editor, transaction }) => {
+        if (transaction.docChanged) {
+          // Count checked tasks
+          let checkedCount = 0;
+          editor.state.doc.descendants((node) => {
+            if (node.type.name === 'taskItem' && node.attrs.checked) {
+              checkedCount++;
+            }
+          });
+
+          if (checkedCount > prevCheckedCount.current) {
+            const diff = checkedCount - prevCheckedCount.current;
+            if (user) {
+              awardXp(user.id, diff);
+              addToast(`Task completed! +${diff} XP`, "success");
+            }
+          }
+          prevCheckedCount.current = checkedCount;
+        }
+
         if (onContentChange) {
+
+
           onContentChange(editor.getHTML(), editor.getText());
         }
         

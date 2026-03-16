@@ -211,7 +211,7 @@ export default function NotesPage() {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed left-0 top-0 h-full z-40"
           >
-            <NotesSidebar onSelectNote={handleSelectNote} selectedNoteId={selectedNoteId} />
+            <NotesSidebar onSelectNote={handleSelectNote} selectedNoteId={selectedNoteId} onCloseMobile={() => setIsSidebarOpen(false)} />
           </motion.div>
         )}
       </AnimatePresence>

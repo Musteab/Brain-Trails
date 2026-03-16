@@ -120,6 +120,9 @@ export interface Database {
           subject_id: string | null;
           created_at: string;
           updated_at: string;
+          tags: string[];
+          is_pinned: boolean;
+          parent_folder_id: string | null;
         };
         Insert: {
           id?: string;
@@ -130,6 +133,9 @@ export interface Database {
           subject_id?: string | null;
           created_at?: string;
           updated_at?: string;
+          tags?: string[];
+          is_pinned?: boolean;
+          parent_folder_id?: string | null;
         };
         Update: {
           title?: string;
@@ -137,6 +143,9 @@ export interface Database {
           folder?: string;
           subject_id?: string | null;
           updated_at?: string;
+          tags?: string[];
+          is_pinned?: boolean;
+          parent_folder_id?: string | null;
         };
         Relationships: [
           {
@@ -144,6 +153,13 @@ export interface Database {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notes_parent_folder_id_fkey";
+            columns: ["parent_folder_id"];
+            isOneToOne: false;
+            referencedRelation: "notes";
             referencedColumns: ["id"];
           }
         ];

@@ -46,7 +46,10 @@ CREATE TABLE IF NOT EXISTS notes (
   content_html TEXT DEFAULT '',
   folder TEXT DEFAULT 'root',
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  tags TEXT[] DEFAULT '{}'::TEXT[],
+  is_pinned BOOLEAN DEFAULT false,
+  parent_folder_id UUID REFERENCES notes(id) ON DELETE CASCADE
 );
 
 -- Flashcard decks

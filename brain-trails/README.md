@@ -11,7 +11,13 @@ A **gamified study companion** with a cozy "Nintendo meets Notion" aesthetic. Tr
 | **Arcane Archive** | Skill tree visualization for curriculum mastery | Live |
 | **Spellbook** | Dual-page note editor (Tiptap), slash commands, .docx import, auto-save to Supabase | Live |
 | **Spell Cards** | Flashcard decks with flip cards, shuffle, SM-2 grading, mastery tracking | Live |
-| **AI Familiar** | AI study assistant powered by Google Gemini (summarize, quiz, explain) | Live |
+| **AI Familiar** | AI study assistant powered by Google Gemini (summarize, quiz, explain, syllabus parsing) | Live |
+| **Guild Hall** | Create/join study guilds, real-time chat, co-op boss raids, weekly XP leaderboard | Live |
+| **Cosmetics Shop** | Spend in-game gold on themes, avatar frames, titles, and backgrounds (rarity tiers) | Live |
+| **Achievements** | Unlockable badges across study, social, combat, exploration, and streak categories | Live |
+| **Knowledge Paths** | Visual node-map skill trees with progress tracking, custom paths, and boss nodes | Live |
+| **Onboarding** | Guided setup wizard — upload syllabus (AI-parsed) or manually add subjects, topics, and exams | Live |
+| **Weekly Report** | Analytics dashboard with focus time, XP earned, streak, daily activity chart | Live |
 | **Theme Toggle** | Sun/Moon mode with localStorage persistence and full app-wide propagation | Live |
 | **Sound Effects** | Web Audio API tone synthesis for UI interactions (toggle-able) | Live |
 | **Game Store** | Centralized XP/level/gold/streak state management via Zustand | Live |
@@ -80,7 +86,7 @@ Apply the schema to your Supabase project:
 # and run it in the Supabase SQL Editor
 ```
 
-The schema creates 7 tables with RLS policies: `profiles`, `focus_sessions`, `notes`, `decks`, `cards`, `adventure_log`, and `user_settings`.
+The schema creates tables with RLS policies including: `profiles`, `focus_sessions`, `notes`, `decks`, `cards`, `adventure_log`, `user_settings`, `guilds`, `guild_members`, `guild_messages`, `cosmetics`, `user_cosmetics`, `achievements`, `user_achievements`, `knowledge_paths`, `knowledge_nodes`, `semesters`, `subjects`, `topics`, and `exams`.
 
 ## Project Structure
 
@@ -91,17 +97,26 @@ brain-trails/
 │   ├── page.tsx           # Dashboard (Camp)
 │   ├── login/             # Login page
 │   ├── register/          # Registration page
+│   ├── onboarding/        # New-user setup wizard (syllabus upload / manual entry)
 │   ├── focus/             # Focus Garden
 │   ├── battle/            # Arcane Archive (skill tree)
+│   ├── knowledge/         # Knowledge Paths (visual node-map skill trees)
 │   ├── notes/             # Spellbook (dual-page editor)
-│   └── flashcards/        # Spell Cards
+│   ├── flashcards/        # Spell Cards
+│   ├── guild/             # Guild Hall (chat, raids, leaderboard)
+│   ├── shop/              # Cosmetics Shop (themes, frames, titles, backgrounds)
+│   ├── achievements/      # Achievement tracker
+│   ├── report/            # Weekly analytics report
+│   └── settings/          # User settings
 ├── components/
 │   ├── dashboard/         # Dashboard widgets (QuestLog, AdventureLog, etc.)
 │   ├── focus/             # FocusTimer
 │   ├── battle/            # SkillTree, ResourcePanel, CardForge
+│   ├── knowledge/         # KnowledgeMap, PathCreator
 │   ├── notes/             # SpellbookEditor, AIFamiliar, NotesSidebar
-│   ├── layout/            # TravelerHotbar, SplineBackground, Footer
-│   └── ui/                # ErrorBoundary, ToastContainer, ThemeToggle, etc.
+│   ├── guild/             # GuildCreate, GuildChat, GuildRaid, MemberList
+│   ├── layout/            # TravelerHotbar, BackgroundLayer, Footer
+│   └── ui/                # ErrorBoundary, ToastContainer, ThemeToggle, Skeleton
 ├── stores/                # Zustand state management
 │   ├── useGameStore.ts    # XP, level, gold, streak (synced with Supabase)
 │   └── useUIStore.ts      # Modals, toasts, mobile nav
@@ -110,17 +125,19 @@ brain-trails/
 │   └── ThemeContext.tsx    # Sun/moon theme with localStorage persistence
 ├── hooks/                 # Custom React hooks
 │   ├── useCardStyles.ts   # Theme-aware glassmorphism styling
+│   ├── useAchievements.ts # Achievement checking + unlock logic
 │   ├── usePerformanceTier.ts # Device capability detection
 │   └── useSoundEffects.ts # Web Audio API sound effects
 ├── lib/                   # Utility libraries
 │   ├── supabase.ts        # Supabase client
+│   ├── database.types.ts  # TypeScript types for Supabase tables
 │   ├── htmlToMarkdown.ts  # HTML to Markdown converter
 │   └── docxImport.ts      # .docx file import via mammoth
 ├── constants/             # Game text configuration (RPG terminology)
 ├── supabase/              # Database schema
 │   └── schema.sql         # Full schema with RLS policies + triggers
 ├── backend/               # Flask API server
-│   ├── app.py            # Routes + Gemini AI integration
+│   ├── app.py            # Routes + Gemini AI integration (chat, syllabus parsing)
 │   ├── tests/            # pytest test suite
 │   └── requirements.txt
 ├── middleware.ts          # Supabase SSR auth + route protection

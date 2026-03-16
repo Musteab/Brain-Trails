@@ -102,7 +102,7 @@ function emptySubject(index: number): OnboardingSubject {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { awardXp, logActivity } = useGameStore();
   const { isSun, card, title, subtitle, muted, accent } = useCardStyles();
 
@@ -1253,7 +1253,6 @@ export default function OnboardingPage() {
         <div className="relative z-10 max-w-3xl mx-auto px-6 pt-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             {(["welcome", "syllabus|manual", "review"] as const).map((s, i) => {
-              const steps: Step[] = ["welcome", "syllabus", "manual", "review"];
               const currentIdx =
                 step === "welcome" ? 0 : step === "syllabus" || step === "manual" ? 1 : 2;
               const isActive = i <= currentIdx;

@@ -6,7 +6,6 @@ import { Plus, Map, Trash2, ChevronLeft } from "lucide-react";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import KnowledgeMap from "@/components/knowledge/KnowledgeMap";
 import PathCreator from "@/components/knowledge/PathCreator";
-import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useUIStore } from "@/stores";
@@ -18,7 +17,6 @@ interface PathWithNodes extends KnowledgePath {
 }
 
 export default function KnowledgePage() {
-  const { theme } = useTheme();
   const { user } = useAuth();
   const { card, isSun, title, muted } = useCardStyles();
   const { addToast } = useUIStore();
@@ -47,6 +45,7 @@ export default function KnowledgePage() {
   }, [user, addToast]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPaths();
   }, [fetchPaths]);
 

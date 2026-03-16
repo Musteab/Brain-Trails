@@ -61,28 +61,36 @@ export default function ShopPage() {
 
   // ── Fetch data ─────────────────────────────────────────
   useEffect(() => {
-    if (!user) return;
+    if (authLoading) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
     let cancelled = false;
 
     const run = async () => {
-      setIsLoading(true);
+      try {
+        setIsLoading(true);
 
-      const [cosmeticsRes, userCosmeticsRes] = await Promise.all([
-        supabase.from("cosmetics").select("*"),
-        supabase.from("user_cosmetics").select("*").eq("user_id", user.id),
-      ]);
+        const [cosmeticsRes, userCosmeticsRes] = await Promise.all([
+          supabase.from("cosmetics").select("*"),
+          supabase.from("user_cosmetics").select("*").eq("user_id", user.id),
+        ]);
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      if (cosmeticsRes.data) setCosmetics(cosmeticsRes.data);
-      if (userCosmeticsRes.data) setUserCosmetics(userCosmeticsRes.data);
-
-      setIsLoading(false);
+        if (cosmeticsRes.data) setCosmetics(cosmeticsRes.data);
+        if (userCosmeticsRes.data) setUserCosmetics(userCosmeticsRes.data);
+      } catch (err) {
+        console.error("Error fetching shop data (exception):", err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     };
 
     void run();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, authLoading]);
 
   // ── Derived data ───────────────────────────────────────
   const ownedMap = useMemo(() => {

@@ -24,18 +24,25 @@ import {
   CornerDownLeft,
   ArrowUp,
   ArrowDown,
+  TerminalSquare,
+  Zap,
+  Coins,
+  RefreshCcw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { getMuted, toggleMute } from "@/hooks/useSoundEffects";
+import { useGameStore, useUIStore } from "@/stores";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 // ── Action definitions ───────────────────────────────────
 interface CommandAction {
   id: string;
   label: string;
   icon: React.ReactNode;
-  category: "navigate" | "action";
+  category: "navigate" | "action" | "dev";
   shortcut?: string;
   action: () => void;
 }
@@ -44,6 +51,9 @@ export default function CommandPalette() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const { isSun } = useCardStyles();
+  const { awardXp, awardGold } = useGameStore();
+  const { user, refreshProfile } = useAuth();
+  const { addToast } = useUIStore();
 
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -83,8 +93,47 @@ export default function CommandPalette() {
         category: "action",
         action: () => { toggleMute(); },
       },
+      // Dev Commands / Superuser Tools
+      {
+        id: "dev-xp",
+        label: "Dev: Add 5000 XP (Level Up)",
+        icon: <Zap className="w-4 h-4 text-amber-500" />,
+        category: "dev",
+        action: () => {
+          if (user) {
+            awardXp(user.id, 5000);
+            addToast("Dev Mode: Granted 5000 XP!", "success");
+          }
+        },
+      },
+      {
+        id: "dev-gold",
+        label: "Dev: Add 10000 Gold",
+        icon: <Coins className="w-4 h-4 text-yellow-500" />,
+        category: "dev",
+        action: () => {
+          if (user) {
+            awardGold(user.id, 10000);
+            addToast("Dev Mode: Granted 10000 Gold!", "success");
+          }
+        },
+      },
+      {
+        id: "dev-reset-onboarding",
+        label: "Dev: Reset Onboarding (Re-run Wizard)",
+        icon: <RefreshCcw className="w-4 h-4 text-red-500" />,
+        category: "dev",
+        action: async () => {
+          if (user) {
+            await supabase.from("profiles").update({ onboarding_completed: false }).eq("id", user.id);
+            await refreshProfile();
+            addToast("Onboarding reset!", "info");
+            router.push("/onboarding");
+          }
+        },
+      },
     ],
-    [router, theme, toggleTheme]
+    [router, theme, toggleTheme, user, awardXp, awardGold, addToast, refreshProfile]
   );
 
   // ── Filtered results ───────────────────────────────────
@@ -114,11 +163,11 @@ export default function CommandPalette() {
     []
   );
 
-  // ── Global keyboard shortcut ───────────────────────────
+  // ── Global keyboard shortcut & custom event ───────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd+K / Ctrl+K to open
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      // Cmd+/ or Ctrl+/ to open
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
         e.preventDefault();
         setIsOpen((prev) => !prev);
         setSearch("");
@@ -126,8 +175,18 @@ export default function CommandPalette() {
       }
     };
 
+    const handleOpenCommandPalette = () => {
+      setIsOpen(true);
+      setSearch("");
+      setSelectedIndex(0);
+    };
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("open-command-palette", handleOpenCommandPalette);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("open-command-palette", handleOpenCommandPalette);
+    };
   }, []);
 
   // ── Focus input when opened ────────────────────────────
@@ -176,8 +235,8 @@ export default function CommandPalette() {
   // ── Separate navigate vs action groups ─────────────────
   const navActions = filteredActions.filter((a) => a.category === "navigate");
   const quickActions = filteredActions.filter((a) => a.category === "action");
+  const devActions = filteredActions.filter((a) => a.category === "dev");
 
-  // Track cumulative index for keyboard navigation
   let cumulativeIndex = 0;
 
   return (
@@ -367,6 +426,46 @@ export default function CommandPalette() {
                         >
                           {action.icon}
                         </span>
+                        <span className="flex-1 text-sm font-[family-name:var(--font-quicksand)] font-medium">
+                          {action.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Dev section */}
+              {devActions.length > 0 && (
+                <>
+                  <p
+                    className={`px-4 py-1.5 mt-2 text-[10px] font-bold uppercase tracking-wider ${
+                      isSun ? "text-amber-500" : "text-amber-600"
+                    }`}
+                  >
+                    <TerminalSquare className="w-3 h-3 inline mr-1" />
+                    Developer Tools
+                  </p>
+                  {devActions.map((action) => {
+                    const idx = cumulativeIndex++;
+                    return (
+                      <button
+                        key={action.id}
+                        onClick={() => executeAction(action)}
+                        onMouseEnter={() => setSelectedIndex(idx)}
+                        className={`
+                          w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors
+                          ${selectedIndex === idx
+                            ? isSun
+                              ? "bg-amber-50 text-amber-700"
+                              : "bg-amber-500/15 text-amber-300"
+                            : isSun
+                              ? "text-slate-700 hover:bg-slate-50"
+                              : "text-slate-300 hover:bg-white/5"
+                          }
+                        `}
+                      >
+                        <span className="shrink-0">{action.icon}</span>
                         <span className="flex-1 text-sm font-[family-name:var(--font-quicksand)] font-medium">
                           {action.label}
                         </span>

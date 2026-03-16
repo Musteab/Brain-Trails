@@ -17,6 +17,7 @@ interface Profile {
   gold: number;
   streak_days: number;
   guild_id: string | null;
+  onboarding_completed: boolean;
 }
 
 interface AuthContextType {
@@ -81,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       gold: 0,
       streak_days: 0,
       guild_id: null,
+      onboarding_completed: false,
     };
 
     const { error: insertError } = await supabase

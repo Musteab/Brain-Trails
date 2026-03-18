@@ -18,6 +18,8 @@ import { supabase } from "@/lib/supabase";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import BackgroundLayer from "@/components/layout/BackgroundLayer";
 import Skeleton from "@/components/ui/Skeleton";
+import StreakCalendar from "@/components/report/StreakCalendar";
+import StudyChart from "@/components/report/StudyChart";
 
 interface WeeklyStats {
   totalMinutes: number;
@@ -462,6 +464,38 @@ export default function ReportPage() {
                     : "Start your first focus session to see stats here."}
                 </p>
               </motion.div>
+
+              {/* Activity Breakdown Donut Chart */}
+              {stats.activitiesByType && Object.keys(stats.activitiesByType).length > 0 && (
+                <StudyChart
+                  type="donut"
+                  title="📊 Activity Breakdown"
+                  data={Object.entries(stats.activitiesByType).map(([type, count], i) => ({
+                    label: type.charAt(0).toUpperCase() + type.slice(1),
+                    value: count as number,
+                    color: [
+                      '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444',
+                      '#10b981', '#ec4899', '#6366f1', '#14b8a6',
+                    ][i % 8],
+                  }))}
+                  unit=""
+                />
+              )}
+
+              {/* 365-Day Streak Calendar */}
+              <StreakCalendar
+                studyData={((): Record<string, number> => {
+                  // Build study data from daily counts
+                  const result: Record<string, number> = {};
+                  const today = new Date();
+                  for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - (today.getDay() - (6 - i)));
+                    result[d.toISOString().split('T')[0]] = (dailyCounts[6 - i] || 0) / 60;
+                  }
+                  return result;
+                })()}
+              />
             </>
           ) : null}
         </div>

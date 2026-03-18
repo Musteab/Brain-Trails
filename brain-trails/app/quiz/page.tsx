@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Swords, ScrollText, Plus, ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
+import { ScrollText, Plus, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";

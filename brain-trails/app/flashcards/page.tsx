@@ -331,7 +331,7 @@ export default function FlashcardsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {decks.length === 0 ? (
                  <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-12 text-slate-500 italic">
-                   No decks found. Create one to start studying!
+                   No decks yet! Create your first deck and earn 50 XP 🎴
                  </div>
               ) : decks.map((deck, i) => (
                 <motion.div

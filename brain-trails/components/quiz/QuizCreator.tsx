@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Clock, Target, Zap, ChevronDown, Minus, Plus } from "lucide-react";
+import { useState, useCallback } from "react";
+import { motion } from "framer-motion";
+import { Sparkles, Clock, Target, Zap, Minus, Plus } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
 
 interface QuizSettings {

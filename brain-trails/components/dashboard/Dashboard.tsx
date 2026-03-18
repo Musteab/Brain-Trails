@@ -12,8 +12,13 @@ import Footer from "../layout/Footer";
 import BackgroundLayer from "../layout/BackgroundLayer";
 import StudyStreakWidget from "../ui/StudyStreakWidget";
 import AmbientPlayer from "../ui/AmbientPlayer";
+import GreetingBanner from "../ui/GreetingBanner";
 import { useTheme } from "@/context/ThemeContext";
-import { useGameStore } from "@/stores";
+import { useGameStore, useUIStore } from "@/stores";
+import { useKonamiCode } from "@/hooks/useKonamiCode";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { useAuth } from "@/context/AuthContext";
+import confetti from "canvas-confetti";
 
 /**
  * 🗺️ Dashboard Component (Screen A)
@@ -31,7 +36,34 @@ import { useGameStore } from "@/stores";
 export default function Dashboard() {
   const { theme } = useTheme();
   const isSun = theme === "sun";
-  const { streakDays } = useGameStore();
+  const { streakDays, awardGold } = useGameStore();
+  const { addToast } = useUIStore();
+  const { profile, refreshProfile, user } = useAuth();
+  const playSound = useSoundEffects();
+
+  // Konami Code Easter Egg
+  useKonamiCode(() => {
+    playSound("success");
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#FBBF24", "#F59E0B", "#D97706"] // Gold colors
+    });
+    
+    // Add 100 gold and sync to Supabase
+    if (user?.id) {
+      awardGold(user.id, 100);
+    }
+    
+    // Async refresh of profile to sync Supabase backend if we wanted to
+    // For now the awardGold hits Supabase directly via the Zustand actions
+    if (profile?.id) {
+      refreshProfile();
+    }
+
+    addToast("Konami Code Unlocked! +100 Gold 🎮🪙", "success");
+  });
 
   return (
     <div
@@ -50,6 +82,10 @@ export default function Dashboard() {
 
         {/* ===== HERO GRID (3-Column Layout) - Tightened Margins ===== */}
         <main className="flex-1 px-3 sm:px-[1.5vw] lg:px-[2vw] pb-28">
+          
+          {/* Greeting Banner */}
+          <GreetingBanner />
+
           <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-4 items-start">
             
             {/* Center Stage - Owl Companion (shown first on mobile via order) */}
@@ -60,7 +96,7 @@ export default function Dashboard() {
             </section>
 
             {/* Left Sidebar - Daily Bounties */}
-            <aside className="order-2 lg:order-1 lg:col-span-3 xl:col-span-3 z-0">
+            <aside className="order-2 lg:order-1 lg:col-span-3 xl:col-span-3 z-20 relative">
               <div className="lg:sticky lg:top-4 space-y-3">
                 <StudyStreakWidget streakDays={streakDays} lastStudyDate={null} />
                 <QuestLog />
@@ -68,7 +104,7 @@ export default function Dashboard() {
             </aside>
 
             {/* Right Sidebar - Leaderboard + Adventure Log */}
-            <aside className="order-3 lg:col-span-3 xl:col-span-3 z-0">
+            <aside className="order-3 lg:col-span-3 xl:col-span-3 z-20 relative">
               <div className="lg:sticky lg:top-4 flex flex-col gap-3">
                 <LeaderboardPodium />
                 <AdventureLog />

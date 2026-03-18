@@ -4,20 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 
-const TIPS = [
-  "💡 Break big tasks into small quests!",
-  "🧠 Spaced repetition boosts memory 3x!",
-  "⏰ The Pomodoro technique: 25 min focus, 5 min break",
-  "📖 Teaching a concept helps you learn it better",
-  "🌟 Consistency beats intensity — study daily!",
-  "🎯 Set clear goals before each study session",
-  "💪 You're doing great, keep going!",
-  "🔥 Your streak is your superpower!",
-  "📝 Writing notes by hand improves retention",
-  "🧘 Take deep breaths between sessions",
-  "🌈 Celebrate small wins — they add up!",
-  "⚡ Review before bed for better memory",
-];
+
 
 type OwlMood = "idle" | "studying" | "celebrating" | "sleepy";
 
@@ -80,31 +67,8 @@ export default function OwlCompanion({
     return () => clearInterval(interval);
   }, [mood]);
 
-  // Speech bubble with rotating tips
-  const [tipIndex, setTipIndex] = useState(-1);
-  const [showTip, setShowTip] = useState(false);
 
-  useEffect(() => {
-    // Show first tip after 5 seconds
-    const initialDelay = setTimeout(() => {
-      setTipIndex(Math.floor(Math.random() * TIPS.length));
-      setShowTip(true);
-    }, 5000);
 
-    // Rotate tips every 12 seconds
-    const rotateInterval = setInterval(() => {
-      setShowTip(false);
-      setTimeout(() => {
-        setTipIndex(prev => (prev + 1) % TIPS.length);
-        setShowTip(true);
-      }, 500);
-    }, 12000);
-
-    return () => {
-      clearTimeout(initialDelay);
-      clearInterval(rotateInterval);
-    };
-  }, []);
 
   const getBodyBob = useCallback(() => {
     const ease = "easeInOut" as const;
@@ -530,29 +494,7 @@ export default function OwlCompanion({
         )}
       </AnimatePresence>
 
-      {/* Speech Bubble */}
-      <AnimatePresence>
-        {showTip && tipIndex >= 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -5, scale: 0.95 }}
-            className={`mt-2 px-3 py-2 rounded-xl text-xs font-[family-name:var(--font-quicksand)] text-center max-w-[200px] relative ${
-              isSun
-                ? "bg-white/90 text-slate-700 border border-slate-200 shadow-lg"
-                : "bg-slate-800/90 text-slate-200 border border-slate-700 shadow-lg"
-            }`}
-          >
-            {/* Speech bubble triangle */}
-            <div
-              className={`absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 ${
-                isSun ? "bg-white/90 border-l border-t border-slate-200" : "bg-slate-800/90 border-l border-t border-slate-700"
-              }`}
-            />
-            {TIPS[tipIndex]}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Speech Bubble removed */}
     </div>
   );
 }

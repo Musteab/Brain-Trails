@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UserPlus, User, Lock, Mail, Loader2, Sparkles } from "lucide-react";
 import BackgroundLayer from "@/components/layout/BackgroundLayer";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -33,15 +34,27 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setError("");
 
+    // Check username uniqueness
+    const { data: existingUser } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", username)
+      .maybeSingle();
+
+    if (existingUser) {
+      setError("That traveler name is already taken! Choose another.");
+      setIsSubmitting(false);
+      return;
+    }
+
     const { error: signUpError } = await signUp(email, password, username);
 
     if (signUpError) {
       setError(signUpError.message);
       setIsSubmitting(false);
     } else {
-      // Supabase auto logs in if email confirmations are disabled
-      // Let's redirect to dashboard
-      router.push("/");
+      // Redirect to email confirmation page
+      router.push(`/confirm-email?email=${encodeURIComponent(email)}`);
     }
   };
 

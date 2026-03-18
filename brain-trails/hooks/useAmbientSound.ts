@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type AmbientSound = "none" | "rain" | "cafe" | "forest" | "lofi";
+export type AmbientSound = "none" | "rain" | "cafe" | "forest" | "lofi" | "spaceDrift" | "campfire";
 
 const MUTE_KEY = "braintrails_sound_muted";
 const FADE_DURATION = 1; // seconds
@@ -327,12 +327,179 @@ function buildLofi(ctx: AudioContext, master: GainNode): SoundGraph {
   return { masterGain: master, sources, nodes, timers };
 }
 
+/**
+ * Build audio graph for spaceDrift: deep LFO pads + sub-bass drone.
+ */
+function buildSpaceDrift(ctx: AudioContext, master: GainNode): SoundGraph {
+  const sources: (AudioBufferSourceNode | OscillatorNode)[] = [];
+  const nodes: AudioNode[] = [];
+
+  // Deep pad oscillators with slow detuning
+  const padFreqs = [55, 82.4, 110]; // A1, E2, A2
+  for (const freq of padFreqs) {
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+
+    // Slow LFO for gentle pitch drift
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 0.05 + Math.random() * 0.05;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 2; // ±2 Hz drift
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start();
+
+    const padGain = ctx.createGain();
+    padGain.gain.value = 0.08;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 300;
+    lp.Q.value = 0.5;
+
+    osc.connect(lp);
+    lp.connect(padGain);
+    padGain.connect(master);
+    osc.start();
+    lfo.start();
+
+    sources.push(osc, lfo);
+    nodes.push(padGain, lp, lfoGain);
+  }
+
+  // Sub-bass rumble noise
+  const noiseBuffer = createNoiseBuffer(ctx, 4);
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuffer;
+  noise.loop = true;
+
+  const noiseLp = ctx.createBiquadFilter();
+  noiseLp.type = "lowpass";
+  noiseLp.frequency.value = 100;
+  noiseLp.Q.value = 0.3;
+
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.value = 0.15;
+
+  noise.connect(noiseLp);
+  noiseLp.connect(noiseGain);
+  noiseGain.connect(master);
+  noise.start();
+
+  sources.push(noise);
+  nodes.push(noiseLp, noiseGain);
+
+  return { masterGain: master, sources, nodes, timers: [] };
+}
+
+/**
+ * Build audio graph for campfire: crackling noise + warm drone pad.
+ */
+function buildCampfire(ctx: AudioContext, master: GainNode): SoundGraph {
+  const sources: (AudioBufferSourceNode | OscillatorNode)[] = [];
+  const nodes: AudioNode[] = [];
+  const timers: ReturnType<typeof setInterval>[] = [];
+
+  // Warm drone pad (low filtered oscillator)
+  const drone = ctx.createOscillator();
+  drone.type = "triangle";
+  drone.frequency.value = 120;
+
+  const droneLp = ctx.createBiquadFilter();
+  droneLp.type = "lowpass";
+  droneLp.frequency.value = 250;
+  droneLp.Q.value = 0.4;
+
+  const droneGain = ctx.createGain();
+  droneGain.gain.value = 0.06;
+
+  drone.connect(droneLp);
+  droneLp.connect(droneGain);
+  droneGain.connect(master);
+  drone.start();
+
+  sources.push(drone);
+  nodes.push(droneLp, droneGain);
+
+  // Base crackling layer: filtered noise
+  const crackleBuffer = createNoiseBuffer(ctx, 2);
+  const crackle = ctx.createBufferSource();
+  crackle.buffer = crackleBuffer;
+  crackle.loop = true;
+
+  const crackleHp = ctx.createBiquadFilter();
+  crackleHp.type = "highpass";
+  crackleHp.frequency.value = 3000;
+
+  const crackleBp = ctx.createBiquadFilter();
+  crackleBp.type = "bandpass";
+  crackleBp.frequency.value = 4000;
+  crackleBp.Q.value = 2;
+
+  const crackleGain = ctx.createGain();
+  crackleGain.gain.value = 0.04;
+
+  // Random crackle amplitude
+  const crackleLfo = ctx.createOscillator();
+  crackleLfo.type = "sawtooth";
+  crackleLfo.frequency.value = 12;
+  const crackleLfoGain = ctx.createGain();
+  crackleLfoGain.gain.value = 0.02;
+  crackleLfo.connect(crackleLfoGain);
+  crackleLfoGain.connect(crackleGain.gain);
+  crackleLfo.start();
+
+  crackle.connect(crackleHp);
+  crackleHp.connect(crackleBp);
+  crackleBp.connect(crackleGain);
+  crackleGain.connect(master);
+  crackle.start();
+
+  sources.push(crackle, crackleLfo);
+  nodes.push(crackleHp, crackleBp, crackleGain, crackleLfoGain);
+
+  // Occasional pop/crack bursts
+  const popInterval = setInterval(() => {
+    try {
+      const popBuf = createNoiseBuffer(ctx, 0.1);
+      const pop = ctx.createBufferSource();
+      pop.buffer = popBuf;
+
+      const popFilter = ctx.createBiquadFilter();
+      popFilter.type = "bandpass";
+      popFilter.frequency.value = 3000 + Math.random() * 4000;
+      popFilter.Q.value = 3;
+
+      const popGain = ctx.createGain();
+      popGain.gain.setValueAtTime(0.001, ctx.currentTime);
+      popGain.gain.exponentialRampToValueAtTime(0.06 + Math.random() * 0.04, ctx.currentTime + 0.01);
+      popGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+
+      pop.connect(popFilter);
+      popFilter.connect(popGain);
+      popGain.connect(master);
+      pop.start();
+      pop.stop(ctx.currentTime + 0.1);
+    } catch {
+      // context may be closed
+    }
+  }, 600 + Math.random() * 1200);
+
+  timers.push(popInterval);
+
+  return { masterGain: master, sources, nodes, timers };
+}
+
 type BuildFn = (ctx: AudioContext, master: GainNode) => SoundGraph;
 const BUILDERS: Record<Exclude<AmbientSound, "none">, BuildFn> = {
   rain: buildRain,
   cafe: buildCafe,
   forest: buildForest,
   lofi: buildLofi,
+  spaceDrift: buildSpaceDrift,
+  campfire: buildCampfire,
 };
 
 /**

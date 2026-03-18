@@ -20,7 +20,7 @@ export interface Database {
           avatar_url: string | null;
           avatar_frame: string;
           bio: string;
-          role: "student" | "guild_leader" | "admin";
+          role: "student" | "guild_leader" | "admin" | "dev" | "beta_tester";
           xp: number;
           level: number;
           gold: number;
@@ -28,6 +28,9 @@ export interface Database {
           streak_last_date: string | null;
           guild_id: string | null;
           onboarding_completed: boolean;
+          title: string | null;
+          title_border: string | null;
+          beta_joined_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -38,7 +41,7 @@ export interface Database {
           avatar_url?: string | null;
           avatar_frame?: string;
           bio?: string;
-          role?: "student" | "guild_leader" | "admin";
+          role?: "student" | "guild_leader" | "admin" | "dev" | "beta_tester";
           xp?: number;
           level?: number;
           gold?: number;
@@ -46,6 +49,9 @@ export interface Database {
           streak_last_date?: string | null;
           guild_id?: string | null;
           onboarding_completed?: boolean;
+          title?: string | null;
+          title_border?: string | null;
+          beta_joined_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -56,7 +62,7 @@ export interface Database {
           avatar_url?: string | null;
           avatar_frame?: string;
           bio?: string;
-          role?: "student" | "guild_leader" | "admin";
+          role?: "student" | "guild_leader" | "admin" | "dev" | "beta_tester";
           xp?: number;
           level?: number;
           gold?: number;
@@ -64,6 +70,9 @@ export interface Database {
           streak_last_date?: string | null;
           guild_id?: string | null;
           onboarding_completed?: boolean;
+          title?: string | null;
+          title_border?: string | null;
+          beta_joined_at?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -1217,6 +1226,53 @@ export interface Database {
           }
         ];
       };
+      support_tickets: {
+        Row: {
+          id: string;
+          user_id: string;
+          category: "bug" | "feature" | "question" | "other";
+          subject: string;
+          message: string;
+          page_url: string | null;
+          severity: "low" | "medium" | "high" | "critical";
+          status: "open" | "in_progress" | "resolved" | "closed";
+          admin_response: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          category?: "bug" | "feature" | "question" | "other";
+          subject: string;
+          message: string;
+          page_url?: string | null;
+          severity?: "low" | "medium" | "high" | "critical";
+          status?: "open" | "in_progress" | "resolved" | "closed";
+          admin_response?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          category?: "bug" | "feature" | "question" | "other";
+          subject?: string;
+          message?: string;
+          page_url?: string | null;
+          severity?: "low" | "medium" | "high" | "critical";
+          status?: "open" | "in_progress" | "resolved" | "closed";
+          admin_response?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Functions: {};
@@ -1254,3 +1310,4 @@ export type ExamTopic = Database["public"]["Tables"]["exam_topics"]["Row"];
 export type Quiz = Database["public"]["Tables"]["quizzes"]["Row"];
 export type QuizAttempt = Database["public"]["Tables"]["quiz_attempts"]["Row"];
 export type DailyQuest = Database["public"]["Tables"]["daily_quests"]["Row"];
+export type SupportTicket = Database["public"]["Tables"]["support_tickets"]["Row"];

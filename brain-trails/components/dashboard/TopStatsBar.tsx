@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Zap, LogOut, ChevronDown, User as UserIcon, Settings, Users, Command } from "lucide-react";
+import { motion } from "framer-motion";
+import { Zap, ChevronDown, User as UserIcon, Users, Command } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePresence } from "@/hooks/usePresence";
+import ProfileHoverCard from "@/components/ui/ProfileHoverCard";
 import { gameText } from "@/constants/gameText";
 
 /**
@@ -20,7 +20,6 @@ import { gameText } from "@/constants/gameText";
  * - User Profile Dropdown / Logout (right)
  */
 export default function TopStatsBar() {
-  const router = useRouter();
   const { theme } = useTheme();
   const { profile, user, signOut, isLoading } = useAuth();
   const onlineCount = usePresence();
@@ -47,8 +46,9 @@ export default function TopStatsBar() {
       {/* Left: Gold Display + Presence */}
       <div className="flex items-center gap-2">
         <motion.div
+          title="Current Gold - Spend it in the Shop!"
           whileHover={{ scale: 1.05 }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border-2 ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm border-2 cursor-help ${
             isSun 
               ? "bg-amber-100/80 border-amber-300" 
               : "bg-amber-500/20 border-amber-400/30"
@@ -108,8 +108,9 @@ export default function TopStatsBar() {
 
         {/* Level Badge */}
         <motion.div
+          title={`Level ${level} - Keep studying to level up!`}
           whileHover={{ scale: 1.05 }}
-          className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full shadow-md"
+          className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full shadow-md cursor-help"
         >
           <Zap className="w-3.5 h-3.5 text-white" fill="white" />
           {isLoading ? (
@@ -120,7 +121,10 @@ export default function TopStatsBar() {
         </motion.div>
 
         {/* XP Progress Bar */}
-        <div className="hidden sm:flex items-center gap-2">
+        <div 
+          className="hidden sm:flex items-center gap-2 cursor-help"
+          title={`${currentXP} / ${maxXP} XP (${Math.round(xpPercentage)}%)`}
+        >
           <div className={`w-32 lg:w-40 h-2.5 rounded-full overflow-hidden border backdrop-blur-sm ${
             isSun ? "bg-amber-200/50 border-amber-300" : "bg-white/10 border-white/20"
           }`}>
@@ -147,11 +151,12 @@ export default function TopStatsBar() {
       </div>
 
       {/* Right: User Profile Menu */}
-      <div className="relative">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setDropdownOpen(!dropdownOpen)}
+      <div 
+        className="relative"
+        onMouseEnter={() => setDropdownOpen(true)}
+        onMouseLeave={() => setDropdownOpen(false)}
+      >
+        <button
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-sm border-2 transition-colors ${
             isSun 
               ? "bg-white/80 border-slate-200 hover:bg-white" 
@@ -184,48 +189,13 @@ export default function TopStatsBar() {
           </div>
           
           <ChevronDown className={`w-3.5 h-3.5 ml-1 ${isSun ? "text-slate-400" : "text-slate-400"}`} />
-        </motion.button>
+        </button>
 
-        <AnimatePresence>
-          {dropdownOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className={`absolute right-0 mt-2 w-48 rounded-2xl border backdrop-blur-xl shadow-xl overflow-hidden z-50 ${
-                isSun 
-                  ? "bg-white/90 border-slate-200 shadow-slate-200/50" 
-                  : "bg-slate-900/90 border-slate-700 shadow-black/50"
-              }`}
-            >
-              <div className="py-1">
-                <button
-                  onClick={() => { setDropdownOpen(false); router.push("/settings"); }}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors ${
-                    isSun 
-                      ? "text-slate-700 hover:bg-slate-50" 
-                      : "text-slate-300 hover:bg-white/5"
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  {gameText.navigation.settings}
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors ${
-                    isSun 
-                      ? "text-red-600 hover:bg-red-50" 
-                      : "text-red-400 hover:bg-red-500/10"
-                  }`}
-                >
-                  <LogOut className="w-4 h-4" />
-                  {gameText.navigation.logout}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <ProfileHoverCard 
+          isOpen={dropdownOpen} 
+          onClose={() => setDropdownOpen(false)} 
+          onLogout={handleSignOut} 
+        />
       </div>
     </motion.div>
   );

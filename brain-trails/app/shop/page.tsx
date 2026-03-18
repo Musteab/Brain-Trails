@@ -480,7 +480,7 @@ export default function ShopPage() {
                 <div className="col-span-full text-center py-16">
                   <ShoppingBag className={`w-12 h-12 mx-auto mb-3 ${muted}`} />
                   <p className={`text-sm font-bold font-[family-name:var(--font-nunito)] ${muted}`}>
-                    No items available in this category yet.
+                    The merchant is restocking... 🏪
                   </p>
                 </div>
               )}

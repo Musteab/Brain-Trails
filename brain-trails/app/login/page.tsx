@@ -131,6 +131,12 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div className="text-right -mt-1">
+              <Link href="/forgot-password" className="text-xs text-violet-300 hover:text-white font-semibold transition-colors">
+                Forgot Password?
+              </Link>
+            </div>
+
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

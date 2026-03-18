@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCardStyles } from "@/hooks/useCardStyles";
-import { useQuests, type Quest } from "@/hooks/useQuests";
+import { useQuests } from "@/hooks/useQuests";
 import { CheckCircle2, Sword, BookOpen, Timer, PenTool, Scroll, Zap } from "lucide-react";
 
 function QuestIcon({ type, isSun }: { type: string; isSun: boolean }) {
@@ -69,8 +69,8 @@ const QuestLog = memo(function QuestLog() {
         ) : quests.length === 0 ? (
           <div className={`text-center py-6 ${muted}`}>
             <p className="text-2xl mb-2">📜</p>
-            <p className="text-sm font-bold font-[family-name:var(--font-nunito)]">No active quests</p>
-            <p className="text-xs mt-1">Quests refresh daily at midnight</p>
+            <p className="text-sm font-bold font-[family-name:var(--font-nunito)]">Your quest board is clear! Complete an activity ⚔️</p>
+            <p className="text-xs mt-1">New quests will arrive tomorrow at dawn</p>
           </div>
         ) : (
           <AnimatePresence>

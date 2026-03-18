@@ -1,0 +1,88 @@
+/* Background Atmosphere Animations */
+
+/* ── Keyframes ── */
+@keyframes float-up {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes shooting-star {
+  0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 1; width: 0; }
+  30% { opacity: 1; width: 100px; }
+  100% { transform: translateX(-1000px) translateY(1000px) rotate(-45deg); opacity: 0; width: 0; }
+}
+
+@keyframes aurora-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes cloud-drift {
+  0% { transform: translateX(-10vw); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateX(100vw); opacity: 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.05); }
+}
+
+/* ── Utility Classes ── */
+
+.bg-aurora {
+  background: linear-gradient(60deg, rgba(88, 28, 135, 0.4), rgba(45, 212, 191, 0.2), rgba(30, 58, 138, 0.4));
+  background-size: 300% 300%;
+  animation: aurora-shift 20s ease infinite;
+  filter: blur(40px);
+}
+
+.bg-sun-glow {
+  background: radial-gradient(circle at 80% 20%, rgba(251, 191, 36, 0.4) 0%, rgba(251, 146, 60, 0) 50%);
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+.particle-sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: rgba(251, 191, 36, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), 0 0 20px rgba(251, 191, 36, 0.4);
+  animation: float-up 10s linear infinite;
+}
+
+.particle-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+.particle-shooting-star {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 999px;
+  animation: shooting-star 15s linear infinite;
+  opacity: 0;
+}
+
+.particle-cloud {
+  position: absolute;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  filter: blur(20px);
+  animation: cloud-drift 40s linear infinite;
+}

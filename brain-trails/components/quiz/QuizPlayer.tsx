@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Shield, Swords, CheckCircle2, XCircle, ChevronRight } from "lucide-react";
+import { Clock, Swords, CheckCircle2, XCircle } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
 
 export interface QuizQuestion {
@@ -20,7 +20,7 @@ interface QuizPlayerProps {
 }
 
 export default function QuizPlayer({ questions, timePerQuestion, onComplete }: QuizPlayerProps) {
-  const { card, isSun, title: titleStyle, muted } = useCardStyles();
+  const { card, isSun, muted } = useCardStyles();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [answers, setAnswers] = useState<string[]>([]);
@@ -30,7 +30,6 @@ export default function QuizPlayer({ questions, timePerQuestion, onComplete }: Q
   const inputRef = useRef<HTMLInputElement>(null);
 
   const question = questions[currentIndex];
-  const progress = ((currentIndex) / questions.length) * 100;
   const bossHp = 100 - ((currentIndex) / questions.length) * 100;
 
   // Timer

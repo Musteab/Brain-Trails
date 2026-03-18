@@ -18,6 +18,9 @@ interface Profile {
   streak_days: number;
   guild_id: string | null;
   onboarding_completed: boolean;
+  title: string | null;
+  title_border: string | null;
+  beta_joined_at: string | null;
 }
 
 interface AuthContextType {
@@ -83,6 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       streak_days: 0,
       guild_id: null,
       onboarding_completed: false,
+      title: null,
+      title_border: null,
+      beta_joined_at: null,
     };
 
     const { error: insertError } = await supabase
@@ -164,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   };
 

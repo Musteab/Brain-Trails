@@ -16,10 +16,13 @@ import {
   Check,
   KeyRound,
   Trash2,
-  Download,
   AlertTriangle,
   Loader2,
   Pencil,
+  LifeBuoy,
+  MessageSquare,
+  Bug,
+  Download,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -717,6 +720,44 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </div>
+            </SettingRow>
+          </Section>
+
+          {/* ===== SUPPORT SECTION ===== */}
+          <Section
+            icon={
+              <LifeBuoy
+                className={`w-5 h-5 ${isSun ? "text-cyan-600" : "text-cyan-400"}`}
+              />
+            }
+            label="Support"
+          >
+            <SettingRow label="Contact Support" description="Questions, features, or general help">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push("/support")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  isSun
+                    ? "bg-cyan-100 text-cyan-600 hover:bg-cyan-200"
+                    : "bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30"
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> Contact
+              </motion.button>
+            </SettingRow>
+            
+            <SettingRow label="Report an Issue" description="Found a bug? Let us know!">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.push(`/support/report?from=${encodeURIComponent(window.location.href)}`)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  isSun
+                    ? "bg-rose-100 text-rose-600 hover:bg-rose-200"
+                    : "bg-rose-500/20 text-rose-400 hover:bg-rose-500/30"
+                }`}
+              >
+                <Bug className="w-3.5 h-3.5" /> Report
+              </motion.button>
             </SettingRow>
           </Section>
 

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Music, ChevronDown, ChevronUp, Volume2, VolumeX } from "lucide-react";
+import { Music, ChevronDown, ChevronUp, Volume2, VolumeX, Link2, X } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
 
 // Curated Spotify playlist URIs (study/focus playlists)
@@ -10,43 +10,103 @@ const PLAYLISTS = [
   {
     name: "Lo-fi Beats",
     emoji: "🎵",
-    uri: "37i9dQZF1DWWQRwui0ExPn",  // lofi beats
+    uri: "37i9dQZF1DWWQRwui0ExPn",
   },
   {
     name: "Deep Focus",
     emoji: "🧠",
-    uri: "37i9dQZF1DWZeKCadgRdKQ",  // deep focus
+    uri: "37i9dQZF1DWZeKCadgRdKQ",
   },
   {
     name: "Peaceful Piano",
     emoji: "🎹",
-    uri: "37i9dQZF1DX4sWSpwq3LiO",  // peaceful piano
+    uri: "37i9dQZF1DX4sWSpwq3LiO",
   },
   {
     name: "Nature Sounds",
     emoji: "🌿",
-    uri: "37i9dQZF1DX4PP3DA4J0N8",  // nature sounds
+    uri: "37i9dQZF1DX4PP3DA4J0N8",
   },
   {
     name: "Classical Focus",
     emoji: "🎻",
-    uri: "37i9dQZF1DWYkztttC1w38",  // classical focus
+    uri: "37i9dQZF1DWYkztttC1w38",
   },
   {
     name: "Jazz Vibes",
     emoji: "🎷",
-    uri: "37i9dQZF1DX0SM0LYsmbMT",  // jazz vibes
+    uri: "37i9dQZF1DX0SM0LYsmbMT",
   },
 ];
+
+const CUSTOM_PLAYLIST_KEY = "braintrails_custom_playlist";
+
+function parsePlaylistUri(input: string): string | null {
+  // Handle full URLs like https://open.spotify.com/playlist/ABC?si=...
+  const urlMatch = input.match(/open\.spotify\.com\/playlist\/([a-zA-Z0-9]+)/);
+  if (urlMatch) return urlMatch[1];
+  // Handle spotify:playlist:ABC format
+  const uriMatch = input.match(/spotify:playlist:([a-zA-Z0-9]+)/);
+  if (uriMatch) return uriMatch[1];
+  // Handle bare IDs (22 chars alphanumeric)
+  if (/^[a-zA-Z0-9]{22}$/.test(input.trim())) return input.trim();
+  return null;
+}
 
 export default function AmbientPlayer() {
   const { isSun } = useCardStyles();
   const [isOpen, setIsOpen] = useState(false);
   const [activePlaylist, setActivePlaylist] = useState(PLAYLISTS[0]);
   const [isMuted, setIsMuted] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customUrl, setCustomUrl] = useState("");
+  const [customPlaylist, setCustomPlaylist] = useState<{ name: string; emoji: string; uri: string } | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Reload iframe when muting/unmuting isn't possible via API, just toggle visibility
+  // Load saved custom playlist on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CUSTOM_PLAYLIST_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setTimeout(() => setCustomPlaylist(parsed), 0);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleAddCustomPlaylist = () => {
+    const uri = parsePlaylistUri(customUrl);
+    if (!uri) return;
+
+    const custom = { name: "My Playlist", emoji: "💜", uri };
+    setCustomPlaylist(custom);
+    setActivePlaylist(custom);
+    setShowCustomInput(false);
+    setCustomUrl("");
+
+    try {
+      localStorage.setItem(CUSTOM_PLAYLIST_KEY, JSON.stringify(custom));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleRemoveCustomPlaylist = () => {
+    setCustomPlaylist(null);
+    if (activePlaylist.name === "My Playlist") {
+      setActivePlaylist(PLAYLISTS[0]);
+    }
+    try {
+      localStorage.removeItem(CUSTOM_PLAYLIST_KEY);
+    } catch {
+      // ignore
+    }
+  };
+
+  const allPlaylists = customPlaylist ? [...PLAYLISTS, customPlaylist] : PLAYLISTS;
+
   const embedUrl = `https://open.spotify.com/embed/playlist/${activePlaylist.uri}?utm_source=generator&theme=${isSun ? "0" : "1"}`;
 
   return (
@@ -95,7 +155,7 @@ export default function AmbientPlayer() {
             {/* Playlist Selector */}
             <div className="px-3 pb-2">
               <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
-                {PLAYLISTS.map(pl => (
+                {allPlaylists.map(pl => (
                   <button
                     key={pl.uri}
                     onClick={() => setActivePlaylist(pl)}
@@ -109,10 +169,69 @@ export default function AmbientPlayer() {
                   >
                     <span>{pl.emoji}</span>
                     {pl.name}
+                    {pl.name === "My Playlist" && (
+                      <X
+                        className="w-3 h-3 ml-0.5 opacity-60 hover:opacity-100"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveCustomPlaylist(); }}
+                      />
+                    )}
                   </button>
                 ))}
+                {/* Add custom playlist button */}
+                {!customPlaylist && (
+                  <button
+                    onClick={() => setShowCustomInput(!showCustomInput)}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${
+                      isSun
+                        ? "bg-violet-100 text-violet-600 hover:bg-violet-200"
+                        : "bg-violet-500/20 text-violet-400 hover:bg-violet-500/30"
+                    }`}
+                  >
+                    <Link2 className="w-3 h-3" />
+                    Your Playlist
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* Custom Playlist URL Input */}
+            <AnimatePresence>
+              {showCustomInput && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-3 pb-2">
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text"
+                        value={customUrl}
+                        onChange={(e) => setCustomUrl(e.target.value)}
+                        placeholder="Paste Spotify playlist URL..."
+                        className={`flex-1 px-3 py-1.5 rounded-lg text-xs border focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${
+                          isSun
+                            ? "bg-white border-slate-200 text-slate-700 placeholder:text-slate-400"
+                            : "bg-white/10 border-white/10 text-white placeholder:text-slate-500"
+                        }`}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddCustomPlaylist()}
+                      />
+                      <button
+                        onClick={handleAddCustomPlaylist}
+                        disabled={!parsePlaylistUri(customUrl)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-white disabled:opacity-40 hover:bg-emerald-600 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    <p className={`text-[10px] mt-1 ${isSun ? "text-slate-400" : "text-slate-500"}`}>
+                      💡 Log in to Spotify in the player for full tracks
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Spotify Embed */}
             <div className={`px-3 pb-3 ${isMuted ? "opacity-30 pointer-events-none" : ""}`}>

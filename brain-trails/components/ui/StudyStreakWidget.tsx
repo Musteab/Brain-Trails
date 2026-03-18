@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
 
 interface StudyStreakWidgetProps {
@@ -10,7 +9,7 @@ interface StudyStreakWidgetProps {
 }
 
 export default function StudyStreakWidget({ streakDays, lastStudyDate }: StudyStreakWidgetProps) {
-  const { card, isSun, title: titleStyle, muted } = useCardStyles();
+  const { card, isSun, muted } = useCardStyles();
 
   const fireScale = Math.min(1 + streakDays * 0.05, 2);
   const isActive = (() => {

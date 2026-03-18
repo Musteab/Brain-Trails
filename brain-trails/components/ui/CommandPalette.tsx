@@ -28,6 +28,8 @@ import {
   Zap,
   Coins,
   RefreshCcw,
+  HelpCircle,
+  Bug,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
@@ -35,6 +37,7 @@ import { useCardStyles } from "@/hooks/useCardStyles";
 import { getMuted, toggleMute } from "@/hooks/useSoundEffects";
 import { useGameStore, useUIStore } from "@/stores";
 import { useAuth } from "@/context/AuthContext";
+import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/lib/supabase";
 
 // ── Action definitions ───────────────────────────────────
@@ -53,6 +56,7 @@ export default function CommandPalette() {
   const { isSun } = useCardStyles();
   const { awardXp, awardGold } = useGameStore();
   const { user, refreshProfile } = useAuth();
+  const { isAdmin } = useAdmin();
   const { addToast } = useUIStore();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -76,9 +80,11 @@ export default function CommandPalette() {
       { id: "nav-shop",         label: "Shop",          icon: <ShoppingBag className="w-4 h-4" />, category: "navigate", action: () => router.push("/shop") },
       { id: "nav-settings",     label: "Settings",      icon: <Settings className="w-4 h-4" />,    category: "navigate", action: () => router.push("/settings") },
       { id: "nav-report",       label: "Weekly Report", icon: <BarChart3 className="w-4 h-4" />,   category: "navigate", action: () => router.push("/report") },
+      { id: "nav-support",      label: "Support",       icon: <HelpCircle className="w-4 h-4" />,  category: "navigate", action: () => router.push("/support") },
       // Quick actions
       { id: "act-focus",        label: "Start Focus Session", icon: <Play className="w-4 h-4" />,    category: "action", action: () => router.push("/focus") },
       { id: "act-note",         label: "Create Note",         icon: <FilePlus className="w-4 h-4" />, category: "action", action: () => router.push("/notes") },
+      { id: "act-report-bug",   label: "Report an Issue",     icon: <Bug className="w-4 h-4" />,      category: "action", action: () => router.push(`/support/report?from=${encodeURIComponent(window.location.href)}`) },
       {
         id: "act-theme",
         label: `Toggle Theme (${theme === "sun" ? "Dark" : "Light"})`,
@@ -235,7 +241,8 @@ export default function CommandPalette() {
   // ── Separate navigate vs action groups ─────────────────
   const navActions = filteredActions.filter((a) => a.category === "navigate");
   const quickActions = filteredActions.filter((a) => a.category === "action");
-  const devActions = filteredActions.filter((a) => a.category === "dev");
+  // Only show dev actions if user isAdmin
+  const devActions = isAdmin ? filteredActions.filter((a) => a.category === "dev") : [];
 
   let cumulativeIndex = 0;
 

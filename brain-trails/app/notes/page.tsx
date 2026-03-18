@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Share2, Download, Upload, Loader2, Check, Sparkles, PanelLeftClose, PanelLeft, FileText, FileCode, BookOpen } from "lucide-react";
+import { ArrowLeft, Share2, Download, Upload, Loader2, Check, Sparkles, PanelLeftClose, PanelLeft, FileText, FileCode, BookOpen, CloudOff, Cloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SpellbookEditor, { type SpellbookEditorRef } from "@/components/notes/SpellbookEditor";
 import AIFamiliar from "@/components/notes/AIFamiliar";
 import NotesSidebar from "@/components/notes/NotesSidebar";
+import StuckOwl from "@/components/notes/StuckOwl";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { supabase } from "@/lib/supabase";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
@@ -25,6 +26,7 @@ export default function NotesPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const leftEditorRef = useRef<SpellbookEditorRef>(null);
   const rightEditorRef = useRef<SpellbookEditorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,11 +107,19 @@ export default function NotesPage() {
 
   const saveToSupabase = async (noteId: string, leftHtml: string, rightHtml: string, currentTitle: string) => {
     if (!noteId) return;
+    setSaveStatus('saving');
     const payload = JSON.stringify({ left: leftHtml, right: rightHtml });
-    await supabase
+    const { error } = await supabase
       .from('notes')
       .update({ content_html: payload, title: currentTitle, updated_at: new Date().toISOString() })
       .eq('id', noteId);
+    if (error) {
+      setSaveStatus('error');
+      addToast('Failed to save note. Please try again.', 'error');
+    } else {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    }
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,6 +141,7 @@ export default function NotesPage() {
         saveToSupabase(selectedNoteId, html, rightContent.html, noteTitle);
       }, 1000);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNoteId, rightContent.html, noteTitle]);
 
   // Debounced auto-save for right page
@@ -142,6 +153,7 @@ export default function NotesPage() {
         saveToSupabase(selectedNoteId, leftContent.html, html, noteTitle);
       }, 1000);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNoteId, leftContent.html, noteTitle]);
 
   const handleSelectNote = (noteId: string) => {
@@ -275,6 +287,30 @@ export default function NotesPage() {
             />
           </div>
 
+          {/* Save status indicator */}
+          {selectedNoteId && (
+            <div className="flex items-center gap-1.5 mr-2">
+              {saveStatus === 'saving' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1 text-amber-500">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span className="text-xs font-medium">Saving...</span>
+                </motion.div>
+              )}
+              {saveStatus === 'saved' && (
+                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1 text-emerald-500">
+                  <Cloud className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">Saved ✓</span>
+                </motion.div>
+              )}
+              {saveStatus === 'error' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-1 text-red-500">
+                  <CloudOff className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">Save failed</span>
+                </motion.div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleImportClick} disabled={isImporting} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors text-sm font-medium disabled:opacity-50">
               <AnimatePresence mode="wait">
@@ -323,8 +359,8 @@ export default function NotesPage() {
         {!selectedNoteId && (
           <div className="flex flex-col items-center justify-center py-32 text-center">
             <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
-            <h2 className="text-xl font-bold text-slate-500 font-[family-name:var(--font-nunito)] mb-2">No note selected</h2>
-            <p className="text-sm text-slate-400 max-w-sm mb-6">Select a note from the sidebar or create a new one to start writing.</p>
+            <h2 className="text-xl font-bold text-slate-500 font-[family-name:var(--font-nunito)] mb-2">No scrolls written yet!</h2>
+            <p className="text-sm text-slate-400 max-w-sm mb-6">Create your first note ✍️ to begin recording your knowledge.</p>
             <button
               onClick={handleQuickCreate}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold font-[family-name:var(--font-nunito)] shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all"
@@ -406,6 +442,7 @@ export default function NotesPage() {
       </div>
 
       <AIFamiliar noteContent={leftContent.text + "\n" + rightContent.text} isOpen={isAIOpen} onToggle={() => setIsAIOpen(!isAIOpen)} />
+      <StuckOwl onOpenAI={() => setIsAIOpen(true)} idleTimeoutMs={45000} />
       <TravelerHotbar />
     </main>
   );

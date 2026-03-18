@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Swords, Trophy } from "lucide-react";
+import { Swords, Trophy, Rocket, BookOpen } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useAuth } from "@/context/AuthContext";
 import { BOSSES, type Boss } from "@/lib/bosses";
@@ -78,47 +78,74 @@ export default function CoopBossRaid() {
               : "bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-400/30"
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 relative">
-              <Image src="/assets/icons/sword.png" alt="Boss Battle" width={32} height={32} className="object-contain" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 relative">
+                <Image src="/assets/icons/sword.png" alt="Boss Battle" width={32} height={32} className="object-contain" />
+              </div>
+              <div>
+                <h3
+                  className={`text-base font-bold font-[family-name:var(--font-nunito)] ${
+                    isSun ? "text-red-700" : "text-red-400"
+                  }`}
+                >
+                  Boss Battle
+                </h3>
+                <p
+                  className={`text-xs font-[family-name:var(--font-quicksand)] ${
+                    isSun ? "text-red-600" : "text-red-300"
+                  }`}
+                >
+                  Knowledge Challenge
+                </p>
+              </div>
             </div>
-            <div>
-              <h3
-                className={`text-base font-bold font-[family-name:var(--font-nunito)] ${
-                  isSun ? "text-red-700" : "text-red-400"
-                }`}
-              >
-                Boss Battle
-              </h3>
-              <p
-                className={`text-xs font-[family-name:var(--font-quicksand)] ${
-                  isSun ? "text-red-600" : "text-red-300"
-                }`}
-              >
-                Flashcard Challenge
-              </p>
+            {/* Coming Soon Badge */}
+            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              isSun
+                ? "bg-amber-100 text-amber-700 border border-amber-200"
+                : "bg-amber-400/15 text-amber-400 border border-amber-400/30"
+            }`}>
+              <Rocket className="w-3 h-3" />
+              Co-op Coming Soon
             </div>
           </div>
         </div>
 
         <p className={`text-sm mb-4 ${isSun ? "text-slate-600" : "text-slate-400"}`}>
-          Test your knowledge by battling bosses with your flashcards!
+          Test your knowledge by battling bosses with flashcards or quizzes!
         </p>
 
-        <Link href="/battle">
-          <motion.span
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className={`block w-full py-2.5 text-center text-white font-bold text-sm rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-[family-name:var(--font-quicksand)] ${
-              isSun
-                ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border border-red-400"
-                : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border border-red-400"
-            }`}
-          >
-            <Swords className="w-4 h-4 inline mr-1.5" />
-            Start Your First Battle
-          </motion.span>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/battle" className="flex-1">
+            <motion.span
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`block w-full py-2.5 text-center text-white font-bold text-sm rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-[family-name:var(--font-quicksand)] ${
+                isSun
+                  ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border border-red-400"
+                  : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border border-red-400"
+              }`}
+            >
+              <Swords className="w-4 h-4 inline mr-1.5" />
+              Flashcard Battle
+            </motion.span>
+          </Link>
+          <Link href="/quiz" className="flex-1">
+            <motion.span
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`block w-full py-2.5 text-center font-bold text-sm rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-[family-name:var(--font-quicksand)] ${
+                isSun
+                  ? "bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white border border-violet-400"
+                  : "bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white border border-violet-400"
+              }`}
+            >
+              <BookOpen className="w-4 h-4 inline mr-1.5" />
+              Quiz Battle
+            </motion.span>
+          </Link>
+        </div>
       </motion.div>
     );
   }
@@ -165,29 +192,40 @@ export default function CoopBossRaid() {
             : "bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-400/30"
         }`}
       >
-        <div className="flex items-center gap-3">
-          {boss ? (
-            <Image src={boss.icon} alt={boss.name} width={32} height={32} className="object-contain" />
-          ) : (
-            <div className="w-8 h-8 relative">
-              <Image src="/assets/icons/sword.png" alt="Boss Battle" width={32} height={32} className="object-contain" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {boss ? (
+              <Image src={boss.icon} alt={boss.name} width={32} height={32} className="object-contain" />
+            ) : (
+              <div className="w-8 h-8 relative">
+                <Image src="/assets/icons/sword.png" alt="Boss Battle" width={32} height={32} className="object-contain" />
+              </div>
+            )}
+            <div>
+              <h3
+                className={`text-base font-bold font-[family-name:var(--font-nunito)] ${
+                  isSun ? "text-red-700" : "text-red-400"
+                }`}
+              >
+                Boss Battle
+              </h3>
+              <p
+                className={`text-xs font-[family-name:var(--font-quicksand)] ${
+                  isSun ? "text-red-600" : "text-red-300"
+                }`}
+              >
+                {boss ? `Last: ${boss.name}` : "Knowledge Challenge"}
+              </p>
             </div>
-          )}
-          <div>
-            <h3
-              className={`text-base font-bold font-[family-name:var(--font-nunito)] ${
-                isSun ? "text-red-700" : "text-red-400"
-              }`}
-            >
-              Boss Battle
-            </h3>
-            <p
-              className={`text-xs font-[family-name:var(--font-quicksand)] ${
-                isSun ? "text-red-600" : "text-red-300"
-              }`}
-            >
-              {boss ? `Last: ${boss.name}` : "Flashcard Challenge"}
-            </p>
+          </div>
+          {/* Coming Soon Badge */}
+          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+            isSun
+              ? "bg-amber-100 text-amber-700 border border-amber-200"
+              : "bg-amber-400/15 text-amber-400 border border-amber-400/30"
+          }`}>
+            <Rocket className="w-3 h-3" />
+            Co-op Coming Soon
           </div>
         </div>
       </div>
@@ -251,21 +289,37 @@ export default function CoopBossRaid() {
         )}
       </div>
 
-      {/* Fight button */}
-      <Link href="/battle">
-        <motion.span
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className={`block w-full py-2.5 text-center text-white font-bold text-sm rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-[family-name:var(--font-quicksand)] ${
-            isSun
-              ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border border-red-400"
-              : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border border-red-400"
-          }`}
-        >
-          <Swords className="w-4 h-4 inline mr-1.5" />
-          Fight a Boss
-        </motion.span>
-      </Link>
+      {/* Action buttons — Flashcard + Quiz */}
+      <div className="flex gap-2">
+        <Link href="/battle" className="flex-1">
+          <motion.span
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`block w-full py-2.5 text-center text-white font-bold text-sm rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-[family-name:var(--font-quicksand)] ${
+              isSun
+                ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 border border-red-400"
+                : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border border-red-400"
+            }`}
+          >
+            <Swords className="w-4 h-4 inline mr-1.5" />
+            Fight a Boss
+          </motion.span>
+        </Link>
+        <Link href="/quiz" className="flex-1">
+          <motion.span
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`block w-full py-2.5 text-center font-bold text-sm rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-[family-name:var(--font-quicksand)] ${
+              isSun
+                ? "bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white border border-violet-400"
+                : "bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white border border-violet-400"
+            }`}
+          >
+            <BookOpen className="w-4 h-4 inline mr-1.5" />
+            Quiz Battle
+          </motion.span>
+        </Link>
+      </div>
     </motion.div>
   );
 }

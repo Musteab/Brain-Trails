@@ -13,6 +13,15 @@ interface ProfileHoverCardProps {
   onLogout: () => void;
 }
 
+/** Picks the right frame class based on role / shop cosmetic */
+function getFrameClass(role?: string | null, titleBorder?: string | null) {
+  if (role === "dev") return "frame-dev";
+  if (role === "admin") return "frame-admin";
+  if (role === "beta_tester") return "frame-beta";
+  if (titleBorder) return "frame-shop";
+  return "";
+}
+
 export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileHoverCardProps) {
   const { profile } = useAuth();
   const { isSun, muted } = useCardStyles();
@@ -23,6 +32,11 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
   // Calculate XP progress
   const nextLevelXP = profile.level * 1000;
   const xpProgress = (profile.xp / nextLevelXP) * 100;
+
+  const frameClass = getFrameClass(profile.role, profile.title_border);
+  const frameStyle: React.CSSProperties = profile.title_border && !isDev && !isAdmin && !isBetaTester
+    ? { "--shop-frame-color": profile.title_border } as any
+    : {};
 
   return (
     <AnimatePresence>
@@ -48,9 +62,10 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
             {/* Header / Avatar */}
             <div className="flex items-center gap-3 mb-4">
               <div
-                className={`w-14 h-14 rounded-full flex items-center justify-center text-xl shrink-0 ${
+                className={`w-14 h-14 rounded-full flex items-center justify-center text-xl shrink-0 ${frameClass} ${
                   isSun ? "bg-slate-100" : "bg-slate-800"
                 }`}
+                style={frameStyle}
               >
                 {profile.avatar_url ? (
                   <Image

@@ -194,6 +194,24 @@ export default function ShopPage() {
       .update({ equipped: newEquipped })
       .eq("id", uc.id);
 
+    // ── Sync cosmetic to profile so it shows everywhere ──
+    const profileUpdate: Record<string, string | null> = {};
+    if (cosmetic.category === "title") {
+      profileUpdate.title = newEquipped
+        ? ((cosmetic.preview_data as { text?: string })?.text ?? cosmetic.name)
+        : null;
+    } else if (cosmetic.category === "avatar_frame") {
+      profileUpdate.title_border = newEquipped
+        ? ((cosmetic.preview_data as { border?: string })?.border ?? null)
+        : null;
+    }
+    if (Object.keys(profileUpdate).length > 0) {
+      await supabase
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", user.id);
+    }
+
     // Refresh user cosmetics
     const { data } = await supabase
       .from("user_cosmetics")

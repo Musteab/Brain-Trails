@@ -12,6 +12,7 @@ import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { supabase } from "@/lib/supabase";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useUIStore } from "@/stores";
 
 export default function NotesPage() {
@@ -33,6 +34,8 @@ export default function NotesPage() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user } = useAuth();
   const { addToast } = useUIStore();
+  const { theme } = useTheme();
+  const isSun = theme === "sun";
 
   // Create note and auto-select it
   const handleQuickCreate = async () => {
@@ -237,8 +240,8 @@ export default function NotesPage() {
 
   return (
     <main className="relative min-h-screen flex">
-      <div className="fixed inset-0 bg-gradient-to-br from-teal-50 via-emerald-50 to-amber-50" />
-      <div className="fixed inset-0 opacity-30 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, rgba(0,0,0,0.03) 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+      <div className={`fixed inset-0 ${isSun ? "bg-gradient-to-br from-teal-50 via-emerald-50 to-amber-50" : "bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950"}`} />
+      <div className={`fixed inset-0 opacity-30 pointer-events-none ${isSun ? "" : "opacity-10"}`} style={{ backgroundImage: `radial-gradient(circle at 2px 2px, ${isSun ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.05)"} 1px, transparent 0)`, backgroundSize: "32px 32px" }} />
 
       <input ref={fileInputRef} type="file" accept=".docx" onChange={handleFileUpload} className="hidden" />
 
@@ -259,18 +262,18 @@ export default function NotesPage() {
 
       {/* Main Content */}
       <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
-        <motion.header initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="sticky top-0 z-30 backdrop-blur-xl bg-white/70 border-b border-slate-200/50">
+        <motion.header initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className={`sticky top-0 z-30 backdrop-blur-xl border-b ${isSun ? "bg-white/70 border-slate-200/50" : "bg-slate-900/70 border-slate-700/50"}`}>
           <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-600"
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${isSun ? "hover:bg-slate-100 text-slate-600" : "hover:bg-white/10 text-slate-300"}`}
               >
                 {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
               </motion.button>
-              <motion.button whileHover={{ x: -2 }} whileTap={{ scale: 0.95 }} onClick={() => router.push("/")} className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-600">
+              <motion.button whileHover={{ x: -2 }} whileTap={{ scale: 0.95 }} onClick={() => router.push("/")} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${isSun ? "hover:bg-slate-100 text-slate-600" : "hover:bg-white/10 text-slate-300"}`}>
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-sm font-medium">Back</span>
               </motion.button>
@@ -283,7 +286,7 @@ export default function NotesPage() {
               value={noteTitle} 
               onChange={handleTitleChange}
               placeholder="Select or create a note..."
-              className="font-bold text-lg text-slate-800 bg-transparent border-none outline-none w-full placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 rounded-md px-2 py-1 transition-all"
+              className={`font-bold text-lg bg-transparent border-none outline-none w-full focus:ring-2 focus:ring-emerald-500/20 rounded-md px-2 py-1 transition-all ${isSun ? "text-slate-800 placeholder:text-slate-400" : "text-white placeholder:text-slate-500"}`}
             />
           </div>
 
@@ -312,20 +315,20 @@ export default function NotesPage() {
           )}
 
           <div className="flex items-center gap-2">
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleImportClick} disabled={isImporting} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors text-sm font-medium disabled:opacity-50">
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleImportClick} disabled={isImporting} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors text-sm font-medium disabled:opacity-50 ${isSun ? "bg-amber-100 hover:bg-amber-200 text-amber-700" : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-300"}`}>
               <AnimatePresence mode="wait">
                 {isImporting ? <Loader2 key="loading" className="w-4 h-4 animate-spin" /> : importSuccess ? <Check key="success" className="w-4 h-4" /> : <Upload key="upload" className="w-4 h-4" />}
               </AnimatePresence>
               <span>{isImporting ? "Importing..." : importSuccess ? "Done!" : "Import"}</span>
             </motion.button>
 
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleShare} className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-600 text-sm font-medium">
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleShare} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors text-sm font-medium ${isSun ? "hover:bg-slate-100 text-slate-600" : "hover:bg-white/10 text-slate-300"}`}>
               <Share2 className="w-4 h-4" />
             </motion.button>
 
             {/* Export dropdown */}
             <div className="relative">
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowExportMenu(!showExportMenu)} className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-600 text-sm font-medium">
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowExportMenu(!showExportMenu)} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors text-sm font-medium ${isSun ? "hover:bg-slate-100 text-slate-600" : "hover:bg-white/10 text-slate-300"}`}>
                 <Download className="w-4 h-4" />
               </motion.button>
               <AnimatePresence>
@@ -334,12 +337,12 @@ export default function NotesPage() {
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -5 }}
-                    className="absolute right-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50"
+                    className={`absolute right-0 top-full mt-1 w-44 rounded-xl shadow-xl border overflow-hidden z-50 ${isSun ? "bg-white border-slate-200" : "bg-slate-800 border-slate-700"}`}
                   >
-                    <button onClick={handleExportHtml} className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-50 text-sm text-slate-700 transition-colors">
+                    <button onClick={handleExportHtml} className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-colors ${isSun ? "hover:bg-slate-50 text-slate-700" : "hover:bg-slate-700 text-slate-200"}`}>
                       <FileCode className="w-4 h-4 text-orange-500" /> Export as HTML
                     </button>
-                    <button onClick={handleExportMarkdown} className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-50 text-sm text-slate-700 transition-colors">
+                    <button onClick={handleExportMarkdown} className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-colors ${isSun ? "hover:bg-slate-50 text-slate-700" : "hover:bg-slate-700 text-slate-200"}`}>
                       <FileText className="w-4 h-4 text-blue-500" /> Export as Markdown
                     </button>
                   </motion.div>
@@ -358,9 +361,9 @@ export default function NotesPage() {
         {/* Empty state — no note selected */}
         {!selectedNoteId && (
           <div className="flex flex-col items-center justify-center py-32 text-center">
-            <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
-            <h2 className="text-xl font-bold text-slate-500 font-[family-name:var(--font-nunito)] mb-2">No scrolls written yet!</h2>
-            <p className="text-sm text-slate-400 max-w-sm mb-6">Create your first note ✍️ to begin recording your knowledge.</p>
+            <BookOpen className={`w-16 h-16 mb-4 ${isSun ? "text-slate-300" : "text-slate-600"}`} />
+            <h2 className={`text-xl font-bold font-[family-name:var(--font-nunito)] mb-2 ${isSun ? "text-slate-500" : "text-slate-300"}`}>No scrolls written yet!</h2>
+            <p className={`text-sm max-w-sm mb-6 ${isSun ? "text-slate-400" : "text-slate-500"}`}>Create your first note ✍️ to begin recording your knowledge.</p>
             <button
               onClick={handleQuickCreate}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold font-[family-name:var(--font-nunito)] shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all"
@@ -375,7 +378,7 @@ export default function NotesPage() {
         {selectedNoteId && isNoteLoading && (
           <div className="flex flex-col items-center justify-center py-32">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-3" />
-            <p className="text-sm text-slate-400">Loading note...</p>
+            <p className={`text-sm ${isSun ? "text-slate-400" : "text-slate-500"}`}>Loading note...</p>
           </div>
         )}
 
@@ -386,52 +389,52 @@ export default function NotesPage() {
           <motion.div
             initial={{ rotateY: -5 }}
             animate={{ rotateY: 0 }}
-            className="w-[600px] min-h-[700px] bg-[#FDFBF7] rounded-l-md rounded-r-3xl shadow-xl shadow-slate-300/50 border border-slate-200/50 overflow-hidden relative flex-shrink-0"
+            className={`w-[600px] min-h-[700px] rounded-l-md rounded-r-3xl shadow-xl overflow-hidden relative flex-shrink-0 ${isSun ? "bg-[#FDFBF7] shadow-slate-300/50 border border-slate-200/50" : "bg-[#1e1b2e] shadow-black/50 border border-slate-700/50"}`}
             style={{
-              background: "linear-gradient(to right, #F5F3EE 0%, #FDFBF7 5%, #FDFBF7 100%)",
-              boxShadow: "inset -2px 0 8px rgba(0,0,0,0.03), -4px 0 20px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.1)",
+              background: isSun ? "linear-gradient(to right, #F5F3EE 0%, #FDFBF7 5%, #FDFBF7 100%)" : "linear-gradient(to right, #171425 0%, #1e1b2e 5%, #1e1b2e 100%)",
+              boxShadow: isSun ? "inset -2px 0 8px rgba(0,0,0,0.03), -4px 0 20px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.1)" : "inset -2px 0 8px rgba(0,0,0,0.2), -4px 0 20px rgba(0,0,0,0.3), 0 10px 40px rgba(0,0,0,0.4)",
             }}
           >
             {/* Page edge effect */}
-            <div className="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-slate-200/50 to-transparent" />
+            <div className={`absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r ${isSun ? "from-slate-200/50" : "from-slate-700/30"} to-transparent`} />
             {/* Binding shadow */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-100/80 to-transparent" />
+            <div className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l ${isSun ? "from-slate-100/80" : "from-slate-800/40"} to-transparent`} />
             {/* Page lines texture */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "repeating-linear-gradient(transparent, transparent 31px, #94a3b8 31px, #94a3b8 32px)", backgroundPosition: "0 60px" }} />
-            <div className="p-8 pr-10 h-full flex flex-col">
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `repeating-linear-gradient(transparent, transparent 31px, ${isSun ? "#94a3b8" : "#475569"} 31px, ${isSun ? "#94a3b8" : "#475569"} 32px)`, backgroundPosition: "0 60px" }} />
+            <div className={`p-8 pr-10 h-full flex flex-col ${isSun ? "text-slate-800" : "text-slate-200"}`}>
               <SpellbookEditor ref={leftEditorRef} onContentChange={handleLeftContentChange} />
               {/* Page number */}
-              <div className="text-center text-slate-300 text-sm font-serif mt-auto pt-4">
+              <div className={`text-center text-sm font-serif mt-auto pt-4 ${isSun ? "text-slate-300" : "text-slate-600"}`}>
                 1
               </div>
             </div>
           </motion.div>
 
           {/* Book spine */}
-          <div className="w-4 bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100 rounded-sm shadow-inner relative z-10 flex-shrink-0" style={{ boxShadow: "inset 0 0 10px rgba(0,0,0,0.1)" }}>
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-200/30 to-transparent" />
+          <div className={`w-4 rounded-sm shadow-inner relative z-10 flex-shrink-0 ${isSun ? "bg-gradient-to-r from-amber-100 via-amber-50 to-amber-100" : "bg-gradient-to-r from-slate-700 via-slate-800 to-slate-700"}`} style={{ boxShadow: isSun ? "inset 0 0 10px rgba(0,0,0,0.1)" : "inset 0 0 10px rgba(0,0,0,0.4)" }}>
+            <div className={`absolute inset-0 bg-gradient-to-b from-transparent ${isSun ? "via-amber-200/30" : "via-indigo-500/10"} to-transparent`} />
           </div>
 
           {/* Right Page */}
           <motion.div
             initial={{ rotateY: 5 }}
             animate={{ rotateY: 0 }}
-            className="w-[600px] min-h-[700px] bg-[#FDFBF7] rounded-r-md rounded-l-3xl shadow-xl shadow-slate-300/50 border border-slate-200/50 overflow-hidden relative flex-shrink-0"
+            className={`w-[600px] min-h-[700px] rounded-r-md rounded-l-3xl shadow-xl overflow-hidden relative flex-shrink-0 ${isSun ? "bg-[#FDFBF7] shadow-slate-300/50 border border-slate-200/50" : "bg-[#1e1b2e] shadow-black/50 border border-slate-700/50"}`}
             style={{
-              background: "linear-gradient(to left, #F5F3EE 0%, #FDFBF7 5%, #FDFBF7 100%)",
-              boxShadow: "inset 2px 0 8px rgba(0,0,0,0.03), 4px 0 20px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.1)",
+              background: isSun ? "linear-gradient(to left, #F5F3EE 0%, #FDFBF7 5%, #FDFBF7 100%)" : "linear-gradient(to left, #171425 0%, #1e1b2e 5%, #1e1b2e 100%)",
+              boxShadow: isSun ? "inset 2px 0 8px rgba(0,0,0,0.03), 4px 0 20px rgba(0,0,0,0.05), 0 10px 40px rgba(0,0,0,0.1)" : "inset 2px 0 8px rgba(0,0,0,0.2), 4px 0 20px rgba(0,0,0,0.3), 0 10px 40px rgba(0,0,0,0.4)",
             }}
           >
             {/* Page edge effect */}
-            <div className="absolute right-0 top-0 bottom-0 w-3 bg-gradient-to-l from-slate-200/50 to-transparent" />
+            <div className={`absolute right-0 top-0 bottom-0 w-3 bg-gradient-to-l ${isSun ? "from-slate-200/50" : "from-slate-700/30"} to-transparent`} />
             {/* Binding shadow */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-100/80 to-transparent" />
+            <div className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r ${isSun ? "from-slate-100/80" : "from-slate-800/40"} to-transparent`} />
             {/* Page lines texture */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "repeating-linear-gradient(transparent, transparent 31px, #94a3b8 31px, #94a3b8 32px)", backgroundPosition: "0 60px" }} />
-            <div className="p-8 pl-10 h-full flex flex-col">
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `repeating-linear-gradient(transparent, transparent 31px, ${isSun ? "#94a3b8" : "#475569"} 31px, ${isSun ? "#94a3b8" : "#475569"} 32px)`, backgroundPosition: "0 60px" }} />
+            <div className={`p-8 pl-10 h-full flex flex-col ${isSun ? "text-slate-800" : "text-slate-200"}`}>
               <SpellbookEditor ref={rightEditorRef} onContentChange={handleRightContentChange} initialContent="<p>Continue your notes here...</p>" />
               {/* Page number */}
-              <div className="text-center text-slate-300 text-sm font-serif mt-auto pt-4">
+              <div className={`text-center text-sm font-serif mt-auto pt-4 ${isSun ? "text-slate-300" : "text-slate-600"}`}>
                 2
               </div>
             </div>

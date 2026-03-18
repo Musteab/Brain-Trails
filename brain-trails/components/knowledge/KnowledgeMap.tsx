@@ -17,8 +17,8 @@ interface KnowledgeMapProps {
 /* ── Layout constants ── */
 const NODE_W = 160;
 const NODE_H = 80;
-const LEVEL_GAP_Y = 140;
-const SIBLING_GAP_X = 200;
+const LEVEL_GAP_Y = 160;
+const SIBLING_GAP_X = 220;
 
 /* ── Tree‑position helpers ── */
 interface PositionedNode extends KnowledgeNode {
@@ -77,6 +77,28 @@ function layoutSubtree(
   return Math.max(totalWidth, SIBLING_GAP_X);
 }
 
+/**
+ * When many roots exist (e.g. AI-generated nodes without parents),
+ * chain them into a single vertical trunk so they don't stack.
+ */
+function autoChainOrphanRoots(
+  map: Map<string, PositionedNode>,
+  rootIds: string[]
+): string[] {
+  if (rootIds.length <= 1) return rootIds;
+  // Check if most roots are truly orphaned (no children either)
+  const orphans = rootIds.filter(id => map.get(id)!._children.length === 0);
+  // If >50% are orphans, chain all roots linearly
+  if (orphans.length > rootIds.length * 0.5) {
+    // Chain roots: each root becomes child of the previous
+    for (let i = 1; i < rootIds.length; i++) {
+      map.get(rootIds[i - 1])!._children.push(rootIds[i]);
+    }
+    return [rootIds[0]]; // Only the first is now a "real" root
+  }
+  return rootIds;
+}
+
 export default function KnowledgeMap({ path, nodes, onNodesChanged }: KnowledgeMapProps) {
   const { isSun } = useCardStyles();
 
@@ -94,10 +116,13 @@ export default function KnowledgeMap({ path, nodes, onNodesChanged }: KnowledgeM
     const map = buildTree(nodes);
 
     // Find root nodes (no parent)
-    const rootIds = nodes
+    let rootIds = nodes
       .filter((n) => !n.parent_node_id)
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((n) => n.id);
+
+    // Auto-chain orphan roots into a linear path
+    rootIds = autoChainOrphanRoots(map, rootIds);
 
     let xCursor = 60;
     for (const rootId of rootIds) {

@@ -21,10 +21,26 @@ interface GuildMember {
   role?: string | null;
 }
 
+/** Picks the right frame class based on role / shop cosmetic */
+function getFrameClass(role?: string | null, titleBorder?: string | null) {
+  if (role === "dev") return "frame-dev";
+  if (role === "admin") return "frame-admin";
+  if (role === "beta_tester") return "frame-beta";
+  if (titleBorder) return "frame-shop";
+  return "";
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any) => {
   const [isHovered, setIsHovered] = useState(false);
   const isDev = member.role === 'dev';
   const isBeta = member.role === 'beta_tester';
+  const isAdmin = member.role === 'admin';
+
+  const frameClass = getFrameClass(member.role, member.title_border);
+  const frameStyle: React.CSSProperties = member.title_border && !isDev && !isAdmin && !isBeta
+    ? { "--shop-frame-color": member.title_border } as any
+    : {};
   
   return (
     <div 
@@ -55,10 +71,14 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
         </div>
 
         {/* Avatar */}
-        <div className={`
-          flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden flex items-center justify-center
-          ${isSun ? 'bg-slate-200 text-slate-500' : 'bg-slate-800 text-slate-400'} ${getRankBorder(member.rank)}
-        `}>
+        <div
+          className={`
+            flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden flex items-center justify-center
+            ${isSun ? 'bg-slate-200 text-slate-500' : 'bg-slate-800 text-slate-400'}
+            ${frameClass || getRankBorder(member.rank)}
+          `}
+          style={frameStyle}
+        >
           {member.avatar ? (
             <Image src={member.avatar} alt={member.name} width={48} height={48} unoptimized className="w-full h-full object-cover" />
           ) : (
@@ -122,8 +142,11 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
             
             <div className="flex flex-col gap-3 relative z-10">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 border-2 ${isSun ? "bg-slate-100 border-white shadow-sm" : "bg-slate-800 border-slate-700"}`}>
-                   {member.avatar ? <Image src={member.avatar} width={48} height={48} alt="" className="w-full h-full object-cover" /> : <User className={`w-6 h-6 ${isSun ? "text-slate-400" : "text-slate-500"}`} />}
+                <div
+                  className={`w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 ${frameClass || `border-2 ${isSun ? "border-white shadow-sm" : "border-slate-700"}`} ${isSun ? "bg-slate-100" : "bg-slate-800"}`}
+                  style={frameStyle}
+                >
+                   {member.avatar ? <Image src={member.avatar} width={48} height={48} alt="" unoptimized className="w-full h-full object-cover" /> : <User className={`w-6 h-6 ${isSun ? "text-slate-400" : "text-slate-500"}`} />}
                 </div>
                 <div>
                   <h4 className={`font-bold text-sm truncate w-40 font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>{member.name}</h4>
@@ -141,6 +164,11 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
                     {isDev && (
                       <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-amber-600 bg-amber-500/20 px-1.5 py-0.5 rounded-full">
                         <Shield className="w-3 h-3" /> Dev
+                      </span>
+                    )}
+                    {isAdmin && !isDev && (
+                      <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded-full">
+                        <Shield className="w-3 h-3" /> Admin
                       </span>
                     )}
                   </div>

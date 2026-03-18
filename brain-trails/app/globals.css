@@ -154,3 +154,56 @@ h1, h2, h3, h4, h5, h6 {
 .hotbar-safe-zone {
   padding-bottom: calc(80px + 2vh);
 }
+
+/* ============================================
+   👑 Grand Role Frames — Avatar Borders
+   ============================================ */
+
+@keyframes frame-glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px 2px var(--frame-color), inset 0 0 4px 1px var(--frame-color); }
+  50% { box-shadow: 0 0 18px 5px var(--frame-color), inset 0 0 8px 2px var(--frame-color); }
+}
+
+@keyframes frame-shimmer {
+  0% { border-color: var(--frame-color-a); }
+  33% { border-color: var(--frame-color-b); }
+  66% { border-color: var(--frame-color-c); }
+  100% { border-color: var(--frame-color-a); }
+}
+
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient-x { animation: gradient-x 3s linear infinite; }
+
+/* Dev — Gold Pulsing Glow */
+.frame-dev {
+  --frame-color: rgba(251, 191, 36, 0.7);
+  border: 3px solid #fbbf24;
+  animation: frame-glow-pulse 2s ease-in-out infinite;
+}
+
+/* Beta Tester — Blue Shimmer */
+.frame-beta {
+  --frame-color-a: #3b82f6;
+  --frame-color-b: #818cf8;
+  --frame-color-c: #06b6d4;
+  border: 3px solid #3b82f6;
+  animation: frame-shimmer 3s ease-in-out infinite;
+  box-shadow: 0 0 10px 2px rgba(59, 130, 246, 0.4);
+}
+
+/* Admin — Crimson Glow */
+.frame-admin {
+  --frame-color: rgba(239, 68, 68, 0.7);
+  border: 3px solid #ef4444;
+  animation: frame-glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* Shop Frame — Dynamic border from profile.title_border color */
+.frame-shop {
+  border: 3px solid var(--shop-frame-color, #c0c0c0);
+  box-shadow: 0 0 8px 1px var(--shop-frame-color, transparent);
+}

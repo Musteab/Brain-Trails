@@ -86,7 +86,7 @@ export default function Dashboard() {
           {/* Greeting Banner */}
           <GreetingBanner />
 
-          <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-4 items-start">
+          <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-5 items-start">
             
             {/* Center Stage - Owl Companion (shown first on mobile via order) */}
             <section className="order-1 lg:order-2 lg:col-span-6 xl:col-span-6 flex items-center justify-center z-10 lg:-mx-2">
@@ -115,7 +115,7 @@ export default function Dashboard() {
         </main>
 
         {/* ===== SCROLL SECTION (Boss & Activity) ===== */}
-        <section className="px-3 sm:px-[1.5vw] lg:px-[2vw] pb-28">
+        <section className="px-3 sm:px-[1.5vw] lg:px-[2vw] pb-28 pt-2">
           <div className="max-w-4xl mx-auto space-y-4">
             {/* Boss Raid Card */}
             <motion.div

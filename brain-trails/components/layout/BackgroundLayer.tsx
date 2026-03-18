@@ -119,11 +119,11 @@ export default function BackgroundLayer() {
           fill
           priority
           quality={90}
-          className="object-cover opacity-30 mix-blend-multiply"
+          className="object-cover opacity-40 mix-blend-multiply"
         />
         
         {/* Sun Glow */}
-        <div className="absolute inset-0 bg-sun-glow mix-blend-screen opacity-50" />
+        <div className="absolute inset-0 bg-sun-glow mix-blend-screen opacity-60" />
         
         {mounted && particles && (
           <>
@@ -162,7 +162,7 @@ export default function BackgroundLayer() {
       <div 
         className="fixed inset-0 pointer-events-none -z-40"
         style={{
-          background: "radial-gradient(ellipse at center, transparent 40%, rgba(200,200,200,0.1) 80%, rgba(0,0,0,0.05) 100%)"
+          background: "radial-gradient(ellipse at center, transparent 40%, rgba(217,179,130,0.08) 75%, rgba(120,80,30,0.06) 100%)"
         }}
       />
     </>

@@ -17,6 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/notes', label: 'Spellbook', emoji: '📖' },
   { href: '/flashcards', label: 'Deck', emoji: '🃏' },
   { href: '/focus', label: 'Focus', emoji: '⏳' },
+  { href: '/quiz', label: 'Trials', emoji: '📝' },
   { href: '/battle', label: 'Battle', emoji: '⚔️' },
   { href: '/guild', label: 'Guilds', emoji: '🛡️' },
   { href: '/achievements', label: 'Trophies', emoji: '🏆' },

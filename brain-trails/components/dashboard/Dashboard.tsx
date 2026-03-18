@@ -10,7 +10,10 @@ import CoopBossRaid from "./CoopBossRaid";
 import ActivityFeed from "./ActivityFeed";
 import Footer from "../layout/Footer";
 import BackgroundLayer from "../layout/BackgroundLayer";
+import StudyStreakWidget from "../ui/StudyStreakWidget";
+import AmbientPlayer from "../ui/AmbientPlayer";
 import { useTheme } from "@/context/ThemeContext";
+import { useGameStore } from "@/stores";
 
 /**
  * 🗺️ Dashboard Component (Screen A)
@@ -28,6 +31,7 @@ import { useTheme } from "@/context/ThemeContext";
 export default function Dashboard() {
   const { theme } = useTheme();
   const isSun = theme === "sun";
+  const { streakDays } = useGameStore();
 
   return (
     <div
@@ -57,7 +61,8 @@ export default function Dashboard() {
 
             {/* Left Sidebar - Daily Bounties */}
             <aside className="order-2 lg:order-1 lg:col-span-3 xl:col-span-3 z-0">
-              <div className="lg:sticky lg:top-4">
+              <div className="lg:sticky lg:top-4 space-y-3">
+                <StudyStreakWidget streakDays={streakDays} lastStudyDate={null} />
                 <QuestLog />
               </div>
             </aside>
@@ -103,6 +108,9 @@ export default function Dashboard() {
           <Footer />
         </footer>
       </div>
+
+      {/* Ambient Player Widget */}
+      <AmbientPlayer />
     </div>
   );
 }

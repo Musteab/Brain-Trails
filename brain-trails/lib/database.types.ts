@@ -1087,6 +1087,136 @@ export interface Database {
           }
         ];
       };
+      quizzes: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          source_type: string;
+          source_id: string | null;
+          difficulty: string;
+          questions: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title?: string;
+          source_type?: string;
+          source_id?: string | null;
+          difficulty?: string;
+          questions?: Json;
+          created_at?: string;
+        };
+        Update: {
+          title?: string;
+          source_type?: string;
+          source_id?: string | null;
+          difficulty?: string;
+          questions?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      quiz_attempts: {
+        Row: {
+          id: string;
+          quiz_id: string;
+          user_id: string;
+          score: number;
+          total_questions: number;
+          answers: Json;
+          xp_earned: number;
+          gold_earned: number;
+          completed_at: string;
+        };
+        Insert: {
+          id?: string;
+          quiz_id: string;
+          user_id: string;
+          score?: number;
+          total_questions?: number;
+          answers?: Json;
+          xp_earned?: number;
+          gold_earned?: number;
+          completed_at?: string;
+        };
+        Update: {
+          score?: number;
+          total_questions?: number;
+          answers?: Json;
+          xp_earned?: number;
+          gold_earned?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_quiz_id_fkey";
+            columns: ["quiz_id"];
+            isOneToOne: false;
+            referencedRelation: "quizzes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quiz_attempts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      daily_quests: {
+        Row: {
+          id: string;
+          user_id: string;
+          quest_type: string;
+          title: string;
+          description: string;
+          target_value: number;
+          current_value: number;
+          xp_reward: number;
+          gold_reward: number;
+          period: "daily" | "weekly" | "monthly";
+          is_completed: boolean;
+          generated_at: string;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          quest_type: string;
+          title: string;
+          description?: string;
+          target_value?: number;
+          current_value?: number;
+          xp_reward?: number;
+          gold_reward?: number;
+          period?: "daily" | "weekly" | "monthly";
+          is_completed?: boolean;
+          generated_at?: string;
+          expires_at?: string;
+        };
+        Update: {
+          current_value?: number;
+          is_completed?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "daily_quests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     Functions: {};
@@ -1121,3 +1251,6 @@ export type Subject = Database["public"]["Tables"]["subjects"]["Row"];
 export type Topic = Database["public"]["Tables"]["topics"]["Row"];
 export type Exam = Database["public"]["Tables"]["exams"]["Row"];
 export type ExamTopic = Database["public"]["Tables"]["exam_topics"]["Row"];
+export type Quiz = Database["public"]["Tables"]["quizzes"]["Row"];
+export type QuizAttempt = Database["public"]["Tables"]["quiz_attempts"]["Row"];
+export type DailyQuest = Database["public"]["Tables"]["daily_quests"]["Row"];

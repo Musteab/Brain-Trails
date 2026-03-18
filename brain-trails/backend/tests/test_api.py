@@ -97,6 +97,64 @@ class TestAIChatEndpoint:
         assert response.status_code != 400
 
 
+class TestQuizEndpoint:
+    """Tests for the /api/ai/generate-quiz endpoint."""
+
+    def test_quiz_requires_content(self, client):
+        """POST /api/ai/generate-quiz without content returns 400."""
+        response = client.post(
+            "/api/ai/generate-quiz",
+            data=json.dumps({}),
+            content_type="application/json",
+        )
+        data = json.loads(response.data)
+
+        assert response.status_code == 400
+        assert "error" in data
+
+    def test_quiz_requires_json_body(self, client):
+        """POST /api/ai/generate-quiz without JSON body returns 400."""
+        response = client.post(
+            "/api/ai/generate-quiz",
+            content_type="application/json",
+        )
+
+        assert response.status_code == 400
+
+    def test_quiz_rejects_empty_content(self, client):
+        """POST /api/ai/generate-quiz with empty content returns 400."""
+        response = client.post(
+            "/api/ai/generate-quiz",
+            data=json.dumps({"content": "   "}),
+            content_type="application/json",
+        )
+        data = json.loads(response.data)
+
+        assert response.status_code == 400
+        assert "error" in data
+
+    def test_quiz_accepts_valid_request(self, client):
+        """POST /api/ai/generate-quiz with valid payload doesn't 400."""
+        response = client.post(
+            "/api/ai/generate-quiz",
+            data=json.dumps({
+                "content": "The mitochondria is the powerhouse of the cell.",
+                "num_questions": 5,
+                "difficulty": "easy",
+                "question_types": ["mcq", "true_false"],
+            }),
+            content_type="application/json",
+        )
+        # Will fail with 500 if no API key, but shouldn't 400
+        assert response.status_code != 400
+
+    def test_health_includes_quiz(self, client):
+        """Health check should show generate_quiz feature."""
+        response = client.get("/api/health")
+        data = json.loads(response.data)
+        assert data["features"]["generate_quiz"] is True
+
+
 class TestCORS:
     """Tests for CORS configuration."""
 

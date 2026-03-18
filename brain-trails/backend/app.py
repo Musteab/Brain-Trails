@@ -30,10 +30,11 @@ def health_check():
     """Health check endpoint for monitoring."""
     return jsonify({
         "status": "healthy",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "features": {
             "ai_chat": True,
             "parse_syllabus": True,
+            "generate_quiz": True,
             "health": True,
         }
     })
@@ -44,11 +45,12 @@ def api_root():
     """API root with available endpoints."""
     return jsonify({
         "name": "Brain Trails API",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "endpoints": {
             "health": "/api/health",
             "ai_chat": "/api/ai/chat [POST]",
             "parse_syllabus": "/api/ai/parse-syllabus [POST]",
+            "generate_quiz": "/api/ai/generate-quiz [POST]",
         }
     })
 
@@ -254,6 +256,136 @@ def parse_syllabus():
     except Exception as e:
         return jsonify({
             "error": f"Syllabus parsing failed: {str(e)}"
+        }), 500
+
+
+# ============================================
+# Quiz Generation Route (Gemini API)
+# ============================================
+
+QUIZ_SYSTEM_PROMPT = """You are a quiz generator for Brain Trails, a gamified study app.
+
+Generate quiz questions from the provided study content. Return ONLY valid JSON with no markdown formatting, no code fences, and no extra text.
+
+The JSON must follow this exact schema:
+{
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "What is...?",
+      "options": ["A", "B", "C", "D"],
+      "correct_answer": "A",
+      "explanation": "Because..."
+    },
+    {
+      "type": "true_false",
+      "question": "The sky is blue.",
+      "options": ["True", "False"],
+      "correct_answer": "True",
+      "explanation": "Because..."
+    },
+    {
+      "type": "fill_blank",
+      "question": "The powerhouse of the cell is the ___.",
+      "correct_answer": "mitochondria",
+      "explanation": "Because..."
+    },
+    {
+      "type": "short_answer",
+      "question": "Explain photosynthesis briefly.",
+      "correct_answer": "The process by which plants convert sunlight into energy.",
+      "explanation": "Key points to include..."
+    }
+  ]
+}
+
+Rules:
+1. Generate exactly the requested number of questions.
+2. Match the requested difficulty level.
+3. Only use requested question types.
+4. MCQ must always have exactly 4 options.
+5. True/False must have options ["True", "False"].
+6. Fill-blank questions should use ___ for the blank.
+7. Always include a brief explanation for each answer.
+8. Questions should test understanding, not just memorization.
+9. Always return valid JSON. Never include markdown code fences."""
+
+
+@app.route("/api/ai/generate-quiz", methods=["POST"])
+def generate_quiz():
+    """Generate a quiz from study content using Gemini API.
+
+    Request body:
+    {
+        "content": "study material text",
+        "num_questions": 10,
+        "difficulty": "medium",
+        "question_types": ["mcq", "true_false", "fill_blank", "short_answer"]
+    }
+
+    Returns:
+    {
+        "questions": [...],
+        "model": "gemini-2.0-flash"
+    }
+    """
+    data = request.get_json()
+    if not data or "content" not in data:
+        return jsonify({"error": "Missing 'content' in request body"}), 400
+
+    content = data["content"]
+    if not content.strip():
+        return jsonify({"error": "Content cannot be empty"}), 400
+
+    num_questions = data.get("num_questions", 10)
+    difficulty = data.get("difficulty", "medium")
+    question_types = data.get("question_types", ["mcq"])
+
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        return jsonify({"error": "GEMINI_API_KEY not configured"}), 500
+
+    response_text = ""
+
+    try:
+        import google.generativeai as genai
+
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel("gemini-2.0-flash")
+
+        types_str = ", ".join(question_types)
+        prompt = (
+            QUIZ_SYSTEM_PROMPT
+            + f"\n\nGenerate {num_questions} {difficulty} difficulty questions."
+            + f"\nUse these question types: {types_str}"
+            + f"\n\nStudy content:\n---\n{content[:6000]}\n---"
+            + "\n\nReturn the JSON now."
+        )
+
+        response = model.generate_content(prompt)
+        response_text = response.text.strip()
+        response_text = re.sub(r"^```(?:json)?\s*", "", response_text)
+        response_text = re.sub(r"\s*```$", "", response_text)
+
+        parsed = json.loads(response_text)
+
+        return jsonify({
+            "questions": parsed.get("questions", []),
+            "model": "gemini-2.0-flash"
+        })
+
+    except json.JSONDecodeError as e:
+        return jsonify({
+            "error": f"Failed to parse AI response as JSON: {str(e)}",
+            "raw_response": response_text[:1000] if response_text else ""
+        }), 500
+    except ImportError:
+        return jsonify({
+            "error": "google-generativeai package not installed."
+        }), 500
+    except Exception as e:
+        return jsonify({
+            "error": f"Quiz generation failed: {str(e)}"
         }), 500
 
 

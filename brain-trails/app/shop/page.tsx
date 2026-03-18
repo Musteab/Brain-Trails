@@ -123,6 +123,9 @@ export default function ShopPage() {
 
     setPurchasingId(cosmetic.id);
 
+    // Optimistic UI: immediately show gold deducted
+    const previousGold = gold;
+
     // Deduct gold
     const newGold = gold - cosmetic.gold_cost;
     const { error: goldError } = await supabase
@@ -146,8 +149,9 @@ export default function ShopPage() {
     if (error) {
       addToast("Purchase failed. Try again.", "error");
       // Refund gold
-      await supabase.from("profiles").update({ gold: gold }).eq("id", user.id);
+      await supabase.from("profiles").update({ gold: previousGold }).eq("id", user.id);
       setPurchasingId(null);
+      await refreshProfile();
       return;
     }
 
@@ -156,7 +160,7 @@ export default function ShopPage() {
     }
 
     await refreshProfile();
-    addToast(`Purchased ${cosmetic.name}!`, "success");
+    addToast(`🎉 Purchased ${cosmetic.name}!`, "success");
     setPurchasingId(null);
   };
 

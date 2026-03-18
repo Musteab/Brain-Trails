@@ -125,6 +125,32 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
     ]);
   };
 
+  const handleCreateNote = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('notes')
+      .insert({
+        user_id: user.id,
+        title: 'Untitled Note',
+        folder: 'root',
+        content_html: JSON.stringify({ left: '', right: '' }),
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      addToast('Failed to create note', 'error');
+      console.error(error);
+      return;
+    }
+
+    if (data) {
+      onSelectNote(data.id);
+      addToast('New note created!', 'success');
+    }
+  };
+
   const togglePinNote = async (e: React.MouseEvent, noteId: string, currentPinStatus: boolean) => {
     e.stopPropagation();
     const newStatus = !currentPinStatus;
@@ -297,6 +323,19 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
             }`}
           />
         </div>
+
+        {/* New Note Button */}
+        <button
+          onClick={handleCreateNote}
+          className={`w-full mt-3 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold font-[family-name:var(--font-nunito)] transition-all ${
+            isSun
+              ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-md shadow-emerald-500/20"
+              : "bg-emerald-500/80 text-white hover:bg-emerald-500 shadow-md shadow-emerald-500/20"
+          }`}
+        >
+          <Plus className="w-4 h-4" />
+          New Note
+        </button>
       </div>
 
       <div className={`flex border-b ${isSun ? "border-slate-200 bg-slate-50/50" : "border-slate-800 bg-slate-900/50"}`}>

@@ -10,6 +10,8 @@ import NotesSidebar from "@/components/notes/NotesSidebar";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { supabase } from "@/lib/supabase";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
+import { useAuth } from "@/context/AuthContext";
+import { useUIStore } from "@/stores";
 
 export default function NotesPage() {
   const router = useRouter();
@@ -27,6 +29,33 @@ export default function NotesPage() {
   const rightEditorRef = useRef<SpellbookEditorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { user } = useAuth();
+  const { addToast } = useUIStore();
+
+  // Create note and auto-select it
+  const handleQuickCreate = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('notes')
+      .insert({
+        user_id: user.id,
+        title: 'Untitled Note',
+        folder: 'root',
+        content_html: JSON.stringify({ left: '', right: '' }),
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      addToast('Failed to create note', 'error');
+      return;
+    }
+    if (data) {
+      setSelectedNoteId(data.id);
+      setNoteTitle('Untitled Note');
+      addToast('New note created!', 'success');
+    }
+  };
 
   // Load note content when a note is selected
   useEffect(() => {
@@ -295,7 +324,14 @@ export default function NotesPage() {
           <div className="flex flex-col items-center justify-center py-32 text-center">
             <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
             <h2 className="text-xl font-bold text-slate-500 font-[family-name:var(--font-nunito)] mb-2">No note selected</h2>
-            <p className="text-sm text-slate-400 max-w-sm">Select a note from the sidebar or create a new one to start writing.</p>
+            <p className="text-sm text-slate-400 max-w-sm mb-6">Select a note from the sidebar or create a new one to start writing.</p>
+            <button
+              onClick={handleQuickCreate}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold font-[family-name:var(--font-nunito)] shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all"
+            >
+              <Sparkles className="w-5 h-5" />
+              Create New Note
+            </button>
           </div>
         )}
 

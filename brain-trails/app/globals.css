@@ -70,7 +70,6 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), system-ui, sans-serif;
   font-weight: 700;
-  color: var(--foreground);
 }
 
 /* Cozy Scrollbar */
@@ -206,4 +205,468 @@ h1, h2, h3, h4, h5, h6 {
 .frame-shop {
   border: 3px solid var(--shop-frame-color, #c0c0c0);
   box-shadow: 0 0 8px 1px var(--shop-frame-color, transparent);
+}
+
+/* ============================================
+   💎 Cosmetic Card Rarity Glows
+   ============================================ */
+
+@keyframes rarity-epic-glow {
+  0%, 100% { box-shadow: 0 0 12px 2px rgba(168, 85, 247, 0.15), inset 0 0 0 1px rgba(168, 85, 247, 0.1); }
+  50% { box-shadow: 0 0 24px 6px rgba(168, 85, 247, 0.25), inset 0 0 0 1px rgba(168, 85, 247, 0.2); }
+}
+
+@keyframes rarity-legendary-glow {
+  0% { box-shadow: 0 0 15px 3px rgba(251, 191, 36, 0.2), 0 0 30px 5px rgba(245, 158, 11, 0.1); }
+  33% { box-shadow: 0 0 20px 5px rgba(251, 191, 36, 0.3), 0 0 40px 8px rgba(245, 158, 11, 0.15); }
+  66% { box-shadow: 0 0 15px 3px rgba(234, 88, 12, 0.25), 0 0 30px 5px rgba(245, 158, 11, 0.1); }
+  100% { box-shadow: 0 0 15px 3px rgba(251, 191, 36, 0.2), 0 0 30px 5px rgba(245, 158, 11, 0.1); }
+}
+
+@keyframes cosmetic-preview-shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.rarity-epic { animation: rarity-epic-glow 2.5s ease-in-out infinite; }
+.rarity-legendary { animation: rarity-legendary-glow 3s ease-in-out infinite; }
+.rarity-rare { box-shadow: 0 0 10px 2px rgba(59, 130, 246, 0.12); }
+
+.cosmetic-preview-shine {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background-size: 200% 100%;
+  animation: cosmetic-preview-shine 3s ease-in-out infinite;
+}
+
+/* ============================================
+   ✨ Shop Card Shine Effects
+   ============================================ */
+
+@keyframes shimmer-sweep {
+  0% { left: -150%; }
+  100% { left: 150%; }
+}
+
+@keyframes sparkle-edge {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rune-float {
+  0%, 100% { opacity: 0.3; transform: translateY(0) scale(1); }
+  50% { opacity: 0.8; transform: translateY(-20px) scale(1.1); }
+}
+
+.card-legendary-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-legendary-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(251, 191, 36, 0.12) 40%,
+    rgba(251, 191, 36, 0.25) 50%,
+    rgba(251, 191, 36, 0.12) 60%,
+    transparent 80%
+  );
+  animation: shimmer-sweep 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.card-epic-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.card-epic-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(168, 85, 247, 0.1) 40%,
+    rgba(168, 85, 247, 0.2) 50%,
+    rgba(168, 85, 247, 0.1) 60%,
+    transparent 80%
+  );
+  animation: shimmer-sweep 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.card-rare-glow {
+  position: relative;
+  overflow: hidden;
+}
+.card-rare-glow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(59, 130, 246, 0.08) 45%,
+    rgba(59, 130, 246, 0.15) 50%,
+    rgba(59, 130, 246, 0.08) 55%,
+    transparent 70%
+  );
+  animation: shimmer-sweep 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ============================================
+   📖 Grand Archive — Illuminated Drop Caps
+   ============================================ */
+
+.illuminated-drop-cap::first-letter {
+  float: left;
+  font-size: 3.5em;
+  line-height: 0.8;
+  padding-right: 0.1em;
+  font-family: var(--font-nunito), serif;
+  font-weight: 900;
+}
+
+.illuminated-drop-cap-sun::first-letter {
+  color: #b45309;
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+}
+
+.illuminated-drop-cap-moon::first-letter {
+  color: #a78bfa;
+  text-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
+}
+
+/* ============================================
+   🌞 Day Mode God Rays
+   ============================================ */
+
+@keyframes sun-ray-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes sun-ray-pulse {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: 0.15; }
+}
+
+.sun-god-rays {
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 80vw;
+  height: 80vw;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(251, 191, 36, 0.06) 10deg,
+    transparent 20deg,
+    transparent 40deg,
+    rgba(251, 191, 36, 0.04) 50deg,
+    transparent 60deg,
+    transparent 90deg,
+    rgba(251, 191, 36, 0.06) 100deg,
+    transparent 110deg,
+    transparent 140deg,
+    rgba(251, 191, 36, 0.05) 150deg,
+    transparent 160deg,
+    transparent 200deg,
+    rgba(251, 191, 36, 0.04) 210deg,
+    transparent 220deg,
+    transparent 260deg,
+    rgba(251, 191, 36, 0.06) 270deg,
+    transparent 280deg,
+    transparent 320deg,
+    rgba(251, 191, 36, 0.04) 330deg,
+    transparent 340deg
+  );
+  animation: sun-ray-rotate 120s linear infinite, sun-ray-pulse 8s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+/* ============================================
+   🎯 XP Bar Sparkle
+   ============================================ */
+
+@keyframes xp-sparkle {
+  0%, 100% { box-shadow: 0 0 4px rgba(251, 191, 36, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(251, 191, 36, 0.8), 0 0 20px rgba(251, 191, 36, 0.3); }
+}
+
+.xp-bar-sparkle-edge {
+  position: relative;
+}
+.xp-bar-sparkle-edge::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fbbf24;
+  animation: xp-sparkle 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   🔮 Portal / Rune Animations (Grand Archive)
+   ============================================ */
+
+@keyframes portal-expand {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+}
+
+@keyframes rune-orbit {
+  0% { transform: rotate(0deg) translateX(120px) rotate(0deg); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); opacity: 0.6; }
+}
+
+/* ============================================
+   ✨ Animated Gradient Border
+   ============================================ */
+
+@keyframes gradient-border-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-gradient-border {
+  position: relative;
+  z-index: 0;
+}
+.animated-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    60deg,
+    #fbbf24, #f59e0b, #d97706, #f59e0b, #fbbf24, #fcd34d
+  );
+  background-size: 300% 300%;
+  animation: gradient-border-shift 4s ease infinite;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.animated-gradient-border-moon::before {
+  background: linear-gradient(
+    60deg,
+    #7c3aed, #8b5cf6, #a78bfa, #8b5cf6, #7c3aed, #6d28d9
+  );
+  background-size: 300% 300%;
+  animation: gradient-border-shift 4s ease infinite;
+}
+
+/* ============================================
+   👑 Cosmetic Frame Tiers — Square frames
+   ============================================ */
+
+@keyframes frame-rotate-gradient {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+@keyframes frame-pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px var(--frame-color, #94a3b8); }
+  50% { box-shadow: 0 0 20px var(--frame-color, #94a3b8), 0 0 40px color-mix(in srgb, var(--frame-color, #94a3b8) 40%, transparent); }
+}
+
+@keyframes frame-shimmer-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes frame-sparkle-orbit {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Common frame: simple solid border */
+.cosmetic-frame-common {
+  border: 3px solid #94a3b8;
+  border-radius: 0.75rem;
+}
+
+/* Uncommon frame: border + subtle pulse */
+.cosmetic-frame-uncommon {
+  --frame-color: #4ade80;
+  border: 4px solid #4ade80;
+  border-radius: 0.75rem;
+  animation: frame-pulse-glow 3s ease-in-out infinite;
+}
+
+/* Rare frame: shimmer sweep + blue tint */
+.cosmetic-frame-rare {
+  --frame-color: #60a5fa;
+  border: 5px solid transparent;
+  border-radius: 0.75rem;
+  background-image: linear-gradient(var(--frame-bg, #1e293b), var(--frame-bg, #1e293b)), linear-gradient(90deg, #3b82f6, #06b6d4, #8b5cf6, #3b82f6);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 200% 100%;
+  animation: frame-shimmer-sweep 3s linear infinite, frame-pulse-glow 4s ease-in-out infinite;
+}
+
+/* Epic frame: rotating gradient ring + thick glow */
+.cosmetic-frame-epic {
+  --frame-color: #a855f7;
+  border: 6px solid transparent;
+  border-radius: 0.75rem;
+  background-image: linear-gradient(var(--frame-bg, #1e293b), var(--frame-bg, #1e293b)), linear-gradient(90deg, #a855f7, #ec4899, #8b5cf6, #6366f1, #a855f7);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 300% 100%;
+  animation: frame-rotate-gradient 4s linear infinite, frame-pulse-glow 2.5s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.05);
+}
+
+/* Beta frame: thick crimson sliding gradient + intense pulse glow matching Legendary */
+.cosmetic-frame-beta {
+  --frame-color: #be123c;
+  border: 8px solid transparent;
+  border-radius: 0.75rem;
+  background-image: linear-gradient(var(--frame-bg, #1e293b), var(--frame-bg, #1e293b)), linear-gradient(90deg, #e11d48, #be123c, #fda4af, #e11d48, #f43f5e, #9f1239);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 400% 100%;
+  animation: frame-rotate-gradient 3s linear infinite, frame-pulse-glow 2s ease-in-out infinite;
+  box-shadow: 0 0 25px rgba(225, 29, 72, 0.5), 0 0 50px rgba(225, 29, 72,  0.2), inset 0 0 12px rgba(225, 29, 72, 0.1);
+}
+
+/* Legendary frame: thick golden rotating gradient + intense glow */
+.cosmetic-frame-legendary {
+  --frame-color: #fbbf24;
+  border: 8px solid transparent;
+  border-radius: 0.75rem;
+  background-image: linear-gradient(var(--frame-bg, #1e293b), var(--frame-bg, #1e293b)), linear-gradient(90deg, #fbbf24, #f59e0b, #ef4444, #fbbf24, #fcd34d, #f59e0b, #fbbf24);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 400% 100%;
+  animation: frame-rotate-gradient 3s linear infinite, frame-pulse-glow 2s ease-in-out infinite;
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.4), 0 0 50px rgba(251, 191, 36, 0.15), inset 0 0 12px rgba(251, 191, 36, 0.05);
+}
+
+/* Dev frame: Intense midnight blue & cosmic purple gradient */
+.frame-dev {
+  --frame-color: #312e81;
+  border: 8px solid transparent;
+  border-radius: 0.75rem;
+  background-image: linear-gradient(var(--frame-bg, #0f172a), var(--frame-bg, #0f172a)), linear-gradient(90deg, #1e1b4b, #312e81, #4c1d95, #6d28d9, #312e81, #1e1b4b);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 400% 100%;
+  animation: frame-rotate-gradient 4s linear infinite, frame-pulse-glow 3s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(76, 29, 149, 0.6), 0 0 60px rgba(49, 46, 129, 0.4), inset 0 0 15px rgba(109, 40, 217, 0.2);
+}
+
+/* ============================================
+   🏷️ Cosmetic Title Tiers
+   ============================================ */
+
+@keyframes title-shimmer {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes title-glow-pulse {
+  0%, 100% { text-shadow: 0 0 4px var(--title-glow, transparent), 0 1px 2px rgba(0,0,0,0.8); }
+  50% { text-shadow: 0 0 12px var(--title-glow, transparent), 0 0 24px color-mix(in srgb, var(--title-glow, transparent) 40%, transparent), 0 1px 2px rgba(0,0,0,0.8); }
+}
+
+.cosmetic-title-common {
+  font-style: italic;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+
+.cosmetic-title-uncommon {
+  --title-glow: rgba(74, 222, 128, 0.5);
+  text-shadow: 0 0 6px rgba(74, 222, 128, 0.3), 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.cosmetic-title-rare {
+  --title-glow: rgba(96, 165, 250, 0.6);
+  animation: title-glow-pulse 3s ease-in-out infinite;
+  background: linear-gradient(90deg, #60a5fa, #93c5fd, #dbeafe, #93c5fd, #60a5fa);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: title-shimmer 4s linear infinite;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
+
+.cosmetic-title-epic {
+  --title-glow: rgba(168, 85, 247, 0.6);
+  background: linear-gradient(90deg, #c084fc, #e879f9, #f0abfc, #c084fc);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: title-shimmer 3s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4)) drop-shadow(0 1px 2px rgba(0,0,0,0.7));
+}
+
+.cosmetic-title-dev {
+  background: linear-gradient(90deg, #818cf8, #e879f9, #c084fc, #818cf8);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: title-shimmer 2s linear infinite; /* Changed from shimmer-sweep to title-shimmer */
+  filter: drop-shadow(0 0 10px rgba(232, 121, 249, 0.6));
+}
+
+.cosmetic-title-beta {
+  --title-glow: rgba(225, 29, 72, 0.8);
+  background: linear-gradient(90deg, #e11d48, #fb7185, #ffe4e6, #fb7185, #be123c, #e11d48);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: title-shimmer 2.5s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(225, 29, 72, 0.6)) drop-shadow(0 0 24px rgba(225, 29, 72, 0.3)) drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+}
+
+.cosmetic-title-legendary {
+  --title-glow: rgba(251, 191, 36, 0.7);
+  background: linear-gradient(90deg, #fbbf24, #fcd34d, #fff7ed, #fcd34d, #f59e0b, #fbbf24);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: title-shimmer 2.5s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.5)) drop-shadow(0 0 24px rgba(251, 191, 36, 0.2));
 }

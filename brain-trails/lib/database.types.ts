@@ -799,7 +799,7 @@ export interface Database {
           preview_data: Json;
           gold_cost: number;
           level_required: number;
-          rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
+          rarity: "common" | "uncommon" | "rare" | "epic" | "legendary" | "beta";
         };
         Insert: {
           id: string;
@@ -809,7 +809,7 @@ export interface Database {
           preview_data?: Json;
           gold_cost?: number;
           level_required?: number;
-          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary" | "beta";
         };
         Update: {
           name?: string;
@@ -818,7 +818,7 @@ export interface Database {
           preview_data?: Json;
           gold_cost?: number;
           level_required?: number;
-          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+          rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary" | "beta";
         };
         Relationships: [];
       };

@@ -172,7 +172,7 @@ export default function GuildChat({ guildId }: GuildChatProps) {
       >
         <div className="flex items-center gap-2">
           <MessageCircle className={`w-5 h-5 ${isSun ? "text-purple-600" : "text-[#C77DFF]"}`} />
-          <h3 className={`text-lg ${title}`}>Guild Chat</h3>
+          <h3 className={`text-lg ${title}`}>Guild Chat <span className="ml-2 align-middle text-[10px] bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold border border-amber-500/30">Beta</span></h3>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />

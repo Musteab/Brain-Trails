@@ -27,8 +27,31 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Brain Trails 🎮",
-  description: "Your cozy gamified study companion",
+  title: {
+    default: "Brain Trails — Gamified Study Companion",
+    template: "%s | Brain Trails",
+  },
+  description:
+    "A cozy gamified study platform with RPG quests, focus timers, flashcards, AI tutoring, guilds, and more. Turn studying into an adventure.",
+  keywords: [
+    "study app",
+    "gamified learning",
+    "pomodoro",
+    "flashcards",
+    "RPG",
+    "focus timer",
+    "AI tutor",
+    "brain trails",
+  ],
+  authors: [{ name: "Brain Trails Team" }],
+  openGraph: {
+    title: "Brain Trails — Gamified Study Companion",
+    description:
+      "Turn your study sessions into RPG adventures. Focus timers, flashcards, guilds, and AI-powered learning.",
+    siteName: "Brain Trails",
+    type: "website",
+  },
+  metadataBase: new URL("https://brain-trails.vercel.app"),
 };
 
 export const viewport: Viewport = {

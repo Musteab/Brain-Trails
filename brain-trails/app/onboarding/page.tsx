@@ -212,7 +212,9 @@ export default function OnboardingPage() {
           code: s.code || "",
           emoji: s.emoji || emojiByIndex(i),
           color: colorByIndex(i),
-          topics: (s.topics || []).length > 0 ? s.topics : [""],
+          topics: (s.topics || []).length > 0
+            ? s.topics.map((t: unknown) => (typeof t === "string" ? t : (t as { name?: string }).name || ""))
+            : [""],
           exams: (s.exams || []).map(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (ex: any) => ({
@@ -326,6 +328,16 @@ export default function OnboardingPage() {
     }));
   };
 
+  // Helper: wrap a supabase call with a timeout
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const withTimeout = <T,>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> =>
+    Promise.race([
+      Promise.resolve(promise),
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s`)), ms)
+      ),
+    ]);
+
   // Save everything to Supabase
   const handleSave = async () => {
     if (!user) return;
@@ -333,76 +345,96 @@ export default function OnboardingPage() {
     setSaveError("");
 
     try {
-      // 1. Create semester
-      const { data: semesterRow, error: semErr } = await supabase
-        .from("semesters")
-        .insert({
-          user_id: user.id,
-          name: data.semesterName || "My Semester",
-          is_active: true,
-        })
-        .select()
-        .single();
+      // 1. Create semester (generate ID client-side to avoid .select().single() hanging)
+      const semesterId = crypto.randomUUID();
+      console.log("[Onboarding] Step 1: Creating semester...");
+      const { error: semErr } = await withTimeout(
+        supabase
+          .from("semesters")
+          .insert({ id: semesterId, user_id: user.id, name: data.semesterName || "My Semester", is_active: true }),
+        10000,
+        "Create semester"
+      );
 
       if (semErr) throw new Error(`Failed to create semester: ${semErr.message}`);
+      console.log("[Onboarding] Semester created:", semesterId);
 
       // 2. Create subjects
       for (let si = 0; si < data.subjects.length; si++) {
         const sub = data.subjects[si];
         if (!sub.name.trim()) continue;
 
-        const { data: subjectRow, error: subErr } = await supabase
-          .from("subjects")
-          .insert({
-            user_id: user.id,
-            semester_id: semesterRow.id,
-            name: sub.name.trim(),
-            code: sub.code.trim(),
-            emoji: sub.emoji,
-            color: sub.color,
-          })
-          .select()
-          .single();
+        const subjectId = crypto.randomUUID();
+        console.log(`[Onboarding] Step 2.${si}: Creating subject "${sub.name}"...`);
+        const { error: subErr } = await withTimeout(
+          supabase
+            .from("subjects")
+            .insert({
+              id: subjectId,
+              user_id: user.id,
+              semester_id: semesterId,
+              name: sub.name.trim(),
+              code: sub.code.trim(),
+              emoji: sub.emoji,
+              color: sub.color,
+            }),
+          10000,
+          `Create subject "${sub.name}"`
+        );
 
         if (subErr) {
-          console.error(`Failed to create subject "${sub.name}":`, subErr);
+          console.error(`[Onboarding] Subject "${sub.name}" failed:`, subErr);
           continue;
         }
+        console.log(`[Onboarding] Subject created: ${subjectId}`);
 
         // 3. Create topics
-        const validTopics = sub.topics.filter((t) => t.trim());
+        const validTopics = sub.topics.filter((t) => typeof t === "string" && t.trim());
         if (validTopics.length > 0) {
+          console.log(`[Onboarding] Step 3: Creating ${validTopics.length} topics...`);
           const topicInserts = validTopics.map((t, ti) => ({
-            subject_id: subjectRow.id,
+            subject_id: subjectId,
             name: t.trim(),
             sort_order: ti,
           }));
 
-          const { error: topErr } = await supabase.from("topics").insert(topicInserts);
-          if (topErr) console.error(`Failed to create topics for "${sub.name}":`, topErr);
+          const { error: topErr } = await withTimeout(
+            supabase.from("topics").insert(topicInserts),
+            10000,
+            `Create topics for "${sub.name}"`
+          );
+          if (topErr) console.error(`[Onboarding] Topics failed:`, topErr);
+          else console.log(`[Onboarding] Topics created`);
         }
 
-        // 4. Create exams
+        // 4. Create exams (skip invalid dates)
         for (const exam of sub.exams) {
           if (!exam.name.trim() || !exam.date) continue;
+          const parsedDate = new Date(exam.date);
+          if (isNaN(parsedDate.getTime())) continue;
 
-          const { error: examErr } = await supabase.from("exams").insert({
-            subject_id: subjectRow.id,
-            name: exam.name.trim(),
-            exam_type: exam.type as "exam" | "quiz" | "assignment" | "project" | "presentation" | "other",
-            exam_date: new Date(exam.date).toISOString(),
-          });
-          if (examErr) console.error(`Failed to create exam "${exam.name}":`, examErr);
+          console.log(`[Onboarding] Step 4: Creating exam "${exam.name}"...`);
+          const { error: examErr } = await withTimeout(
+            supabase.from("exams").insert({
+              subject_id: subjectId,
+              name: exam.name.trim(),
+              exam_type: exam.type as "exam" | "quiz" | "assignment" | "project" | "presentation" | "other",
+              exam_date: parsedDate.toISOString(),
+            }),
+            10000,
+            `Create exam "${exam.name}"`
+          );
+          if (examErr) console.error(`[Onboarding] Exam failed:`, examErr);
+          else console.log(`[Onboarding] Exam created`);
         }
       }
 
       // 5. Mark onboarding as completed
-      await supabase
-        .from("profiles")
-        .update({ onboarding_completed: true })
-        .eq("id", user.id);
+      console.log("[Onboarding] Step 5: Marking onboarding complete...");
+      await supabase.from("profiles").update({ onboarding_completed: true }).eq("id", user.id);
 
-      // 6. Award XP for completing onboarding
+      // 6. Award XP
+      console.log("[Onboarding] Step 6: Awarding XP...");
       await awardXp(user.id, 50);
       await logActivity(user.id, "quest", 50, {
         type: "onboarding_completed",
@@ -410,9 +442,10 @@ export default function OnboardingPage() {
       });
 
       await refreshProfile();
+      console.log("[Onboarding] ✅ Done!");
       setStep("done");
     } catch (err) {
-      console.error("Save error:", err);
+      console.error("[Onboarding] Save error:", err);
       setSaveError(err instanceof Error ? err.message : "Failed to save. Please try again.");
     } finally {
       setIsSaving(false);
@@ -951,7 +984,7 @@ export default function OnboardingPage() {
   const renderReview = () => {
     const validSubjects = data.subjects.filter((s) => s.name.trim());
     const totalTopics = validSubjects.reduce(
-      (sum, s) => sum + s.topics.filter((t) => t.trim()).length,
+      (sum, s) => sum + s.topics.filter((t) => typeof t === "string" && t.trim()).length,
       0
     );
     const totalExams = validSubjects.reduce((sum, s) => sum + s.exams.filter((e) => e.name.trim()).length, 0);

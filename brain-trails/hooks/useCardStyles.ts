@@ -4,7 +4,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 /**
  * Hook to get theme-aware styling for cards
- * Enhanced with glassmorphism + game-aesthetic borders
+ * Premium glassmorphism with subtle gradient borders — no more thick green borders
  */
 export function useCardStyles() {
   const { theme } = useTheme();
@@ -12,10 +12,10 @@ export function useCardStyles() {
 
   return {
     isSun,
-    // Card container styles - Glassmorphism with 3px game-style borders
+    // Card container styles — Premium glass with subtle gradient borders
     card: isSun
-      ? "bg-white/70 backdrop-blur-[12px] rounded-[24px] shadow-xl shadow-amber-300/20 border-[3px] border-emerald-600/40"
-      : "bg-slate-900/50 backdrop-blur-[12px] rounded-[24px] shadow-2xl shadow-black/30 border-[3px] border-emerald-400/30",
+      ? "bg-white/60 backdrop-blur-xl rounded-3xl shadow-lg shadow-amber-900/5 border border-amber-200/40 transition-all duration-300"
+      : "bg-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 border border-white/10 transition-all duration-300",
     
     // Text styles
     title: isSun 
@@ -25,16 +25,16 @@ export function useCardStyles() {
     muted: isSun ? "text-slate-500" : "text-slate-400",
     accent: isSun ? "text-purple-600" : "text-[#C77DFF]",
     
-    // Border styles - Game aesthetic with mint green
-    border: isSun ? "border-emerald-600/40" : "border-emerald-400/30",
-    borderLight: isSun ? "border-emerald-500/20" : "border-emerald-300/20",
+    // Border styles — subtle, not game-y green
+    border: isSun ? "border-amber-200/50" : "border-white/10",
+    borderLight: isSun ? "border-amber-100/30" : "border-white/5",
     
-    // Item/row styles with subtle glass effect
+    // Item/row styles
     item: isSun
-      ? "bg-white/50 backdrop-blur-sm border-2 border-emerald-500/20 hover:bg-white/70 hover:border-emerald-500/40"
-      : "bg-white/5 backdrop-blur-sm border-2 border-emerald-400/20 hover:bg-white/10 hover:border-emerald-400/40",
+      ? "bg-white/40 backdrop-blur-sm border border-amber-200/30 hover:bg-white/60 hover:border-amber-300/50"
+      : "bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20",
     itemCompleted: isSun
-      ? "bg-green-100/80 border-2 border-green-400"
-      : "bg-green-500/20 border-2 border-green-400/50",
+      ? "bg-emerald-100/70 border border-emerald-300"
+      : "bg-emerald-500/15 border border-emerald-400/30",
   };
 }

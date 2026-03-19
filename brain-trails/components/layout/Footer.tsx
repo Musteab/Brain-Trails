@@ -19,6 +19,7 @@ export default function Footer() {
         <nav className="mb-8">
           <ul className="flex justify-center space-x-6 text-sm font-medium">
             <li><Link href="/shop" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Merchant</Link></li>
+            <li><Link href="/about" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Grand Archive</Link></li>
             <li><Link href="/support" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Support</Link></li>
           </ul>
         </nav>
@@ -40,7 +41,7 @@ export default function Footer() {
           <span className={`font-serif italic text-sm font-[family-name:var(--font-quicksand)] ${
             isSun ? "text-slate-500" : "text-slate-400"
           }`}>
-            — Archie the Scholar
+            — Archie the Scholar <span className="ml-3 not-italic text-[10px] bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold border border-amber-500/30">Brain Trails is still in Beta</span>
           </span>
         </div>
       </div>

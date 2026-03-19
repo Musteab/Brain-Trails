@@ -11,6 +11,14 @@ import { usePresence } from "@/hooks/usePresence";
 import ProfileHoverCard from "@/components/ui/ProfileHoverCard";
 import { gameText } from "@/constants/gameText";
 
+function getFrameClass(role?: string | null, avatarFrame?: string | null) {
+  if (avatarFrame && avatarFrame !== 'default') return avatarFrame;
+  if (role === "dev") return "frame-dev";
+  if (role === "admin") return "frame-admin";
+  if (role === "beta_tester") return "frame-beta";
+  return "";
+}
+
 /**
  * 🎮 TopStatsBar Component
  * 
@@ -163,20 +171,20 @@ export default function TopStatsBar() {
               : "bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60"
           }`}
         >
-          {profile?.avatar_url ? (
-            <Image 
-              src={profile.avatar_url} 
-              alt="Avatar"
-              width={24}
-              height={24}
-              unoptimized
-              className="w-6 h-6 rounded-full bg-slate-200 border border-slate-300"
-            />
-          ) : (
-            <div className="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center">
-              <UserIcon className="w-3.5 h-3.5 text-white" />
-            </div>
-          )}
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 overflow-hidden shadow-sm ${getFrameClass(profile?.role, profile?.avatar_frame)} ${isSun ? "bg-slate-100 border border-slate-200" : "bg-slate-800 border-slate-700"}`}>
+            {profile?.avatar_url ? (
+              <Image 
+                src={profile.avatar_url} 
+                alt="Avatar"
+                width={32}
+                height={32}
+                unoptimized
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <UserIcon className={`w-4 h-4 ${isSun ? "text-slate-400" : "text-white"}`} />
+            )}
+          </div>
           
           <div className="text-right ml-1">
             {isLoading ? (

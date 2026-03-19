@@ -37,7 +37,7 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
   const isBeta = member.role === 'beta_tester';
   const isAdmin = member.role === 'admin';
 
-  const frameClass = getFrameClass(member.role, member.title_border);
+  const frameClass = getFrameClass(member.role, member.avatar_frame);
   const frameStyle: React.CSSProperties = member.title_border && !isDev && !isAdmin && !isBeta
     ? { "--shop-frame-color": member.title_border } as any
     : {};
@@ -74,7 +74,7 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
         <div
           className={`
             flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-full overflow-hidden flex items-center justify-center
-            ${isSun ? 'bg-slate-200 text-slate-500' : 'bg-slate-800 text-slate-400'}
+            ${isSun ? 'bg-slate-200 text-slate-500' : 'bg-slate-800 text-slate-300'}
             ${frameClass || getRankBorder(member.rank)}
           `}
           style={frameStyle}
@@ -138,7 +138,7 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
                isSun ? "bg-white/95 border-slate-200" : "bg-slate-900/95 border-slate-700/50"
             }`}
           >
-            {isDev && <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 opacity-20 animate-gradient-x pointer-events-none" />}
+            {isDev && <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 opacity-20 animate-gradient-x pointer-events-none" />}
             
             <div className="flex flex-col gap-3 relative z-10">
               <div className="flex items-center gap-3">
@@ -150,11 +150,18 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
                 </div>
                 <div>
                   <h4 className={`font-bold text-sm truncate w-40 font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>{member.name}</h4>
-                  {(member.title || isDev) && (
-                    <p className={`text-[10px] font-bold mt-0.5 truncate w-40 ${isDev ? "text-amber-500" : isSun ? "text-purple-600" : "text-purple-400"}`}>
-                      {isDev ? "🏛️ Realm Arch-Mage" : member.title}
-                    </p>
-                  )}
+                  {(member.title || isDev) && (() => {
+                    const parsed = member.title ? member.title.split("|") : ["", ""];
+                    const tText = parsed[0];
+                    const tClass = parsed[1] || "";
+                    return (
+                      <p className={`text-[10px] font-bold mt-0.5 truncate w-40 ${isDev ? "cosmetic-title-dev" : tClass} ${
+                        !isDev && !tClass ? (isSun ? "text-purple-600" : "text-purple-400") : ""
+                      }`}>
+                        {isDev ? "🏛️ Realm Arch-Mage" : tText}
+                      </p>
+                    )
+                  })()}
                   <div className="flex gap-1 mt-1">
                     {isBeta && !isDev && (
                       <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded-full">
@@ -162,7 +169,7 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
                       </span>
                     )}
                     {isDev && (
-                      <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-amber-600 bg-amber-500/20 px-1.5 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-purple-400 bg-purple-500/20 px-1.5 py-0.5 rounded-full">
                         <Shield className="w-3 h-3" /> Dev
                       </span>
                     )}
@@ -178,7 +185,7 @@ const LeaderboardItem = ({ member, isSun, getRankBg, getRankBorder, title }: any
               <div className={`pt-2 border-t ${isSun ? "border-slate-100" : "border-slate-800"}`}>
                 <div className="flex justify-between items-center mb-1">
                   <span className={`text-xs font-bold ${isSun ? "text-slate-700" : "text-slate-300"}`}>Level {member.level || 1}</span>
-                  <span className={`text-[10px] font-medium ${isSun ? "text-slate-500" : "text-slate-400"}`}>{member.points.toLocaleString()} XP</span>
+                  <span className={`text-[10px] font-medium ${isSun ? "text-slate-500" : "text-slate-300"}`}>{member.points.toLocaleString()} XP</span>
                 </div>
                 <div className={`h-1.5 rounded-full overflow-hidden ${isSun ? "bg-slate-200" : "bg-slate-800"}`}>
                    <div className={`h-full ${isSun ? "bg-gradient-to-r from-amber-400 to-orange-400" : "bg-gradient-to-r from-amber-500 to-orange-500"}`} style={{ width: '100%' }} />
@@ -247,7 +254,7 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
       case 1: return "bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-yellow-500/50";
       case 2: return "bg-gradient-to-br from-slate-300 to-slate-500 text-white shadow-slate-400/50";
       case 3: return "bg-gradient-to-br from-amber-600 to-amber-700 text-white shadow-amber-600/50";
-      default: return isSun ? "bg-slate-200 text-slate-600" : "bg-slate-800 text-slate-400";
+      default: return isSun ? "bg-slate-200 text-slate-600" : "bg-slate-800 text-slate-300";
     }
   };
 

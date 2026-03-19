@@ -11,6 +11,7 @@ interface Profile {
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  avatar_frame?: string;
   role: string;
   xp: number;
   level: number;
@@ -98,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         username: fallbackProfile.username,
         display_name: fallbackProfile.display_name,
         avatar_url: fallbackProfile.avatar_url,
-      });
+      } as any);
       
     if (insertError) {
       console.error("AuthContext: Fallback profile insertion failed:", insertError);

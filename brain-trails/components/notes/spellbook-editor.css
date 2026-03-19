@@ -202,14 +202,27 @@ ul[data-type="taskList"] input[type="checkbox"] {
   background-color: #1e293b;
 }
 
-.dark .ProseMirror h1,
-.dark .ProseMirror h2,
-.dark .ProseMirror h3,
+.dark .ProseMirror h1 {
+  color: #f1f5f9;
+}
+
+.dark .ProseMirror h2 {
+  color: #e2e8f0;
+}
+
+.dark .ProseMirror h3 {
+  color: #cbd5e1;
+}
+
 .dark .ProseMirror strong {
   color: #f8fafc;
 }
 
 .dark .ProseMirror p {
+  color: #cbd5e1;
+}
+
+.dark .ProseMirror li {
   color: #cbd5e1;
 }
 
@@ -222,4 +235,23 @@ ul[data-type="taskList"] input[type="checkbox"] {
 .dark .ProseMirror code {
   background: #1e293b;
   color: #c4b5fd;
+}
+
+.dark .ProseMirror ::selection {
+  background: rgba(139, 92, 246, 0.4);
+  color: #f8fafc;
+}
+
+.dark .ProseMirror mark {
+  background-color: rgba(139, 92, 246, 0.3);
+  color: #e2e8f0;
+}
+
+/* Highlight extension - dark mode */
+.dark .ProseMirror mark[data-color] {
+  color: #e2e8f0;
+}
+
+.dark .ProseMirror p.is-editor-empty:first-child::before {
+  color: #64748b;
 }

@@ -184,8 +184,14 @@ CREATE TABLE IF NOT EXISTS guilds (
 );
 
 -- Add FK from profiles.guild_id to guilds (after guilds table exists)
-ALTER TABLE profiles ADD CONSTRAINT fk_profiles_guild
-  FOREIGN KEY (guild_id) REFERENCES guilds(id) ON DELETE SET NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_profiles_guild'
+  ) THEN
+    ALTER TABLE profiles ADD CONSTRAINT fk_profiles_guild
+      FOREIGN KEY (guild_id) REFERENCES guilds(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS guild_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -303,108 +309,162 @@ ALTER TABLE cosmetics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_cosmetics ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: users can read all profiles, edit only their own
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON profiles;
 CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Focus sessions: users can only see/create their own
+DROP POLICY IF EXISTS "Users can view own sessions" ON focus_sessions;
 CREATE POLICY "Users can view own sessions" ON focus_sessions FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own sessions" ON focus_sessions;
 CREATE POLICY "Users can insert own sessions" ON focus_sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Notes: users can only see/edit their own
+DROP POLICY IF EXISTS "Users can view own notes" ON notes;
 CREATE POLICY "Users can view own notes" ON notes FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own notes" ON notes;
 CREATE POLICY "Users can insert own notes" ON notes FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own notes" ON notes;
 CREATE POLICY "Users can update own notes" ON notes FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own notes" ON notes;
 CREATE POLICY "Users can delete own notes" ON notes FOR DELETE USING (auth.uid() = user_id);
 
 -- Decks: users can only see/edit their own
+DROP POLICY IF EXISTS "Users can view own decks" ON decks;
 CREATE POLICY "Users can view own decks" ON decks FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own decks" ON decks;
 CREATE POLICY "Users can insert own decks" ON decks FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own decks" ON decks;
 CREATE POLICY "Users can update own decks" ON decks FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own decks" ON decks;
 CREATE POLICY "Users can delete own decks" ON decks FOR DELETE USING (auth.uid() = user_id);
 
 -- Cards: users can manage cards in their own decks
+DROP POLICY IF EXISTS "Users can view own cards" ON cards;
 CREATE POLICY "Users can view own cards" ON cards FOR SELECT
   USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can insert own cards" ON cards;
 CREATE POLICY "Users can insert own cards" ON cards FOR INSERT
   WITH CHECK (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can update own cards" ON cards;
 CREATE POLICY "Users can update own cards" ON cards FOR UPDATE
   USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can delete own cards" ON cards;
 CREATE POLICY "Users can delete own cards" ON cards FOR DELETE
   USING (deck_id IN (SELECT id FROM decks WHERE user_id = auth.uid()));
 
 -- Adventure log: users can see/create their own
+DROP POLICY IF EXISTS "Users can view own log" ON adventure_log;
 CREATE POLICY "Users can view own log" ON adventure_log FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own log" ON adventure_log;
 CREATE POLICY "Users can insert own log" ON adventure_log FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Settings: users can only manage their own
+DROP POLICY IF EXISTS "Users can view own settings" ON user_settings;
 CREATE POLICY "Users can view own settings" ON user_settings FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own settings" ON user_settings;
 CREATE POLICY "Users can insert own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own settings" ON user_settings;
 CREATE POLICY "Users can update own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id);
 
 -- Boss battles: users can view/create their own
+DROP POLICY IF EXISTS "Users can view own battles" ON boss_battles;
 CREATE POLICY "Users can view own battles" ON boss_battles FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own battles" ON boss_battles;
 CREATE POLICY "Users can insert own battles" ON boss_battles FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Knowledge paths: users can only manage their own
+DROP POLICY IF EXISTS "Users can view own paths" ON knowledge_paths;
 CREATE POLICY "Users can view own paths" ON knowledge_paths FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own paths" ON knowledge_paths;
 CREATE POLICY "Users can insert own paths" ON knowledge_paths FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own paths" ON knowledge_paths;
 CREATE POLICY "Users can update own paths" ON knowledge_paths FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own paths" ON knowledge_paths;
 CREATE POLICY "Users can delete own paths" ON knowledge_paths FOR DELETE USING (auth.uid() = user_id);
 
 -- Knowledge nodes: users can manage nodes in their own paths
+DROP POLICY IF EXISTS "Users can view own nodes" ON knowledge_nodes;
 CREATE POLICY "Users can view own nodes" ON knowledge_nodes FOR SELECT
   USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can insert own nodes" ON knowledge_nodes;
 CREATE POLICY "Users can insert own nodes" ON knowledge_nodes FOR INSERT
   WITH CHECK (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can update own nodes" ON knowledge_nodes;
 CREATE POLICY "Users can update own nodes" ON knowledge_nodes FOR UPDATE
   USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can delete own nodes" ON knowledge_nodes;
 CREATE POLICY "Users can delete own nodes" ON knowledge_nodes FOR DELETE
   USING (path_id IN (SELECT id FROM knowledge_paths WHERE user_id = auth.uid()));
 
 -- Guilds: anyone can view guilds, members can update, leader can delete
+DROP POLICY IF EXISTS "Guilds are viewable by everyone" ON guilds;
 CREATE POLICY "Guilds are viewable by everyone" ON guilds FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Anyone can create a guild" ON guilds;
 CREATE POLICY "Anyone can create a guild" ON guilds FOR INSERT WITH CHECK (auth.uid() = leader_id);
+DROP POLICY IF EXISTS "Leaders can update own guild" ON guilds;
 CREATE POLICY "Leaders can update own guild" ON guilds FOR UPDATE USING (auth.uid() = leader_id);
+DROP POLICY IF EXISTS "Leaders can delete own guild" ON guilds;
 CREATE POLICY "Leaders can delete own guild" ON guilds FOR DELETE USING (auth.uid() = leader_id);
 
 -- Guild members: guild members can view, user can join/leave
+DROP POLICY IF EXISTS "Guild members are viewable by guild members" ON guild_members;
 CREATE POLICY "Guild members are viewable by guild members" ON guild_members FOR SELECT
   USING (guild_id IN (SELECT guild_id FROM guild_members gm WHERE gm.user_id = auth.uid()));
+DROP POLICY IF EXISTS "Users can join guilds" ON guild_members;
 CREATE POLICY "Users can join guilds" ON guild_members FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can leave guilds" ON guild_members;
 CREATE POLICY "Users can leave guilds" ON guild_members FOR DELETE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Leaders can manage members" ON guild_members;
 CREATE POLICY "Leaders can manage members" ON guild_members FOR UPDATE
   USING (guild_id IN (SELECT id FROM guilds WHERE leader_id = auth.uid()));
 
 -- Guild messages: guild members can view and send
+DROP POLICY IF EXISTS "Members can view guild messages" ON guild_messages;
 CREATE POLICY "Members can view guild messages" ON guild_messages FOR SELECT
   USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Members can send guild messages" ON guild_messages;
 CREATE POLICY "Members can send guild messages" ON guild_messages FOR INSERT
   WITH CHECK (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
 
 -- Guild raids: guild members can view, leaders can create
+DROP POLICY IF EXISTS "Members can view raids" ON guild_raids;
 CREATE POLICY "Members can view raids" ON guild_raids FOR SELECT
   USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
+DROP POLICY IF EXISTS "Leaders can create raids" ON guild_raids;
 CREATE POLICY "Leaders can create raids" ON guild_raids FOR INSERT
   WITH CHECK (guild_id IN (SELECT id FROM guilds WHERE leader_id = auth.uid()));
+DROP POLICY IF EXISTS "System can update raids" ON guild_raids;
 CREATE POLICY "System can update raids" ON guild_raids FOR UPDATE
   USING (guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid()));
 
 -- Guild raid contributions
+DROP POLICY IF EXISTS "Members can view contributions" ON guild_raid_contributions;
 CREATE POLICY "Members can view contributions" ON guild_raid_contributions FOR SELECT
   USING (raid_id IN (SELECT id FROM guild_raids WHERE guild_id IN (SELECT guild_id FROM guild_members WHERE user_id = auth.uid())));
+DROP POLICY IF EXISTS "Members can contribute" ON guild_raid_contributions;
 CREATE POLICY "Members can contribute" ON guild_raid_contributions FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Achievements: everyone can view definitions, users manage their own unlocks
+DROP POLICY IF EXISTS "Achievements are viewable by everyone" ON achievements;
 CREATE POLICY "Achievements are viewable by everyone" ON achievements FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can view own achievement unlocks" ON user_achievements;
 CREATE POLICY "Users can view own achievement unlocks" ON user_achievements FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can unlock achievements" ON user_achievements;
 CREATE POLICY "Users can unlock achievements" ON user_achievements FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Cosmetics: everyone can view shop, users manage their own purchases
+DROP POLICY IF EXISTS "Cosmetics are viewable by everyone" ON cosmetics;
 CREATE POLICY "Cosmetics are viewable by everyone" ON cosmetics FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can view own cosmetics" ON user_cosmetics;
 CREATE POLICY "Users can view own cosmetics" ON user_cosmetics FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can purchase cosmetics" ON user_cosmetics;
 CREATE POLICY "Users can purchase cosmetics" ON user_cosmetics FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can equip cosmetics" ON user_cosmetics;
 CREATE POLICY "Users can equip cosmetics" ON user_cosmetics FOR UPDATE USING (auth.uid() = user_id);
 
 -- ============================================
@@ -490,18 +550,23 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================
 
 INSERT INTO cosmetics (id, name, description, category, gold_cost, level_required, rarity, preview_data) VALUES
-  ('theme_forest', 'Enchanted Forest', 'A lush forest theme with green tones', 'theme', 500, 5, 'uncommon', '{"primary":"#2d5a27","secondary":"#4a7c3f","bg":"forest"}'),
-  ('theme_ocean', 'Deep Ocean', 'A deep sea theme with blue tones', 'theme', 500, 5, 'uncommon', '{"primary":"#1a4a6e","secondary":"#2980b9","bg":"ocean"}'),
-  ('theme_fire', 'Dragon Fire', 'A fiery red and orange theme', 'theme', 1000, 15, 'rare', '{"primary":"#c0392b","secondary":"#e74c3c","bg":"fire"}'),
-  ('theme_cosmos', 'Cosmic Void', 'A dark space theme with nebula colors', 'theme', 2500, 25, 'epic', '{"primary":"#2c003e","secondary":"#7b2ff7","bg":"cosmos"}'),
-  ('theme_gold', 'Golden Age', 'A luxurious gold and ivory theme', 'theme', 5000, 40, 'legendary', '{"primary":"#b8860b","secondary":"#ffd700","bg":"gold"}'),
+  ('theme_forest', 'Enchanted Forest', 'A lush forest theme with green tones', 'theme', 500, 5, 'uncommon', '{"primary":"#2d5a27","secondary":"#4a7c3f","bg":"forest","colors":["#2d5a27","#4a7c3f","#8fbc8f"]}'),
+  ('theme_ocean', 'Deep Ocean', 'A deep sea theme with blue tones', 'theme', 500, 5, 'uncommon', '{"primary":"#1a4a6e","secondary":"#2980b9","bg":"ocean","colors":["#1a4a6e","#2980b9","#5dade2"]}'),
+  ('theme_fire', 'Dragon Fire', 'A fiery red and orange theme', 'theme', 1000, 15, 'rare', '{"primary":"#c0392b","secondary":"#e74c3c","bg":"fire","colors":["#c0392b","#e74c3c","#f39c12"]}'),
+  ('theme_cosmos', 'Cosmic Void', 'A dark space theme with nebula colors', 'theme', 2500, 25, 'epic', '{"primary":"#2c003e","secondary":"#7b2ff7","bg":"cosmos","colors":["#2c003e","#7b2ff7","#e040fb"]}'),
+  ('theme_gold', 'Golden Age', 'A luxurious gold and ivory theme', 'theme', 5000, 40, 'legendary', '{"primary":"#b8860b","secondary":"#ffd700","bg":"gold","colors":["#b8860b","#ffd700","#fffde7"]}'),
   ('frame_bronze', 'Bronze Frame', 'A simple bronze avatar frame', 'avatar_frame', 200, 3, 'common', '{"border":"#cd7f32"}'),
   ('frame_silver', 'Silver Frame', 'A polished silver avatar frame', 'avatar_frame', 500, 10, 'uncommon', '{"border":"#c0c0c0"}'),
   ('frame_gold', 'Gold Frame', 'A gleaming gold avatar frame', 'avatar_frame', 1500, 20, 'rare', '{"border":"#ffd700"}'),
   ('frame_diamond', 'Diamond Frame', 'A sparkling diamond avatar frame', 'avatar_frame', 5000, 35, 'epic', '{"border":"#b9f2ff"}'),
   ('frame_legendary', 'Legendary Frame', 'An animated legendary avatar frame', 'avatar_frame', 10000, 50, 'legendary', '{"border":"#ff6b6b","animated":true}'),
   ('title_scholar', 'The Scholar', 'Display title: The Scholar', 'title', 100, 1, 'common', '{"text":"The Scholar"}'),
+  ('title_novice', 'Eager Novice', 'Display title: Eager Novice — for those just starting', 'title', 50, 1, 'common', '{"text":"Eager Novice"}'),
   ('title_mage', 'Arcane Mage', 'Display title: Arcane Mage', 'title', 300, 10, 'uncommon', '{"text":"Arcane Mage"}'),
   ('title_sage', 'Grand Sage', 'Display title: Grand Sage', 'title', 1000, 25, 'rare', '{"text":"Grand Sage"}'),
-  ('title_legend', 'Living Legend', 'Display title: Living Legend', 'title', 5000, 50, 'legendary', '{"text":"Living Legend"}')
+  ('title_warden', 'Realm Warden', 'Display title: Realm Warden — protectors of knowledge', 'title', 2000, 30, 'epic', '{"text":"Realm Warden"}'),
+  ('title_legend', 'Living Legend', 'Display title: Living Legend', 'title', 5000, 50, 'legendary', '{"text":"Living Legend"}'),
+  ('bg_nebula', 'Nebula Drift', 'A swirling cosmic nebula background', 'background', 800, 10, 'rare', '{"gradient":"linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}'),
+  ('bg_aurora', 'Northern Lights', 'Shimmering aurora borealis backdrop', 'background', 1500, 20, 'epic', '{"gradient":"linear-gradient(135deg, #00c9ff 0%, #92fe9d 50%, #00c9ff 100%)"}'),
+  ('bg_inferno', 'Infernal Blaze', 'A legendary backdrop of dragonfire', 'background', 4000, 40, 'legendary', '{"gradient":"linear-gradient(135deg, #f12711 0%, #f5af19 50%, #f12711 100%)"}')
 ON CONFLICT (id) DO NOTHING;

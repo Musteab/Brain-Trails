@@ -43,6 +43,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // Sync dark class on <html> for CSS-based dark mode selectors
+  useEffect(() => {
+    if (!mounted) return;
+    if (theme === "moon") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme, mounted]);
+
   // Prevent flash of wrong theme during SSR hydration
   if (!mounted) {
     return (

@@ -431,7 +431,7 @@ export default function GuildPage() {
               }`}
             >
               <Shield className="inline w-9 h-9 mr-2 -mt-1" />
-              Guild Hall
+              Guild Hall <span className="ml-2 align-middle text-sm bg-amber-500/20 text-amber-600 px-3 py-1 rounded-full uppercase tracking-widest font-bold border border-amber-500/30">Still in Beta</span>
             </h1>
             <p className={`mt-2 ${muted} font-[family-name:var(--font-quicksand)]`}>
               Join a guild to study together, compete in raids, and climb the leaderboard.

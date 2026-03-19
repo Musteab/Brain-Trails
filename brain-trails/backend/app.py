@@ -1,7 +1,7 @@
 """
 Brain Trails - Flask Backend API
 
-Provides health checks and AI-powered study features via Gemini API.
+Provides health checks and AI-powered study features via Groq (Llama) and Gemini APIs.
 """
 
 import os
@@ -20,6 +20,66 @@ app = Flask(__name__)
 # Enable CORS for frontend
 CORS(app)
 
+# ─── AI Client Setup ───────────────────────────────────────────
+
+def get_groq_keys():
+    """Return a list of Groq API keys from env (comma-separated or single)."""
+    # Support comma-separated keys: GROQ_API_KEYS=key1,key2,key3
+    multi = os.getenv("GROQ_API_KEYS", "")
+    if multi.strip():
+        return [k.strip() for k in multi.split(",") if k.strip()]
+    # Fallback to single key
+    single = os.getenv("GROQ_API_KEY", "")
+    return [single] if single.strip() else []
+
+
+def groq_chat(messages, temperature=0.7, max_tokens=1500):
+    """Try each Groq key in order. Rotate on 401/429 errors."""
+    from groq import Groq
+
+    keys = get_groq_keys()
+    if not keys:
+        return None, "No GROQ_API_KEY(S) configured"
+
+    last_error = None
+    for key in keys:
+        try:
+            client = Groq(api_key=key)
+            completion = client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            return completion.choices[0].message.content, None
+        except Exception as e:
+            error_str = str(e)
+            last_error = error_str
+            # If it's an auth or rate limit error, try the next key
+            if "401" in error_str or "429" in error_str or "invalid_api_key" in error_str.lower():
+                continue
+            # For other errors, don't retry with different keys
+            return None, f"AI generation failed: {error_str}"
+
+    return None, f"All {len(keys)} API key(s) failed. Last error: {last_error}"
+
+
+def get_gemini_model():
+    """Return a Gemini GenerativeModel if the key is configured."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        return genai.GenerativeModel("gemini-2.0-flash")
+    except ImportError:
+        return None
+
+
+GROQ_MODEL = "llama-3.3-70b-versatile"
+
+
 
 # ============================================
 # Health Check Routes
@@ -30,7 +90,8 @@ def health_check():
     """Health check endpoint for monitoring."""
     return jsonify({
         "status": "healthy",
-        "version": "0.4.0",
+        "version": "0.5.0",
+        "ai_provider": "groq" if os.getenv("GROQ_API_KEY") else "gemini",
         "features": {
             "ai_chat": True,
             "parse_syllabus": True,
@@ -45,7 +106,7 @@ def api_root():
     """API root with available endpoints."""
     return jsonify({
         "name": "Brain Trails API",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "endpoints": {
             "health": "/api/health",
             "ai_chat": "/api/ai/chat [POST]",
@@ -56,7 +117,7 @@ def api_root():
 
 
 # ============================================
-# AI Chat Route (Gemini API)
+# AI Chat Route
 # ============================================
 
 STUDY_SYSTEM_PROMPT = """You are an AI study companion called the "AI Familiar" in Brain Trails,
@@ -73,18 +134,12 @@ that fits the app's cozy adventure theme. Use emojis sparingly but effectively."
 
 @app.route("/api/ai/chat", methods=["POST"])
 def ai_chat():
-    """AI chat endpoint using Google Gemini API.
+    """AI chat endpoint using Groq (primary) or Gemini (fallback).
 
     Request body:
     {
         "message": "user's question or prompt",
         "noteContent": "optional - the user's current note content for context"
-    }
-
-    Returns:
-    {
-        "response": "AI response text",
-        "model": "gemini model used"
     }
     """
     data = request.get_json()
@@ -94,50 +149,41 @@ def ai_chat():
     user_message = data["message"]
     note_content = data.get("noteContent", "")
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
-        return jsonify({"error": "GEMINI_API_KEY not configured"}), 500
+    # Build context
+    user_prompt = ""
+    if note_content:
+        user_prompt += f"The student's current notes:\n---\n{note_content[:3000]}\n---\n\n"
+    user_prompt += f"Student's question: {user_message}"
 
-    try:
-        import google.generativeai as genai
+    # Try Groq (with key rotation)
+    messages = [
+        {"role": "system", "content": STUDY_SYSTEM_PROMPT},
+        {"role": "user", "content": user_prompt},
+    ]
+    response_text, error = groq_chat(messages, temperature=0.7, max_tokens=1500)
+    if response_text:
+        return jsonify({"response": response_text, "model": GROQ_MODEL})
 
-        genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+    # Fallback to Gemini
+    gemini = get_gemini_model()
+    if gemini:
+        try:
+            prompt = STUDY_SYSTEM_PROMPT + "\n\n" + user_prompt
+            response = gemini.generate_content(prompt)
+            return jsonify({"response": response.text, "model": "gemini-2.0-flash"})
+        except Exception as e:
+            return jsonify({"error": f"AI generation failed: {str(e)}"}), 500
 
-        # Build the prompt with note context if available
-        prompt_parts = [STUDY_SYSTEM_PROMPT]
-
-        if note_content:
-            prompt_parts.append(
-                f"\n\nThe student's current notes:\n---\n{note_content[:3000]}\n---"
-            )
-
-        prompt_parts.append(f"\n\nStudent's question: {user_message}")
-
-        response = model.generate_content("".join(prompt_parts))
-
-        return jsonify({
-            "response": response.text,
-            "model": "gemini-2.0-flash"
-        })
-
-    except ImportError:
-        return jsonify({
-            "error": "google-generativeai package not installed. Run: pip install google-generativeai"
-        }), 500
-    except Exception as e:
-        return jsonify({
-            "error": f"AI generation failed: {str(e)}"
-        }), 500
+    return jsonify({"error": error or "No AI provider configured"}), 500
 
 
 # ============================================
-# Syllabus Parsing Route (Gemini API)
+# Syllabus Parsing Route
 # ============================================
 
 SYLLABUS_SYSTEM_PROMPT = """You are an expert academic syllabus parser for Brain Trails, a gamified study app.
 
-Your job is to extract structured data from a syllabus (text, PDF, or image). Return ONLY valid JSON with no markdown formatting, no code fences, and no extra text.
+Your job is to extract structured data from a syllabus. Return ONLY valid JSON with no markdown formatting, no code fences, and no extra text.
 
 The JSON must follow this exact schema:
 {
@@ -190,7 +236,7 @@ Rules:
 
 @app.route("/api/ai/parse-syllabus", methods=["POST"])
 def parse_syllabus():
-    """Parse a syllabus using Gemini API."""
+    """Parse a syllabus using Groq (text) or Gemini (files)."""
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing request body"}), 400
@@ -205,35 +251,63 @@ def parse_syllabus():
     if file_type in ("pdf", "image") and not file_data:
         return jsonify({"error": f"Missing 'file_data' for {file_type} mode"}), 400
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
-        return jsonify({"error": "GEMINI_API_KEY not configured"}), 500
-
     response_text = ""
 
     try:
-        import google.generativeai as genai
-
-        genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
-
+        # For text input, prefer Groq
         if file_type == "text":
-            prompt = (
-                SYLLABUS_SYSTEM_PROMPT
-                + "\n\nHere is the syllabus content to parse:\n---\n"
-                + content[:8000]
-                + "\n---\n\nReturn the JSON now."
-            )
-            response = model.generate_content(prompt)
+            messages = [
+                {"role": "system", "content": SYLLABUS_SYSTEM_PROMPT},
+                {"role": "user", "content": f"Parse this syllabus and return JSON:\n---\n{content[:8000]}\n---"},
+            ]
+            result, groq_err = groq_chat(messages, temperature=0.3, max_tokens=4000)
+            if result:
+                response_text = result.strip()
+            else:
+                # Fallback to Gemini for text
+                gemini = get_gemini_model()
+                if not gemini:
+                    return jsonify({"error": "No AI provider configured"}), 500
+                prompt = SYLLABUS_SYSTEM_PROMPT + "\n\nHere is the syllabus content to parse:\n---\n" + content[:8000] + "\n---\n\nReturn the JSON now."
+                response = gemini.generate_content(prompt)
+                response_text = response.text.strip()
         else:
             raw_bytes = base64.b64decode(file_data)
-            mime_type = "application/pdf" if file_type == "pdf" else "image/png"
-            response = model.generate_content([
-                SYLLABUS_SYSTEM_PROMPT + "\n\nParse the attached syllabus document and return the JSON.",
-                {"mime_type": mime_type, "data": raw_bytes},
-            ])
 
-        response_text = response.text.strip()
+            if file_type == "pdf":
+                # Extract text from PDF using PyPDF2, then send to Groq
+                import io
+                try:
+                    from PyPDF2 import PdfReader
+                    reader = PdfReader(io.BytesIO(raw_bytes))
+                    pdf_text = "\n".join(page.extract_text() or "" for page in reader.pages)
+                except Exception as pdf_err:
+                    return jsonify({"error": f"Failed to read PDF: {str(pdf_err)}"}), 400
+
+                if not pdf_text.strip():
+                    return jsonify({"error": "Could not extract text from this PDF. Try pasting the text manually."}), 400
+
+                messages = [
+                    {"role": "system", "content": SYLLABUS_SYSTEM_PROMPT},
+                    {"role": "user", "content": f"Parse this syllabus and return JSON:\n---\n{pdf_text[:8000]}\n---"},
+                ]
+                result, groq_err = groq_chat(messages, temperature=0.3, max_tokens=4000)
+                if result:
+                    response_text = result.strip()
+                else:
+                    return jsonify({"error": groq_err or "Failed to parse PDF text"}), 500
+            else:
+                # For images, try Gemini (multimodal) as last resort
+                gemini = get_gemini_model()
+                if not gemini:
+                    return jsonify({"error": "Image parsing requires Gemini API. Try uploading a PDF or pasting text instead."}), 400
+                response = gemini.generate_content([
+                    SYLLABUS_SYSTEM_PROMPT + "\n\nParse the attached syllabus document and return the JSON.",
+                    {"mime_type": "image/png", "data": raw_bytes},
+                ])
+                response_text = response.text.strip()
+
+        # Clean markdown fences
         response_text = re.sub(r"^```(?:json)?\s*", "", response_text)
         response_text = re.sub(r"\s*```$", "", response_text)
 
@@ -241,17 +315,13 @@ def parse_syllabus():
 
         return jsonify({
             "data": parsed,
-            "model": "gemini-2.0-flash"
+            "model": GROQ_MODEL if file_type == "text" else "gemini-2.0-flash",
         })
 
     except json.JSONDecodeError as e:
         return jsonify({
             "error": f"Failed to parse AI response as JSON: {str(e)}",
             "raw_response": response_text[:1000] if response_text else ""
-        }), 500
-    except ImportError:
-        return jsonify({
-            "error": "google-generativeai package not installed."
         }), 500
     except Exception as e:
         return jsonify({
@@ -260,7 +330,7 @@ def parse_syllabus():
 
 
 # ============================================
-# Quiz Generation Route (Gemini API)
+# Quiz Generation Route
 # ============================================
 
 QUIZ_SYSTEM_PROMPT = """You are a quiz generator for Brain Trails, a gamified study app.
@@ -313,57 +383,83 @@ Rules:
 
 @app.route("/api/ai/generate-quiz", methods=["POST"])
 def generate_quiz():
-    """Generate a quiz from study content using Gemini API.
-
-    Request body:
-    {
-        "content": "study material text",
-        "num_questions": 10,
-        "difficulty": "medium",
-        "question_types": ["mcq", "true_false", "fill_blank", "short_answer"]
-    }
-
-    Returns:
-    {
-        "questions": [...],
-        "model": "gemini-2.0-flash"
-    }
-    """
+    """Generate a quiz or flashcards from study content or a subject/topic."""
     data = request.get_json()
-    if not data or "content" not in data:
-        return jsonify({"error": "Missing 'content' in request body"}), 400
+    if not data:
+        return jsonify({"error": "Missing request body"}), 400
 
-    content = data["content"]
-    if not content.strip():
-        return jsonify({"error": "Content cannot be empty"}), 400
-
-    num_questions = data.get("num_questions", 10)
+    content = data.get("content", "")
+    subject = data.get("subject", "")
+    topic = data.get("topic", "")
+    gen_type = data.get("type", "quiz")  # "quiz" or "flashcard"
+    count = data.get("count", data.get("num_questions", 10))
     difficulty = data.get("difficulty", "medium")
     question_types = data.get("question_types", ["mcq"])
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
-        return jsonify({"error": "GEMINI_API_KEY not configured"}), 500
+    # Build the user prompt based on what was provided
+    if gen_type == "flashcard":
+        if subject and topic:
+            user_prompt = (
+                f"Generate exactly {count} flashcard-style question and answer pairs about "
+                f"the topic '{topic}' within the subject '{subject}'.\n"
+                f"Each item MUST have a 'question' field and an 'answer' field.\n"
+                f"Questions should test understanding, not trivial facts.\n"
+                f"Return JSON: {{\"questions\": [{{\"question\": \"...\", \"answer\": \"...\"}}]}}\n"
+                "Return the JSON now."
+            )
+        elif subject:
+            user_prompt = (
+                f"Generate exactly {count} flashcard-style question and answer pairs about "
+                f"the subject '{subject}'.\n"
+                f"Each item MUST have a 'question' field and an 'answer' field.\n"
+                f"Cover the most important concepts a student should know.\n"
+                f"Return JSON: {{\"questions\": [{{\"question\": \"...\", \"answer\": \"...\"}}]}}\n"
+                "Return the JSON now."
+            )
+        else:
+            return jsonify({"error": "Flashcard generation requires at least a subject"}), 400
+    else:
+        # Original quiz generation
+        if not content.strip() and not subject:
+            return jsonify({"error": "Missing 'content' or 'subject' in request body"}), 400
+
+        types_str = ", ".join(question_types)
+        if content.strip():
+            user_prompt = (
+                f"Generate {count} {difficulty} difficulty questions.\n"
+                f"Use these question types: {types_str}\n\n"
+                f"Study content:\n---\n{content[:6000]}\n---\n\n"
+                "Return the JSON now."
+            )
+        else:
+            user_prompt = (
+                f"Generate {count} {difficulty} difficulty questions about '{subject}"
+                + (f" - {topic}" if topic else "") + f"'.\n"
+                f"Use these question types: {types_str}\n\n"
+                "Return the JSON now."
+            )
 
     response_text = ""
 
     try:
-        import google.generativeai as genai
+        # Try Groq (with key rotation)
+        messages = [
+            {"role": "system", "content": QUIZ_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ]
+        result, groq_err = groq_chat(messages, temperature=0.5, max_tokens=4000)
+        if result:
+            response_text = result.strip()
+        else:
+            # Fallback to Gemini
+            gemini = get_gemini_model()
+            if not gemini:
+                return jsonify({"error": groq_err or "No AI provider configured"}), 500
+            prompt = QUIZ_SYSTEM_PROMPT + "\n\n" + user_prompt
+            response = gemini.generate_content(prompt)
+            response_text = response.text.strip()
 
-        genai.configure(api_key=gemini_key)
-        model = genai.GenerativeModel("gemini-2.0-flash")
-
-        types_str = ", ".join(question_types)
-        prompt = (
-            QUIZ_SYSTEM_PROMPT
-            + f"\n\nGenerate {num_questions} {difficulty} difficulty questions."
-            + f"\nUse these question types: {types_str}"
-            + f"\n\nStudy content:\n---\n{content[:6000]}\n---"
-            + "\n\nReturn the JSON now."
-        )
-
-        response = model.generate_content(prompt)
-        response_text = response.text.strip()
+        # Clean markdown fences
         response_text = re.sub(r"^```(?:json)?\s*", "", response_text)
         response_text = re.sub(r"\s*```$", "", response_text)
 
@@ -371,17 +467,13 @@ def generate_quiz():
 
         return jsonify({
             "questions": parsed.get("questions", []),
-            "model": "gemini-2.0-flash"
+            "model": GROQ_MODEL,
         })
 
     except json.JSONDecodeError as e:
         return jsonify({
             "error": f"Failed to parse AI response as JSON: {str(e)}",
             "raw_response": response_text[:1000] if response_text else ""
-        }), 500
-    except ImportError:
-        return jsonify({
-            "error": "google-generativeai package not installed."
         }), 500
     except Exception as e:
         return jsonify({

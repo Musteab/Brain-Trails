@@ -2,18 +2,99 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Map, Trash2, ChevronLeft } from "lucide-react";
+import { ChevronLeft, BookOpen, Sparkles } from "lucide-react";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import KnowledgeMap from "@/components/knowledge/KnowledgeMap";
-import PathCreator from "@/components/knowledge/PathCreator";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useUIStore } from "@/stores";
 import { supabase } from "@/lib/supabase";
-import type { KnowledgePath, KnowledgeNode } from "@/lib/database.types";
+import type { SkillNode, SkillPath } from "@/components/knowledge/KnowledgeMap";
 
-interface PathWithNodes extends KnowledgePath {
-  knowledge_nodes: KnowledgeNode[];
+/* ── Supabase row types ── */
+interface DBSubject {
+  id: string;
+  name: string;
+  code: string;
+  emoji: string;
+  color: string;
+  description: string;
+}
+
+interface DBTopic {
+  id: string;
+  subject_id: string;
+  name: string;
+  sort_order: number;
+  mastery_pct: number;
+  is_completed: boolean;
+}
+
+interface DBExam {
+  id: string;
+  subject_id: string;
+  name: string;
+  exam_type: string;
+  exam_date: string;
+  is_completed: boolean;
+}
+
+/* ── Helpers to transform syllabus data → SkillNode format ── */
+function topicsToNodes(topics: DBTopic[], exams: DBExam[]): SkillNode[] {
+  const nodes: SkillNode[] = [];
+  const sorted = [...topics].sort((a, b) => a.sort_order - b.sort_order);
+
+  for (let i = 0; i < sorted.length; i++) {
+    const t = sorted[i];
+    nodes.push({
+      id: t.id,
+      name: t.name,
+      description: "",
+      node_type: "topic",
+      sort_order: t.sort_order,
+      mastery_pct: t.mastery_pct,
+      is_unlocked: i === 0 || sorted[i - 1].is_completed,
+      is_completed: t.is_completed,
+      xp_reward: 10,
+    });
+  }
+
+  // Add exams as boss nodes at the end
+  const allTopicsComplete = sorted.every((t) => t.is_completed);
+  for (let i = 0; i < exams.length; i++) {
+    const ex = exams[i];
+    nodes.push({
+      id: ex.id,
+      name: `⚔️ ${ex.name}`,
+      description: new Date(ex.exam_date).toLocaleDateString(),
+      node_type: "boss",
+      sort_order: sorted.length + i,
+      mastery_pct: ex.is_completed ? 100 : 0,
+      is_unlocked: allTopicsComplete,
+      is_completed: ex.is_completed,
+      xp_reward: 50,
+    });
+  }
+
+  return nodes;
+}
+
+function subjectToPath(sub: DBSubject): SkillPath {
+  return {
+    id: sub.id,
+    name: sub.name,
+    description: sub.code || sub.description || "",
+    emoji: sub.emoji || "📚",
+    color: sub.color || "from-purple-500 to-indigo-600",
+  };
+}
+
+/* ── Composed path type ── */
+interface SubjectPath {
+  path: SkillPath;
+  nodes: SkillNode[];
+  topicCount: number;
+  completedCount: number;
 }
 
 export default function KnowledgePage() {
@@ -21,64 +102,90 @@ export default function KnowledgePage() {
   const { card, isSun, title, muted } = useCardStyles();
   const { addToast } = useUIStore();
 
-  const [paths, setPaths] = useState<PathWithNodes[]>([]);
+  const [subjectPaths, setSubjectPaths] = useState<SubjectPath[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedPath, setSelectedPath] = useState<PathWithNodes | null>(null);
-  const [showCreator, setShowCreator] = useState(false);
-  const [editingPath, setEditingPath] = useState<KnowledgePath | null>(null);
+  const [selectedPath, setSelectedPath] = useState<SubjectPath | null>(null);
 
-  const fetchPaths = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     if (!user) return;
-    const { data, error } = await supabase
-      .from("knowledge_paths")
-      .select(`*, knowledge_nodes ( * )`)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching paths:", error);
-      addToast("Failed to load knowledge paths", "error");
-    } else {
-      setPaths((data ?? []) as unknown as PathWithNodes[]);
+    // 1. Get the active semester
+    const { data: semData } = await supabase
+      .from("semesters")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!semData) {
+      setIsLoading(false);
+      return;
     }
+
+    // 2. Get subjects for this semester
+    const { data: subjects, error: subErr } = await supabase
+      .from("subjects")
+      .select("id, name, code, emoji, color, description")
+      .eq("semester_id", semData.id)
+      .order("name");
+
+    if (subErr || !subjects || subjects.length === 0) {
+      setIsLoading(false);
+      return;
+    }
+
+    const subjectIds = subjects.map((s: DBSubject) => s.id);
+
+    // 3. Fetch all topics and exams for these subjects in parallel
+    const [topicsRes, examsRes] = await Promise.all([
+      supabase
+        .from("topics")
+        .select("id, subject_id, name, sort_order, mastery_pct, is_completed")
+        .in("subject_id", subjectIds)
+        .order("sort_order"),
+      supabase
+        .from("exams")
+        .select("id, subject_id, name, exam_type, exam_date, is_completed")
+        .in("subject_id", subjectIds)
+        .order("exam_date"),
+    ]);
+
+    const allTopics = (topicsRes.data ?? []) as DBTopic[];
+    const allExams = (examsRes.data ?? []) as DBExam[];
+
+    // 4. Build SubjectPath objects
+    const paths: SubjectPath[] = (subjects as DBSubject[]).map((sub) => {
+      const subTopics = allTopics.filter((t) => t.subject_id === sub.id);
+      const subExams = allExams.filter((e) => e.subject_id === sub.id);
+      const nodes = topicsToNodes(subTopics, subExams);
+
+      return {
+        path: subjectToPath(sub),
+        nodes,
+        topicCount: subTopics.length,
+        completedCount: subTopics.filter((t) => t.is_completed).length,
+      };
+    });
+
+    setSubjectPaths(paths);
     setIsLoading(false);
-  }, [user, addToast]);
+
+    // Update the currently selected path to instantly show newly mastered topics
+    setSelectedPath((currentSelected) => {
+      if (!currentSelected) return null;
+      return paths.find((p) => p.path.id === currentSelected.path.id) || null;
+    });
+  }, [user]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchPaths();
-  }, [fetchPaths]);
+    fetchData();
+  }, [fetchData]);
 
-  const handleDeletePath = async (e: React.MouseEvent, pathId: string) => {
-    e.stopPropagation();
-    if (!confirm("Delete this knowledge path? All nodes inside will be removed.")) return;
-
-    const { error } = await supabase.from("knowledge_paths").delete().eq("id", pathId);
-    if (error) {
-      addToast("Failed to delete path", "error");
-    } else {
-      setPaths((prev) => prev.filter((p) => p.id !== pathId));
-      if (selectedPath?.id === pathId) setSelectedPath(null);
-      addToast("Path deleted", "success");
-    }
-  };
-
-  const handlePathCreated = () => {
-    setShowCreator(false);
-    setEditingPath(null);
-    fetchPaths();
-  };
-
-  const handleEditPath = (e: React.MouseEvent, path: KnowledgePath) => {
-    e.stopPropagation();
-    setEditingPath(path);
-    setShowCreator(true);
-  };
-
-  const getCompletionPct = (nodes: KnowledgeNode[]) => {
-    if (nodes.length === 0) return 0;
-    const completed = nodes.filter((n) => n.is_completed).length;
-    return Math.round((completed / nodes.length) * 100);
+  const getCompletionPct = (sp: SubjectPath) => {
+    if (sp.topicCount === 0) return 0;
+    return Math.round((sp.completedCount / sp.topicCount) * 100);
   };
 
   // ===== Visual Node Map View =====
@@ -109,18 +216,18 @@ export default function KnowledgePage() {
               }`}
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-sm font-medium font-[family-name:var(--font-quicksand)]">Paths</span>
+              <span className="text-sm font-medium font-[family-name:var(--font-quicksand)]">Subjects</span>
             </motion.button>
 
             <div className="flex items-center gap-3 flex-1">
-              <span className="text-2xl">{selectedPath.emoji}</span>
+              <span className="text-2xl">{selectedPath.path.emoji}</span>
               <h2 className={`text-xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-                {selectedPath.name}
+                {selectedPath.path.name}
               </h2>
               <span className={`text-sm px-3 py-1 rounded-full font-[family-name:var(--font-quicksand)] ${
                 isSun ? "bg-emerald-100 text-emerald-700" : "bg-emerald-500/20 text-emerald-300"
               }`}>
-                {getCompletionPct(selectedPath.knowledge_nodes)}% complete
+                {getCompletionPct(selectedPath)}% mastered
               </span>
             </div>
           </motion.div>
@@ -128,9 +235,9 @@ export default function KnowledgePage() {
           {/* Map */}
           <div className="flex-1 overflow-hidden">
             <KnowledgeMap
-              path={selectedPath}
-              nodes={selectedPath.knowledge_nodes}
-              onNodesChanged={fetchPaths}
+              path={selectedPath.path}
+              nodes={selectedPath.nodes}
+              onNodesChanged={fetchData}
             />
           </div>
         </div>
@@ -140,7 +247,7 @@ export default function KnowledgePage() {
     );
   }
 
-  // ===== Path List View =====
+  // ===== Subject List View =====
   return (
     <main className="relative min-h-screen">
       <div
@@ -156,111 +263,74 @@ export default function KnowledgePage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10 flex justify-between items-end"
+          className="mb-10"
         >
-          <div>
-            <h1 className={`text-4xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-              Arcane Archive
-            </h1>
-            <p className={`mt-2 font-[family-name:var(--font-quicksand)] ${muted}`}>
-              Chart your knowledge paths and conquer the skill tree.
-            </p>
-          </div>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => { setEditingPath(null); setShowCreator(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/30"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="font-bold font-[family-name:var(--font-nunito)]">New Path</span>
-          </motion.button>
+          <h1 className={`text-4xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white drop-shadow-lg"}`}>
+            Arcane Archive <span className="ml-2 align-middle text-sm bg-amber-500/20 text-amber-500 px-3 py-1 rounded-full uppercase tracking-widest font-bold border border-amber-500/30">Skill Tree</span>
+          </h1>
+          <p className={`mt-2 font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-500" : "text-slate-300"}`}>
+            Your subjects from onboarding, visualized as a skill tree. Master topics to unlock exams.
+          </p>
         </motion.div>
-
-        {/* Path Creator Modal */}
-        <AnimatePresence>
-          {showCreator && (
-            <PathCreator
-              existing={editingPath}
-              onClose={() => { setShowCreator(false); setEditingPath(null); }}
-              onSaved={handlePathCreated}
-            />
-          )}
-        </AnimatePresence>
 
         {/* Content */}
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="animate-spin w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full" />
           </div>
-        ) : paths.length === 0 ? (
+        ) : subjectPaths.length === 0 ? (
           /* Empty State */
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`${card} p-12 text-center`}
           >
-            <div className="text-7xl mb-6">
-              <Map className={`w-20 h-20 mx-auto ${isSun ? "text-purple-300" : "text-purple-500/50"}`} />
-            </div>
+            <BookOpen className={`w-20 h-20 mx-auto mb-6 ${isSun ? "text-purple-300" : "text-purple-500/50"}`} />
             <h3 className={`text-2xl font-bold font-[family-name:var(--font-nunito)] mb-3 ${title}`}>
-              No Knowledge Paths Yet
+              No Subjects Found
             </h3>
             <p className={`max-w-md mx-auto mb-8 font-[family-name:var(--font-quicksand)] ${muted}`}>
-              Create your first knowledge path to start building a visual skill tree.
-              Add topics, set mastery goals, and challenge boss nodes along the way!
+              Complete the onboarding by uploading your syllabus. Your subjects and topics will appear here as an interactive skill tree!
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowCreator(true)}
-              className="px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/30 font-bold font-[family-name:var(--font-nunito)]"
-            >
-              Create Your First Path
-            </motion.button>
           </motion.div>
         ) : (
           /* Path Grid */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paths.map((path, i) => {
-              const pct = getCompletionPct(path.knowledge_nodes);
+            {subjectPaths.map((sp, i) => {
+              const pct = getCompletionPct(sp);
               return (
                 <motion.div
-                  key={path.id}
+                  key={sp.path.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                   className="relative group"
                 >
                   <button
-                    onClick={() => setSelectedPath(path)}
+                    onClick={() => setSelectedPath(sp)}
                     className={`w-full h-full p-6 rounded-2xl text-left transition-all ${
                       isSun
                         ? "bg-white/80 backdrop-blur-sm border-2 border-slate-200 hover:shadow-xl hover:border-purple-300 hover:-translate-y-1"
-                        : "bg-white/5 backdrop-blur-sm border-2 border-white/10 hover:shadow-xl hover:border-purple-400/40 hover:-translate-y-1"
+                        : "bg-slate-800/90 backdrop-blur-sm border-2 border-purple-400/20 hover:shadow-xl hover:border-purple-400/50 hover:-translate-y-1"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-4xl">{path.emoji}</span>
-                      <span
-                        className="w-8 h-8 rounded-full"
-                        style={{ background: `linear-gradient(135deg, ${path.color}, transparent)` }}
-                      />
+                      <span className="text-4xl">{sp.path.emoji}</span>
+                      <Sparkles className={`w-5 h-5 ${pct === 100 ? "text-amber-400" : isSun ? "text-slate-300" : "text-purple-400/50"}`} />
                     </div>
 
-                    <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-                      {path.name}
+                    <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white drop-shadow-sm"}`}>
+                      {sp.path.name}
                     </h3>
-                    {path.description && (
-                      <p className={`text-sm mt-1 line-clamp-2 font-[family-name:var(--font-quicksand)] ${muted}`}>
-                        {path.description}
+                    {sp.path.description && (
+                      <p className={`text-sm mt-1 line-clamp-1 font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-500" : "text-slate-300"}`}>
+                        {sp.path.description}
                       </p>
                     )}
 
-                    <div className={`flex items-center gap-3 mt-4 text-xs font-[family-name:var(--font-quicksand)] ${muted}`}>
-                      <span>{path.knowledge_nodes.length} nodes</span>
-                      <span>{pct}% complete</span>
+                    <div className={`flex items-center gap-3 mt-4 text-xs font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-500" : "text-slate-300"}`}>
+                      <span>{sp.topicCount} topics</span>
+                      <span>{pct}% mastered</span>
                     </div>
 
                     {/* Progress bar */}
@@ -273,26 +343,6 @@ export default function KnowledgePage() {
                       />
                     </div>
                   </button>
-
-                  {/* Hover actions */}
-                  <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={(e) => handleEditPath(e, path)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isSun ? "bg-slate-100 text-slate-500 hover:bg-purple-100 hover:text-purple-600" : "bg-white/10 text-slate-400 hover:bg-purple-500/20 hover:text-purple-300"
-                      }`}
-                      title="Edit path"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                    </button>
-                    <button
-                      onClick={(e) => handleDeletePath(e, path.id)}
-                      className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
-                      title="Delete path"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
                 </motion.div>
               );
             })}

@@ -36,11 +36,36 @@ export default function FocusPage() {
     }
   }, [settingsLoading, settings.focus_duration]);
 
-  // Fetch user's subjects from decks + past focus sessions
+  // Fetch user's subjects from syllabus, then fall back to decks/past sessions
   useEffect(() => {
     if (!user) return;
 
     const fetchSubjects = async () => {
+      // Try fetching from the active semester's subjects first
+      const { data: semData } = await supabase
+        .from("semesters")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .limit(1)
+        .single();
+
+      if (semData) {
+        const { data: subs } = await supabase
+          .from("subjects")
+          .select("id, name, emoji")
+          .eq("semester_id", semData.id)
+          .order("name");
+
+        if (subs && subs.length > 0) {
+          const syllabusSubjects = subs.map((s: { name: string }) => s.name);
+          setSubjects(syllabusSubjects);
+          setSelectedSubject(syllabusSubjects[0]);
+          return;
+        }
+      }
+
+      // Fallback: decks + past focus sessions
       const [decksRes, sessionsRes] = await Promise.all([
         supabase.from("decks").select("name").eq("user_id", user.id),
         supabase.from("focus_sessions").select("subject").eq("user_id", user.id),

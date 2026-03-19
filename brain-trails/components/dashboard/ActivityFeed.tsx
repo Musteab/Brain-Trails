@@ -179,7 +179,7 @@ const ActivityFeed = memo(function ActivityFeed() {
 
                 {/* Time */}
                 <div className="flex-shrink-0">
-                  <span className={`text-[10px] font-medium font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-400" : "text-slate-500"}`}>
+                  <span className={`text-[10px] font-medium font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-500" : "text-slate-300"}`}>
                     {event.time.replace('about ', '')}
                   </span>
                 </div>

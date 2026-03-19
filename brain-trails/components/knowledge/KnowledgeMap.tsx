@@ -1,530 +1,313 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
-import NodeEditor from "@/components/knowledge/NodeEditor";
-import NodeDetail from "@/components/knowledge/NodeDetail";
+import { CheckCircle, Lock, Swords, Crown, ChevronDown, ChevronUp } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
-import type { KnowledgePath, KnowledgeNode } from "@/lib/database.types";
+import { supabase } from "@/lib/supabase";
+
+export interface SkillNode {
+  id: string;
+  name: string;
+  description: string;
+  node_type: "topic" | "boss";
+  sort_order: number;
+  mastery_pct: number;
+  is_unlocked: boolean;
+  is_completed: boolean;
+  xp_reward: number;
+}
+
+export interface SkillPath {
+  id: string;
+  name: string;
+  description: string;
+  emoji: string;
+  color: string;
+}
 
 interface KnowledgeMapProps {
-  path: KnowledgePath;
-  nodes: KnowledgeNode[];
+  path: SkillPath;
+  nodes: SkillNode[];
   onNodesChanged: () => void;
-}
-
-/* ── Layout constants ── */
-const NODE_W = 160;
-const NODE_H = 80;
-const LEVEL_GAP_Y = 160;
-const SIBLING_GAP_X = 220;
-
-/* ── Tree‑position helpers ── */
-interface PositionedNode extends KnowledgeNode {
-  _x: number;
-  _y: number;
-  _children: string[];
-}
-
-function buildTree(nodes: KnowledgeNode[]): Map<string, PositionedNode> {
-  const map = new Map<string, PositionedNode>();
-  nodes.forEach((n) =>
-    map.set(n.id, { ...n, _x: 0, _y: 0, _children: [] })
-  );
-  nodes.forEach((n) => {
-    if (n.parent_node_id && map.has(n.parent_node_id)) {
-      map.get(n.parent_node_id)!._children.push(n.id);
-    }
-  });
-  // Sort children by sort_order
-  map.forEach((n) => {
-    n._children.sort((a, b) => {
-      const na = map.get(a)!;
-      const nb = map.get(b)!;
-      return na.sort_order - nb.sort_order;
-    });
-  });
-  return map;
-}
-
-function layoutSubtree(
-  nodeId: string,
-  depth: number,
-  xOffset: number,
-  map: Map<string, PositionedNode>
-): number {
-  const node = map.get(nodeId)!;
-  node._y = depth * LEVEL_GAP_Y + 60;
-
-  if (node._children.length === 0) {
-    node._x = xOffset;
-    return SIBLING_GAP_X;
-  }
-
-  let currentX = xOffset;
-  let totalWidth = 0;
-  for (const childId of node._children) {
-    const childWidth = layoutSubtree(childId, depth + 1, currentX, map);
-    currentX += childWidth;
-    totalWidth += childWidth;
-  }
-
-  const firstChild = map.get(node._children[0])!;
-  const lastChild = map.get(node._children[node._children.length - 1])!;
-  node._x = (firstChild._x + lastChild._x) / 2;
-
-  return Math.max(totalWidth, SIBLING_GAP_X);
-}
-
-/**
- * When many roots exist (e.g. AI-generated nodes without parents),
- * chain them into a single vertical trunk so they don't stack.
- */
-function autoChainOrphanRoots(
-  map: Map<string, PositionedNode>,
-  rootIds: string[]
-): string[] {
-  if (rootIds.length <= 1) return rootIds;
-  // Check if most roots are truly orphaned (no children either)
-  const orphans = rootIds.filter(id => map.get(id)!._children.length === 0);
-  // If >50% are orphans, chain all roots linearly
-  if (orphans.length > rootIds.length * 0.5) {
-    // Chain roots: each root becomes child of the previous
-    for (let i = 1; i < rootIds.length; i++) {
-      map.get(rootIds[i - 1])!._children.push(rootIds[i]);
-    }
-    return [rootIds[0]]; // Only the first is now a "real" root
-  }
-  return rootIds;
 }
 
 export default function KnowledgeMap({ path, nodes, onNodesChanged }: KnowledgeMapProps) {
   const { isSun } = useCardStyles();
+  const [expandedNode, setExpandedNode] = useState<string | null>(null);
 
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
-  const [showNodeEditor, setShowNodeEditor] = useState(false);
-  const [editingNode, setEditingNode] = useState<KnowledgeNode | null>(null);
-  const [parentForNewNode, setParentForNewNode] = useState<string | null>(null);
-
-  /* ── Build & layout the tree ── */
-  const { positioned, roots, svgWidth, svgHeight } = useMemo(() => {
-    const map = buildTree(nodes);
-
-    // Find root nodes (no parent)
-    let rootIds = nodes
-      .filter((n) => !n.parent_node_id)
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((n) => n.id);
-
-    // Auto-chain orphan roots into a linear path
-    rootIds = autoChainOrphanRoots(map, rootIds);
-
-    let xCursor = 60;
-    for (const rootId of rootIds) {
-      const width = layoutSubtree(rootId, 0, xCursor, map);
-      xCursor += width;
-    }
-
-    // Compute SVG dimensions
-    let maxX = 0;
-    let maxY = 0;
-    map.forEach((n) => {
-      if (n._x + NODE_W > maxX) maxX = n._x + NODE_W;
-      if (n._y + NODE_H > maxY) maxY = n._y + NODE_H;
-    });
-
-    return {
-      positioned: map,
-      roots: rootIds,
-      svgWidth: Math.max(maxX + 80, 600),
-      svgHeight: Math.max(maxY + 120, 400),
-    };
+  /* Sort nodes linearly by sort_order */
+  const sorted = useMemo(() => {
+    return [...nodes].sort((a, b) => a.sort_order - b.sort_order);
   }, [nodes]);
 
-  /* ── Center the view on mount ── */
-  useEffect(() => {
-    if (roots.length > 0) {
-      const firstRoot = positioned.get(roots[0]);
-      if (firstRoot) {
-        setPan({
-          x: -firstRoot._x + 200,
-          y: 20,
-        });
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roots.length]);
+  /* Toggle topic completion */
+  const handleToggleComplete = async (node: SkillNode) => {
+    if (!node.is_unlocked) return;
 
-  /* ── Pan handlers ── */
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("[data-node]")) return;
-    setIsPanning(true);
-    setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-  }, [pan]);
+    // Determine if this is an exam (boss) or topic
+    const table = node.node_type === "boss" ? "exams" : "topics";
+    const newCompleted = !node.is_completed;
+    const newMastery = newCompleted ? 100 : 0;
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (!isPanning) return;
-      setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
-    },
-    [isPanning, panStart]
-  );
+    await supabase
+      .from(table)
+      .update({ is_completed: newCompleted, ...(table === "topics" ? { mastery_pct: newMastery } : {}) })
+      .eq("id", node.id);
 
-  const handleMouseUp = useCallback(() => {
-    setIsPanning(false);
-  }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom((z) => Math.min(2, Math.max(0.3, z - e.deltaY * 0.001)));
-  }, []);
-
-  const fitToView = useCallback(() => {
-    setZoom(0.8);
-    if (roots.length > 0) {
-      const firstRoot = positioned.get(roots[0]);
-      if (firstRoot) {
-        setPan({ x: -firstRoot._x + 300, y: 40 });
-      }
-    }
-  }, [roots, positioned]);
-
-  /* ── Node rendering ── */
-  const renderNode = (nodeId: string) => {
-    const node = positioned.get(nodeId);
-    if (!node) return null;
-
-    const isSelected = selectedNode?.id === nodeId;
-    const masteryPct = node.mastery_pct;
-    const circumference = 2 * Math.PI * 30;
-    const strokeDashoffset = circumference - (masteryPct / 100) * circumference;
-
-    // Node shape & styling based on type
-    let nodeShape = "rounded-2xl";
-    let typeIcon = "";
-    let borderColor = "";
-
-    if (node.node_type === "boss") {
-      nodeShape = "rounded-2xl";
-      typeIcon = "\u2694\uFE0F"; // sword
-      borderColor = node.is_completed
-        ? isSun ? "border-amber-400" : "border-amber-500"
-        : node.is_unlocked
-        ? isSun ? "border-red-400" : "border-red-500"
-        : isSun ? "border-slate-300" : "border-slate-600";
-    } else if (node.node_type === "checkpoint") {
-      nodeShape = "rotate-45 rounded-lg";
-      typeIcon = "\uD83D\uDCA0"; // diamond
-      borderColor = node.is_completed
-        ? isSun ? "border-emerald-400" : "border-emerald-500"
-        : node.is_unlocked
-        ? isSun ? "border-blue-400" : "border-blue-500"
-        : isSun ? "border-slate-300" : "border-slate-600";
-    } else {
-      borderColor = node.is_completed
-        ? isSun ? "border-emerald-400" : "border-emerald-500"
-        : node.is_unlocked
-        ? isSun ? "border-purple-400" : "border-purple-500"
-        : isSun ? "border-slate-300" : "border-slate-600";
-    }
-
-    const bgColor = node.is_completed
-      ? isSun ? "bg-emerald-50/90" : "bg-emerald-900/40"
-      : node.is_unlocked
-      ? isSun ? "bg-white/90" : "bg-slate-800/80"
-      : isSun ? "bg-slate-100/60" : "bg-slate-900/60";
-
-    const textColor = node.is_completed
-      ? isSun ? "text-emerald-800" : "text-emerald-200"
-      : node.is_unlocked
-      ? isSun ? "text-slate-800" : "text-white"
-      : isSun ? "text-slate-400" : "text-slate-500";
-
-    const glowClass = node.is_unlocked && !node.is_completed
-      ? node.node_type === "boss"
-        ? "shadow-lg shadow-red-500/30"
-        : "shadow-lg shadow-purple-500/20"
-      : "";
-
-    return (
-      <g key={nodeId}>
-        {/* Connections to children */}
-        {node._children.map((childId) => {
-          const child = positioned.get(childId);
-          if (!child) return null;
-
-          const startX = node._x + NODE_W / 2;
-          const startY = node._y + NODE_H;
-          const endX = child._x + NODE_W / 2;
-          const endY = child._y;
-          const midY = (startY + endY) / 2;
-
-          const pathColor = child.is_unlocked
-            ? isSun ? "#9333ea" : "#a855f7"
-            : isSun ? "#d1d5db" : "#475569";
-
-          return (
-            <path
-              key={`${nodeId}-${childId}`}
-              d={`M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`}
-              fill="none"
-              stroke={pathColor}
-              strokeWidth={child.is_unlocked ? 3 : 2}
-              strokeDasharray={child.is_unlocked ? "none" : "6 4"}
-              opacity={child.is_unlocked ? 1 : 0.5}
-            />
-          );
-        })}
-
-        {/* Node body */}
-        <foreignObject
-          x={node._x}
-          y={node._y}
-          width={node.node_type === "boss" ? 180 : NODE_W}
-          height={node.node_type === "checkpoint" ? 100 : NODE_H + 20}
-          data-node="true"
-        >
-          <div className="relative flex items-center justify-center h-full">
-            {/* Progress ring for non-checkpoint nodes */}
-            {node.node_type !== "checkpoint" && node.is_unlocked && !node.is_completed && (
-              <svg
-                className="absolute -top-3 -right-3"
-                width="32"
-                height="32"
-                viewBox="0 0 68 68"
-              >
-                <circle
-                  cx="34"
-                  cy="34"
-                  r="30"
-                  fill="none"
-                  stroke={isSun ? "#e2e8f0" : "#334155"}
-                  strokeWidth="4"
-                />
-                <circle
-                  cx="34"
-                  cy="34"
-                  r="30"
-                  fill={isSun ? "#f1f5f9" : "#1e293b"}
-                  stroke={node.node_type === "boss" ? "#ef4444" : "#a855f7"}
-                  strokeWidth="4"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                  transform="rotate(-90 34 34)"
-                />
-                <text
-                  x="34"
-                  y="38"
-                  textAnchor="middle"
-                  fontSize="16"
-                  fontWeight="bold"
-                  fill={isSun ? "#475569" : "#94a3b8"}
-                >
-                  {masteryPct}
-                </text>
-              </svg>
-            )}
-
-            {/* Completed check */}
-            {node.is_completed && (
-              <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm shadow-lg z-10">
-                &#10003;
-              </div>
-            )}
-
-            {/* Locked icon */}
-            {!node.is_unlocked && (
-              <div className={`absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-sm shadow-lg z-10 ${
-                isSun ? "bg-slate-300 text-slate-500" : "bg-slate-700 text-slate-400"
-              }`}>
-                &#128274;
-              </div>
-            )}
-
-            <motion.button
-              data-node="true"
-              whileHover={node.is_unlocked ? { scale: 1.05 } : {}}
-              whileTap={node.is_unlocked ? { scale: 0.97 } : {}}
-              onClick={() => setSelectedNode(node)}
-              className={`
-                w-full px-4 py-3 border-[3px] backdrop-blur-sm transition-all cursor-pointer
-                ${node.node_type === "checkpoint" ? "w-24 h-24 rotate-45" : ""}
-                ${nodeShape} ${bgColor} ${borderColor} ${textColor} ${glowClass}
-                ${isSelected ? "ring-2 ring-purple-400 ring-offset-2" : ""}
-              `}
-              style={node.node_type === "checkpoint" ? { width: 80, height: 80 } : { width: node.node_type === "boss" ? 180 : NODE_W }}
-            >
-              <div className={node.node_type === "checkpoint" ? "-rotate-45" : ""}>
-                {node.node_type === "boss" && (
-                  <span className="text-lg">{typeIcon}</span>
-                )}
-                {node.node_type === "checkpoint" && (
-                  <span className="text-lg">{typeIcon}</span>
-                )}
-                <p className={`text-xs font-bold font-[family-name:var(--font-nunito)] truncate ${
-                  node.node_type === "checkpoint" ? "text-[10px]" : ""
-                }`}>
-                  {node.name}
-                </p>
-              </div>
-            </motion.button>
-          </div>
-        </foreignObject>
-
-        {/* Recursively render children */}
-        {node._children.map(renderNode)}
-      </g>
-    );
+    onNodesChanged();
   };
 
-  return (
-    <div className="relative w-full h-full">
-      {/* Toolbar */}
-      <div className={`absolute top-4 right-4 z-20 flex flex-col gap-2`}>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
-            setEditingNode(null);
-            setParentForNewNode(null);
-            setShowNodeEditor(true);
-          }}
-          className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg"
-          title="Add node"
-        >
-          <Plus className="w-5 h-5" />
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setZoom((z) => Math.min(2, z + 0.15))}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${
-            isSun ? "bg-white/80 text-slate-600" : "bg-slate-800/80 text-slate-300"
-          }`}
-          title="Zoom in"
-        >
-          <ZoomIn className="w-4 h-4" />
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${
-            isSun ? "bg-white/80 text-slate-600" : "bg-slate-800/80 text-slate-300"
-          }`}
-          title="Zoom out"
-        >
-          <ZoomOut className="w-4 h-4" />
-        </motion.button>
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={fitToView}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${
-            isSun ? "bg-white/80 text-slate-600" : "bg-slate-800/80 text-slate-300"
-          }`}
-          title="Fit to view"
-        >
-          <Maximize2 className="w-4 h-4" />
-        </motion.button>
-      </div>
-
-      {/* Canvas */}
-      <div
-        className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-      >
-        <div
-          style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: "0 0",
-            transition: isPanning ? "none" : "transform 0.15s ease-out",
-          }}
-        >
-          {nodes.length === 0 ? (
-            /* Empty map state */
-            <div className="flex items-center justify-center" style={{ width: 600, height: 400 }}>
-              <div className="text-center">
-                <p className={`text-6xl mb-4`}>&#x1F5FA;&#xFE0F;</p>
-                <p className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-500" : "text-slate-400"}`}>
-                  Empty map
-                </p>
-                <p className={`text-sm font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-400" : "text-slate-500"}`}>
-                  Click the + button to add your first node
-                </p>
-              </div>
-            </div>
-          ) : (
-            <svg
-              width={svgWidth}
-              height={svgHeight}
-              className="overflow-visible"
-            >
-              {roots.map(renderNode)}
-            </svg>
-          )}
+  if (sorted.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center py-20">
+          <p className="text-6xl mb-4">🗺️</p>
+          <p className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-500" : "text-slate-400"}`}>
+            No topics yet
+          </p>
+          <p className={`text-sm font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-400" : "text-slate-500"}`}>
+            Add topics via onboarding to see your skill tree
+          </p>
         </div>
       </div>
+    );
+  }
 
-      {/* Node Detail Side Panel */}
-      <AnimatePresence>
-        {selectedNode && (
-          <NodeDetail
-            node={selectedNode}
-            allNodes={nodes}
-            onClose={() => setSelectedNode(null)}
-            onEdit={() => {
-              setEditingNode(selectedNode);
-              setShowNodeEditor(true);
-            }}
-            onAddChild={() => {
-              setParentForNewNode(selectedNode.id);
-              setEditingNode(null);
-              setShowNodeEditor(true);
-            }}
-            onNodesChanged={() => {
-              setSelectedNode(null);
-              onNodesChanged();
-            }}
-          />
-        )}
-      </AnimatePresence>
+  return (
+    <div className="h-full overflow-y-auto px-4 sm:px-8 py-6">
+      <div className="max-w-lg mx-auto relative">
+        {/* Vertical trail line */}
+        <div
+          className={`absolute left-[27px] sm:left-[31px] top-0 bottom-0 w-[3px] rounded-full ${
+            isSun ? "bg-gradient-to-b from-purple-200 via-purple-300 to-purple-200" : "bg-gradient-to-b from-purple-800 via-purple-600 to-purple-800"
+          }`}
+        />
 
-      {/* Node Editor Modal */}
-      <AnimatePresence>
-        {showNodeEditor && (
-          <NodeEditor
-            pathId={path.id}
-            existing={editingNode}
-            parentNodeId={parentForNewNode}
-            allNodes={nodes}
-            onClose={() => {
-              setShowNodeEditor(false);
-              setEditingNode(null);
-              setParentForNewNode(null);
-            }}
-            onSaved={() => {
-              setShowNodeEditor(false);
-              setEditingNode(null);
-              setParentForNewNode(null);
-              onNodesChanged();
-            }}
-          />
-        )}
-      </AnimatePresence>
+        {/* Nodes */}
+        <div className="relative space-y-2">
+          {sorted.map((node, index) => {
+            const isBoss = node.node_type === "boss";
+            const isExpanded = expandedNode === node.id;
+
+            // Status colors
+            let dotBg = "";
+            let dotBorder = "";
+            let dotIcon = null;
+
+            if (node.is_completed) {
+              dotBg = "bg-emerald-500";
+              dotBorder = "border-emerald-400";
+              dotIcon = <CheckCircle className="w-4 h-4 text-white" />;
+            } else if (!node.is_unlocked) {
+              dotBg = isSun ? "bg-slate-200" : "bg-slate-700";
+              dotBorder = isSun ? "border-slate-300" : "border-slate-600";
+              dotIcon = <Lock className="w-3 h-3 text-slate-400" />;
+            } else if (isBoss) {
+              dotBg = "bg-red-500";
+              dotBorder = "border-red-400";
+              dotIcon = <Swords className="w-4 h-4 text-white" />;
+            } else {
+              dotBg = isSun ? "bg-purple-500" : "bg-purple-600";
+              dotBorder = isSun ? "border-purple-400" : "border-purple-500";
+            }
+
+            // Card styling
+            const cardBase = isSun
+              ? "bg-white/90 border-slate-200"
+              : "bg-slate-800/80 border-white/10";
+
+            const completedCard = node.is_completed
+              ? isSun
+                ? "bg-emerald-50/90 border-emerald-200"
+                : "bg-emerald-950/40 border-emerald-500/20"
+              : "";
+
+            const lockedCard = !node.is_unlocked
+              ? isSun
+                ? "bg-slate-50/60 border-slate-200 opacity-60"
+                : "bg-slate-900/40 border-slate-700 opacity-50"
+              : "";
+
+            const bossCard = isBoss && node.is_unlocked && !node.is_completed
+              ? isSun
+                ? "bg-red-50/90 border-red-200 shadow-red-100"
+                : "bg-red-950/30 border-red-500/20 shadow-red-900/20"
+              : "";
+
+            return (
+              <motion.div
+                key={node.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.04, duration: 0.3 }}
+                className="flex items-start gap-4"
+              >
+                {/* Trail dot */}
+                <div className="relative flex-shrink-0 mt-4">
+                  <div
+                    className={`w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] rounded-full border-[3px] flex items-center justify-center z-10 relative transition-all
+                      ${dotBg} ${dotBorder}
+                      ${isBoss ? "w-[26px] h-[26px] sm:w-[30px] sm:h-[30px] -ml-1" : ""}
+                    `}
+                  >
+                    {dotIcon}
+                  </div>
+                  {/* Glow effect for boss */}
+                  {isBoss && node.is_unlocked && !node.is_completed && (
+                    <div className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />
+                  )}
+                </div>
+
+                {/* Card */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (node.is_unlocked) {
+                        setExpandedNode(isExpanded ? null : node.id);
+                      }
+                    }
+                  }}
+                  onClick={() => {
+                    if (node.is_unlocked) {
+                      setExpandedNode(isExpanded ? null : node.id);
+                    }
+                  }}
+                  className={`flex-1 rounded-xl border p-3 sm:p-4 text-left transition-all backdrop-blur-sm
+                    ${completedCard || lockedCard || bossCard || cardBase}
+                    ${node.is_unlocked ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5" : "cursor-default"}
+                  `}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {isBoss && (
+                        <span className="flex-shrink-0">
+                          {node.is_completed ? <Crown className="w-4 h-4 text-amber-500" /> : <Swords className="w-4 h-4 text-red-500" />}
+                        </span>
+                      )}
+                      <h4
+                        className={`font-bold text-sm sm:text-base font-[family-name:var(--font-nunito)] truncate ${
+                          node.is_completed
+                            ? isSun ? "text-emerald-700" : "text-emerald-300"
+                            : !node.is_unlocked
+                            ? isSun ? "text-slate-400" : "text-slate-500"
+                            : isBoss
+                            ? isSun ? "text-red-700" : "text-red-300"
+                            : isSun ? "text-slate-800" : "text-white"
+                        }`}
+                      >
+                        {node.name}
+                      </h4>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      {/* Mastery badge */}
+                      {node.is_unlocked && !isBoss && (
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            node.mastery_pct >= 80
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                              : node.mastery_pct >= 40
+                              ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                              : isSun
+                              ? "bg-slate-100 text-slate-500"
+                              : "bg-white/10 text-slate-400"
+                          }`}
+                        >
+                          {node.mastery_pct}%
+                        </span>
+                      )}
+                      {node.is_unlocked && (
+                        isExpanded ? <ChevronUp className="w-4 h-4 opacity-40" /> : <ChevronDown className="w-4 h-4 opacity-40" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Description / exam date */}
+                  {node.description && (
+                    <p className={`text-xs mt-1 ${isSun ? "text-slate-500" : "text-slate-400"}`}>
+                      {isBoss ? `📅 ${node.description}` : node.description}
+                    </p>
+                  )}
+
+                  {/* Mastery bar for topics */}
+                  {node.is_unlocked && !isBoss && node.mastery_pct > 0 && node.mastery_pct < 100 && (
+                    <div className={`mt-2 h-1 rounded-full overflow-hidden ${isSun ? "bg-slate-100" : "bg-white/10"}`}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${node.mastery_pct}%` }}
+                        className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"
+                      />
+                    </div>
+                  )}
+
+                  {/* Expanded actions */}
+                  <AnimatePresence>
+                    {isExpanded && node.is_unlocked && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-3 pt-3 border-t border-dashed flex items-center gap-2"
+                        style={{ borderColor: isSun ? "#e2e8f0" : "rgba(255,255,255,0.1)" }}
+                      >
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleComplete(node);
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                            node.is_completed
+                              ? isSun
+                                ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                : "bg-white/10 text-slate-300 hover:bg-white/20"
+                              : "bg-emerald-500 text-white hover:bg-emerald-600"
+                          }`}
+                        >
+                          {node.is_completed ? "Mark Incomplete" : isBoss ? "Mark Exam Complete" : "Mark as Mastered"}
+                        </motion.button>
+
+                        <span className={`text-xs ${isSun ? "text-slate-400" : "text-slate-500"}`}>
+                          +{node.xp_reward} XP
+                        </span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            );
+          })}
+
+          {/* Completion marker at the end */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: sorted.length * 0.04 + 0.2 }}
+            className="flex items-center gap-4 pt-2"
+          >
+            <div className="flex-shrink-0">
+              <div className={`w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] rounded-full border-[3px] flex items-center justify-center z-10 relative ${
+                sorted.every((n) => n.is_completed)
+                  ? "bg-amber-400 border-amber-300"
+                  : isSun ? "bg-slate-200 border-slate-300" : "bg-slate-700 border-slate-600"
+              }`}>
+                <Crown className={`w-3 h-3 ${sorted.every((n) => n.is_completed) ? "text-white" : "text-slate-400"}`} />
+              </div>
+            </div>
+            <p className={`text-sm font-bold font-[family-name:var(--font-nunito)] ${
+              sorted.every((n) => n.is_completed)
+                ? "text-amber-500"
+                : isSun ? "text-slate-300" : "text-slate-600"
+            }`}>
+              {sorted.every((n) => n.is_completed) ? "🎉 Path Complete!" : "Path End"}
+            </p>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

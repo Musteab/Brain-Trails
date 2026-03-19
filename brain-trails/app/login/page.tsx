@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,6 +15,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  const { theme } = useTheme();
+  const isSun = theme === "sun";
   const { user, profile, signIn, signInWithGoogle } = useAuth();
   const router = useRouter();
 
@@ -65,11 +68,24 @@ export default function LoginPage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, type: "spring", bounce: 0.4 }}
-        className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-2xl border-white/20 border-2 rounded-3xl p-8 shadow-2xl overflow-hidden"
+        className={`relative z-10 w-full max-w-md backdrop-blur-2xl border-2 rounded-3xl p-8 shadow-2xl overflow-hidden ${
+          isSun ? "bg-white/50 border-white/40" : "bg-white/10 border-white/20"
+        }`}
       >
         {/* Glow effect */}
         <div className="absolute -top-32 -left-32 w-64 h-64 bg-violet-500/30 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-fuchsia-500/30 rounded-full blur-3xl" />
+        
+        {/* Subtle animated shimmer sweep */}
+        <motion.div
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          animate={{ backgroundPosition: ["200% 0%", "-200% 0%"] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          style={{
+            background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
+            backgroundSize: "200% 100%",
+          }}
+        />
 
         <div className="relative z-10">
           <div className="text-center mb-8">
@@ -81,10 +97,10 @@ export default function LoginPage() {
             >
               <Compass className="w-8 h-8" />
             </motion.div>
-            <h1 className="text-3xl font-bold text-white mb-2 font-heading tracking-tight drop-shadow-md">
+            <h1 className={`text-3xl font-bold mb-2 font-heading tracking-tight drop-shadow-md ${isSun ? "text-slate-800" : "text-white"}`}>
               Resume Journey
             </h1>
-            <p className="text-indigo-100/90 text-sm">
+            <p className={`text-sm ${isSun ? "text-slate-600" : "text-indigo-100/90"}`}>
               Your next study quest awaits, traveler.
             </p>
           </div>
@@ -104,13 +120,17 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-indigo-300 group-focus-within:text-white transition-colors" />
+                  <User className={`h-5 w-5 transition-colors ${isSun ? "text-slate-400 group-focus-within:text-violet-600" : "text-indigo-300 group-focus-within:text-white"}`} />
                 </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 bg-white/10 border-2 border-white/10 text-white rounded-2xl focus:outline-none focus:border-violet-400 focus:bg-white/20 transition-all placeholder:text-indigo-200/50"
+                  className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-2xl focus:outline-none transition-all ${
+                    isSun
+                      ? "bg-white/60 border-white/50 text-slate-800 focus:border-violet-400 focus:bg-white placeholder:text-slate-400"
+                      : "bg-white/10 border-white/10 text-white focus:border-violet-400 focus:bg-white/20 placeholder:text-indigo-200/50"
+                  }`}
                   placeholder="Email Address"
                   disabled={isSubmitting}
                 />
@@ -118,13 +138,17 @@ export default function LoginPage() {
 
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-indigo-300 group-focus-within:text-white transition-colors" />
+                  <Lock className={`h-5 w-5 transition-colors ${isSun ? "text-slate-400 group-focus-within:text-violet-600" : "text-indigo-300 group-focus-within:text-white"}`} />
                 </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3.5 bg-white/10 border-2 border-white/10 text-white rounded-2xl focus:outline-none focus:border-violet-400 focus:bg-white/20 transition-all placeholder:text-indigo-200/50"
+                  className={`w-full pl-11 pr-4 py-3.5 border-2 rounded-2xl focus:outline-none transition-all ${
+                    isSun
+                      ? "bg-white/60 border-white/50 text-slate-800 focus:border-violet-400 focus:bg-white placeholder:text-slate-400"
+                      : "bg-white/10 border-white/10 text-white focus:border-violet-400 focus:bg-white/20 placeholder:text-indigo-200/50"
+                  }`}
                   placeholder="Password"
                   disabled={isSubmitting}
                 />
@@ -132,7 +156,7 @@ export default function LoginPage() {
             </div>
 
             <div className="text-right -mt-1">
-              <Link href="/forgot-password" className="text-xs text-violet-300 hover:text-white font-semibold transition-colors">
+              <Link href="/forgot-password" className={`text-xs font-semibold transition-colors ${isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"}`}>
                 Forgot Password?
               </Link>
             </div>
@@ -156,9 +180,9 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 flex items-center gap-4">
-            <div className="h-px bg-white/20 flex-1" />
-            <span className="text-xs font-semibold text-white/50 uppercase tracking-widest">Or</span>
-            <div className="h-px bg-white/20 flex-1" />
+            <div className={`h-px flex-1 ${isSun ? "bg-slate-300" : "bg-white/20"}`} />
+            <span className={`text-xs font-semibold uppercase tracking-widest ${isSun ? "text-slate-500" : "text-white/50"}`}>Or</span>
+            <div className={`h-px flex-1 ${isSun ? "bg-slate-300" : "bg-white/20"}`} />
           </div>
 
           <motion.button
@@ -166,7 +190,11 @@ export default function LoginPage() {
             whileTap={{ scale: 0.98 }}
             onClick={handleGoogleLogin}
             type="button"
-            className="w-full mt-6 py-3.5 px-4 bg-white/10 hover:bg-white/20 border-2 border-white/20 text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all"
+            className={`w-full mt-6 py-3.5 px-4 border-2 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all ${
+              isSun
+                ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700 shadow-sm"
+                : "bg-white/10 hover:bg-white/20 border-white/20 text-white"
+            }`}
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
               <path
@@ -190,9 +218,9 @@ export default function LoginPage() {
           </motion.button>
 
           <div className="mt-8 text-center">
-            <p className="text-white/70 text-sm">
+            <p className={`text-sm ${isSun ? "text-slate-600" : "text-white/70"}`}>
               New to Brain Trails?{" "}
-              <Link href="/register" className="text-violet-300 hover:text-white font-bold transition-colors">
+              <Link href="/register" className={`font-bold transition-colors ${isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"}`}>
                 Begin Adventure
               </Link>
             </p>

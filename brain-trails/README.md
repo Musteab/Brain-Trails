@@ -1,169 +1,186 @@
-# Brain Trails
+<p align="center">
+  <img src="public/assets/icons/idr-coin.png" width="64" alt="Brain Trails" />
+</p>
 
-A **gamified study companion** with a cozy "Nintendo meets Notion" aesthetic. Track your learning journey through quests, grow plants while focusing, battle through skill trees, and take magical notes -- all wrapped in an RPG adventure theme.
+<h1 align="center">Brain Trails</h1>
 
-## Features
+<p align="center">
+  <strong>A gamified study companion with an RPG soul.</strong><br/>
+  Focus timers · Flashcards · Guilds · AI Tutoring · Cosmetics · Knowledge Paths<br/><br/>
+  <em>Still in Beta — built with 💜</em>
+</p>
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Dashboard** | RPG-styled overview with quest log, leaderboard, activity feed, streak heatmap | Live |
-| **Focus Garden** | Pomodoro timer with plant growth, subject/duration picker, session tracking + rewards | Live |
-| **Arcane Archive** | Skill tree visualization for curriculum mastery | Live |
-| **Spellbook** | Dual-page note editor (Tiptap), slash commands, .docx import, auto-save to Supabase | Live |
-| **Spell Cards** | Flashcard decks with flip cards, shuffle, SM-2 grading, mastery tracking | Live |
-| **AI Familiar** | AI study assistant powered by Google Gemini (summarize, quiz, explain, syllabus parsing) | Live |
-| **Guild Hall** | Create/join study guilds, real-time chat, co-op boss raids, weekly XP leaderboard | Live |
-| **Cosmetics Shop** | Spend in-game gold on themes, avatar frames, titles, and backgrounds (rarity tiers) | Live |
-| **Achievements** | Unlockable badges across study, social, combat, exploration, and streak categories | Live |
-| **Knowledge Paths** | Visual node-map skill trees with progress tracking, custom paths, and boss nodes | Live |
-| **Onboarding** | Guided setup wizard — upload syllabus (AI-parsed) or manually add subjects, topics, and exams | Live |
-| **Weekly Report** | Analytics dashboard with focus time, XP earned, streak, daily activity chart | Live |
-| **Theme Toggle** | Sun/Moon mode with localStorage persistence and full app-wide propagation | Live |
-| **Sound Effects** | Web Audio API tone synthesis for UI interactions (toggle-able) | Live |
-| **Game Store** | Centralized XP/level/gold/streak state management via Zustand | Live |
-| **Toast Notifications** | Animated notification system for rewards and feedback | Live |
-| **Error Boundary** | Graceful error recovery UI with RPG theming | Live |
-| **Export** | Export notes as HTML or Markdown | Live |
+---
 
-## Tech Stack
+## ✨ Features
 
-**Frontend:** Next.js 16 - React 19 - Tailwind CSS 4 - Framer Motion - Tiptap Editor - Zustand 5
-**Backend:** Flask - Google Gemini API - python-dotenv
-**Database:** Supabase (PostgreSQL) with Row Level Security
-**Auth:** Supabase Auth (email/password + Google OAuth)
-**CI/CD:** GitHub Actions (lint + build for frontend, flake8 + pytest for backend)
+| Module | What it does | Status |
+|--------|-------------|--------|
+| **Dashboard** | RPG-styled home with quest log, leaderboard, activity feed, and daily progress rings | ✅ Live |
+| **Focus Garden** | Pomodoro timer with plant growth animation, session tracking, and XP/gold rewards | ✅ Live |
+| **Spellbook** | Rich-text note editor (Tiptap) with slash commands, `.docx` import, auto-save | ✅ Live |
+| **Spell Cards** | Flashcard decks with flip animation, shuffle, SM-2 spaced repetition | ✅ Live |
+| **Trials** | Quiz engine with timed questions and XP rewards | ✅ Live |
+| **Battle Arena** | Boss battles against AI using your studied material | ✅ Live |
+| **AI Familiar** | Study assistant powered by Google Gemini — summarize, quiz, explain, parse syllabi | ✅ Live |
+| **Guild Hall** | Create/join study guilds, real-time chat, co-op boss raids, weekly leaderboard | 🧪 Beta |
+| **Knowledge Map** | Visual node-map skill trees with progress tracking and boss nodes | 🧪 Beta |
+| **Cosmetics Shop** | Spend in-game gold on themes, avatar frames, titles, and backgrounds (4 rarity tiers) | ✅ Live |
+| **Achievements** | 50+ unlockable badges across study, social, combat, exploration, and streak categories | ✅ Live |
+| **Study Music** | Embedded Spotify player with curated playlists and custom playlist support | 🧪 Beta |
+| **The Grand Archive** | Animated "about" experience with cinematic portal intro and lore pages | ✅ Live |
+| **Weekly Report** | Analytics dashboard — focus time, XP, streak, daily activity chart | ✅ Live |
+| **Support Center** | Bug reports and feature requests with Discord integration | ✅ Live |
+| **Onboarding** | Guided setup wizard — upload syllabus (AI-parsed) or manually add subjects/topics/exams | ✅ Live |
+| **Sun / Moon Theme** | Full light/dark mode with animated sky backgrounds and localStorage persistence | ✅ Live |
 
-## Getting Started
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | Next.js 16 (App Router) · React 19 |
+| **Styling** | Tailwind CSS 4 · Framer Motion |
+| **Editor** | Tiptap (ProseMirror) |
+| **State** | Zustand 5 (game store + UI store) |
+| **Database** | Supabase (PostgreSQL + Row-Level Security) |
+| **Auth** | Supabase Auth (email/password + Google OAuth) |
+| **AI Backend** | Flask + Google Gemini API |
+| **Realtime** | Supabase Realtime (guild chat, presence) |
+| **Fonts** | Nunito + Quicksand (Google Fonts) |
+| **Sounds** | Web Audio API oscillator synthesis |
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 20+
-- Python 3.12+ (for backend)
-- Supabase project (for database and auth)
+- **Node.js 20+**
+- **Python 3.12+** (for AI backend only)
+- A **Supabase** project
 
-### Frontend
+### 1. Clone & Install
 
 ```bash
-cd brain-trails
+git clone https://github.com/Musteab/Brain-Trails.git
+cd Brain-Trails/brain-trails
 npm install
+```
+
+### 2. Environment Variables
+
+Create `brain-trails/.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Database Setup
+
+Open the **Supabase SQL Editor** and run the contents of:
+
+```
+brain-trails/supabase/schema.sql
+```
+
+This creates all tables, RLS policies, and triggers for: `profiles`, `focus_sessions`, `notes`, `decks`, `cards`, `guilds`, `guild_members`, `guild_messages`, `cosmetics`, `user_cosmetics`, `achievements`, `user_achievements`, `knowledge_paths`, `knowledge_nodes`, `semesters`, `subjects`, `topics`, `exams`, and more.
+
+### 4. Run the Frontend
+
+```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Environment Variables
-
-Create `brain-trails/.env.local`:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### Backend (for AI features)
+### 5. Run the AI Backend (optional)
 
 ```bash
-cd brain-trails/backend
+cd backend
 python -m venv venv
-source venv/bin/activate    # macOS/Linux
-venv\Scripts\activate       # Windows
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
 pip install -r requirements.txt
 
-# Add your API key to .env
 echo GEMINI_API_KEY=your_key_here > .env
-
 python app.py
 ```
 
 Backend runs on [http://localhost:5000](http://localhost:5000).
 
-### Database Setup
-
-Apply the schema to your Supabase project:
-
-```bash
-# Copy the contents of brain-trails/supabase/schema.sql
-# and run it in the Supabase SQL Editor
-```
-
-The schema creates tables with RLS policies including: `profiles`, `focus_sessions`, `notes`, `decks`, `cards`, `adventure_log`, `user_settings`, `guilds`, `guild_members`, `guild_messages`, `cosmetics`, `user_cosmetics`, `achievements`, `user_achievements`, `knowledge_paths`, `knowledge_nodes`, `semesters`, `subjects`, `topics`, and `exams`.
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 brain-trails/
-├── app/                    # Next.js App Router pages
-│   ├── layout.tsx         # Root layout (providers, error boundary, toasts)
-│   ├── page.tsx           # Dashboard (Camp)
-│   ├── login/             # Login page
-│   ├── register/          # Registration page
-│   ├── onboarding/        # New-user setup wizard (syllabus upload / manual entry)
-│   ├── focus/             # Focus Garden
-│   ├── battle/            # Arcane Archive (skill tree)
-│   ├── knowledge/         # Knowledge Paths (visual node-map skill trees)
-│   ├── notes/             # Spellbook (dual-page editor)
-│   ├── flashcards/        # Spell Cards
-│   ├── guild/             # Guild Hall (chat, raids, leaderboard)
-│   ├── shop/              # Cosmetics Shop (themes, frames, titles, backgrounds)
-│   ├── achievements/      # Achievement tracker
-│   ├── report/            # Weekly analytics report
-│   └── settings/          # User settings
+├── app/                        # Next.js App Router pages
+│   ├── layout.tsx              # Root layout (providers, SEO metadata)
+│   ├── page.tsx                # Dashboard
+│   ├── login/                  # Login
+│   ├── register/               # Registration
+│   ├── onboarding/             # New-user setup wizard
+│   ├── focus/                  # Focus Garden (Pomodoro + Cram Mode)
+│   ├── battle/                 # Boss Battle (Arcane Arena)
+│   ├── knowledge/              # Knowledge Paths (visual node map)
+│   ├── notes/                  # Spellbook (rich-text editor)
+│   ├── flashcards/             # Spell Cards (flashcards)
+│   ├── quiz/                   # Trials (quiz engine)
+│   ├── guild/                  # Guild Hall (chat, raids, leaderboard)
+│   ├── shop/                   # Cosmetics Shop
+│   ├── achievements/           # Achievement Tracker
+│   ├── about/                  # The Grand Archive (animated about page)
+│   ├── report/                 # Weekly Analytics Report
+│   ├── support/                # Support Center + Bug Reports
+│   ├── settings/               # User Settings
+│   └── admin/                  # Admin Panel
 ├── components/
-│   ├── dashboard/         # Dashboard widgets (QuestLog, AdventureLog, etc.)
-│   ├── focus/             # FocusTimer
-│   ├── battle/            # SkillTree, ResourcePanel, CardForge
-│   ├── knowledge/         # KnowledgeMap, PathCreator
-│   ├── notes/             # SpellbookEditor, AIFamiliar, NotesSidebar
-│   ├── guild/             # GuildCreate, GuildChat, GuildRaid, MemberList
-│   ├── layout/            # TravelerHotbar, BackgroundLayer, Footer
-│   └── ui/                # ErrorBoundary, ToastContainer, ThemeToggle, Skeleton
-├── stores/                # Zustand state management
-│   ├── useGameStore.ts    # XP, level, gold, streak (synced with Supabase)
-│   └── useUIStore.ts      # Modals, toasts, mobile nav
-├── context/               # React Context providers
-│   ├── AuthContext.tsx     # Supabase auth + profile management
-│   └── ThemeContext.tsx    # Sun/moon theme with localStorage persistence
-├── hooks/                 # Custom React hooks
-│   ├── useCardStyles.ts   # Theme-aware glassmorphism styling
-│   ├── useAchievements.ts # Achievement checking + unlock logic
-│   ├── usePerformanceTier.ts # Device capability detection
-│   └── useSoundEffects.ts # Web Audio API sound effects
-├── lib/                   # Utility libraries
-│   ├── supabase.ts        # Supabase client
-│   ├── database.types.ts  # TypeScript types for Supabase tables
-│   ├── htmlToMarkdown.ts  # HTML to Markdown converter
-│   └── docxImport.ts      # .docx file import via mammoth
-├── constants/             # Game text configuration (RPG terminology)
-├── supabase/              # Database schema
-│   └── schema.sql         # Full schema with RLS policies + triggers
-├── backend/               # Flask API server
-│   ├── app.py            # Routes + Gemini AI integration (chat, syllabus parsing)
-│   ├── tests/            # pytest test suite
-│   └── requirements.txt
-├── middleware.ts          # Supabase SSR auth + route protection
-└── public/assets/         # Static assets
+│   ├── dashboard/              # StudyRoom, QuestLog, LeaderboardPodium, etc.
+│   ├── focus/                  # FocusTimer, CramMode
+│   ├── battle/                 # SkillTree, ResourcePanel, CardForge
+│   ├── knowledge/              # KnowledgeMap, PathCreator
+│   ├── notes/                  # SpellbookEditor, AIFamiliar, NotesSidebar
+│   ├── guild/                  # GuildCreate, GuildChat, GuildRaid, MemberList
+│   ├── layout/                 # TravelerHotbar, BackgroundLayer, Footer
+│   └── ui/                     # ProfileHoverCard, AmbientPlayer, Toasts, etc.
+├── stores/                     # Zustand state management
+├── context/                    # AuthContext, ThemeContext
+├── hooks/                      # useCardStyles, useAchievements, useSoundEffects
+├── lib/                        # supabase.ts, database.types.ts, utilities
+├── constants/                  # Game text configuration (RPG terminology)
+├── styles/                     # background-atmosphere.css, editor styles
+├── supabase/                   # schema.sql (full DB schema + RLS)
+├── backend/                    # Flask + Gemini AI server
+├── middleware.ts               # Auth + route protection
+└── public/assets/              # Static images, icons, backgrounds
 ```
 
-## Testing
+## 🧪 Testing
 
 ```bash
-# Frontend lint
-cd brain-trails && npm run lint
+# Lint
+npm run lint
 
-# Frontend build (includes type checking)
+# Production build (includes TypeScript checks)
 npm run build
 
 # Backend tests
 cd backend && pytest tests/ -v
 ```
 
-## Architecture Decisions
+## 🎨 Design Philosophy
 
-- **Zustand over Redux**: Lightweight stores with no boilerplate. Game stats and UI state are separate stores.
-- **Web Audio API over audio files**: Sound effects use oscillator synthesis, eliminating the need for .mp3 assets.
-- **Supabase over custom backend**: Handles auth, database, and real-time subscriptions. The Flask backend is only used for AI (Gemini) integration.
-- **Theme via Context, Game via Zustand**: Theme needs to wrap the entire component tree (Context). Game stats are accessed imperatively from auth callbacks (Zustand's `getState()`).
+- **"Nintendo meets Notion"** — playful RPG theming with clean, functional UI
+- **Premium glassmorphism** — frosted glass cards with subtle borders and backdrop blur
+- **Animated backgrounds** — parallax moon/sun skies with particles, clouds, and stars
+- **Rarity-tiered cosmetics** — Common → Rare → Epic → Legendary with escalating visual effects
+- **Zustand over Redux** — lightweight stores, no boilerplate
+- **Web Audio over audio files** — oscillator synthesis for UI sounds, zero `.mp3` assets
+- **Supabase over custom backend** — auth, database, and realtime in one. Flask is AI-only
 
-## License
+## 📜 License
 
 MIT
+
+---
+
+<p align="center">
+  <em>"Every quest completed brings you closer to mastery..." — Archie 🦉</em>
+</p>

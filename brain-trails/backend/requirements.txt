@@ -3,6 +3,7 @@ flask>=3.0.0
 flask-cors>=4.0.0
 python-dotenv>=1.0.0
 google-generativeai>=0.8.0
+groq>=1.0.0
 
 # Testing
 pytest>=8.0.0

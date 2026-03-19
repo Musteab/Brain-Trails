@@ -154,7 +154,7 @@ const AdventureLog = memo(function AdventureLog() {
                 return (
                   <div key={wIdx} className="w-3.5 flex-shrink-0">
                     {monthLabel && (
-                      <span className={`text-[9px] font-bold ${isSun ? "text-slate-400" : "text-slate-500"} whitespace-nowrap`}>
+                      <span className={`text-[9px] font-bold ${isSun ? "text-slate-500" : "text-slate-300"} whitespace-nowrap`}>
                         {monthLabel.label}
                       </span>
                     )}
@@ -169,7 +169,7 @@ const AdventureLog = memo(function AdventureLog() {
               <div className="flex flex-col gap-[3px] mr-1.5 flex-shrink-0">
                 {DAY_LABELS.map((label, i) => (
                   <div key={i} className="h-3.5 flex items-center">
-                    <span className={`text-[9px] font-bold w-5 text-right ${isSun ? "text-slate-400" : "text-slate-500"}`}>{label}</span>
+                    <span className={`text-[9px] font-bold w-5 text-right ${isSun ? "text-slate-500" : "text-slate-300"}`}>{label}</span>
                   </div>
                 ))}
               </div>

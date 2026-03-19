@@ -86,3 +86,23 @@
   filter: blur(20px);
   animation: cloud-drift 40s linear infinite;
 }
+
+/* ── New Day Mode Keyframes ── */
+
+@keyframes sun-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 80px 40px rgba(251,191,36,0.2), 0 0 200px 100px rgba(251,191,36,0.08); }
+  50% { transform: scale(1.06); box-shadow: 0 0 120px 60px rgba(251,191,36,0.3), 0 0 250px 120px rgba(251,191,36,0.12); }
+}
+
+@keyframes mote-float {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  20% { opacity: 0.8; }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(-60px) translateX(30px); opacity: 0; }
+}
+
+@keyframes sky-warm-shift {
+  0% { filter: brightness(1) saturate(1); }
+  50% { filter: brightness(1.04) saturate(1.05); }
+  100% { filter: brightness(0.98) saturate(0.97); }
+}

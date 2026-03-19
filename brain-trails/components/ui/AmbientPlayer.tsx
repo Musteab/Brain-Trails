@@ -133,7 +133,7 @@ export default function AmbientPlayer() {
               <div className="flex items-center gap-2">
                 <Music className={`w-4 h-4 ${isSun ? "text-emerald-600" : "text-emerald-400"}`} />
                 <span className={`text-sm font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-700" : "text-white"}`}>
-                  Study Music
+                  Study Music <span className="ml-2 align-middle text-[10px] bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold border border-amber-500/30">Beta</span>
                 </span>
               </div>
               <div className="flex items-center gap-1">

@@ -22,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/guild', label: 'Guilds', emoji: '🛡️' },
   { href: '/achievements', label: 'Trophies', emoji: '🏆' },
   { href: '/shop', label: 'Merchant', emoji: '💰' },
+  { href: '/about', label: 'Archive', emoji: '📚' },
   { href: '/report', label: 'Reports', emoji: '📜' },
   { href: '/settings', label: 'Settings', emoji: '⚙️' },
 ];

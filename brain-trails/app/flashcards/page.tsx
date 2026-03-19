@@ -70,6 +70,135 @@ export default function FlashcardsPage() {
   const [showNewDeck, setShowNewDeck] = useState(false);
   const [newDeckName, setNewDeckName] = useState("");
 
+  // AI Generation state
+  const [showAiGenerator, setShowAiGenerator] = useState(false);
+  const [syllabusSubjects, setSyllabusSubjects] = useState<{id: string; name: string; emoji: string; topics: {id: string; name: string}[]}[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [selectedTopicId, setSelectedTopicId] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Fetch syllabus subjects for AI generator
+  useEffect(() => {
+    if (!user) return;
+    const fetchSyllabusSubjects = async () => {
+      const { data: semData } = await supabase
+        .from("semesters")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .limit(1)
+        .single();
+
+      if (!semData) return;
+
+      const { data: subs } = await supabase
+        .from("subjects")
+        .select("id, name, emoji")
+        .eq("semester_id", semData.id)
+        .order("name");
+
+      if (!subs || subs.length === 0) return;
+
+      const subjectIds = subs.map((s: { id: string }) => s.id);
+      const { data: topics } = await supabase
+        .from("topics")
+        .select("id, name, subject_id")
+        .in("subject_id", subjectIds)
+        .order("sort_order");
+
+      const enriched = subs.map((s: { id: string; name: string; emoji: string }) => ({
+        ...s,
+        topics: (topics ?? []).filter((t: { subject_id: string }) => t.subject_id === s.id).map((t: { id: string; name: string }) => ({ id: t.id, name: t.name })),
+      }));
+
+      setSyllabusSubjects(enriched);
+    };
+    fetchSyllabusSubjects();
+  }, [user]);
+
+  const handleAiGenerate = async () => {
+    if (!user || !selectedSubjectId) return;
+
+    const subject = syllabusSubjects.find(s => s.id === selectedSubjectId);
+    if (!subject) return;
+
+    const topic = subject.topics.find(t => t.id === selectedTopicId);
+    const topicName = topic ? topic.name : "General";
+
+    setIsGenerating(true);
+
+    try {
+      // Call the AI backend to generate flashcard content
+      const res = await fetch("http://localhost:5000/api/ai/generate-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: subject.name,
+          topic: topicName,
+          count: 8,
+          type: "flashcard",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.questions || data.questions.length === 0) {
+        throw new Error("No flashcards generated");
+      }
+
+      // Create the deck
+      const deckName = `${subject.emoji} ${subject.name} — ${topicName}`;
+      const emoji = subject.emoji || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+
+      const { data: deckData, error: deckErr } = await supabase
+        .from("decks")
+        .insert({ user_id: user.id, name: deckName, emoji, color, subject_id: subject.id })
+        .select()
+        .single();
+
+      if (deckErr || !deckData) throw new Error("Failed to create deck");
+
+      // Insert cards
+      const cardInserts = data.questions.map((q: { question: string; answer: string }) => ({
+        deck_id: deckData.id,
+        front: q.question,
+        back: q.answer,
+        mastery: 0,
+        review_count: 0,
+      }));
+
+      const { data: cardData } = await supabase.from("cards").insert(cardInserts).select();
+
+      const newDeck: Deck = {
+        id: deckData.id,
+        name: deckName,
+        emoji,
+        color,
+        cards: (cardData ?? []) as Flashcard[],
+      };
+
+      setDecks(prev => [...prev, newDeck]);
+      setShowAiGenerator(false);
+      setSelectedSubjectId("");
+      setSelectedTopicId("");
+
+      // Award XP for generating a deck
+      await awardXp(user.id, 25);
+      await logActivity(user.id, "flashcard", 25, {
+        type: "ai_deck_generated",
+        deck_name: deckName,
+      });
+      refreshProfile();
+
+      playSound("success");
+    } catch (err) {
+      console.error("AI generation failed:", err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     
@@ -282,16 +411,95 @@ export default function FlashcardsPage() {
               </p>
             </div>
             
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowNewDeck(!showNewDeck)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/30"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="font-bold">New Deck</span>
-            </motion.button>
+            <div className="flex gap-2">
+              {syllabusSubjects.length > 0 && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { setShowAiGenerator(!showAiGenerator); setShowNewDeck(false); }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl shadow-lg shadow-orange-500/30"
+                >
+                  <BrainCircuit className="w-5 h-5" />
+                  <span className="font-bold hidden sm:inline">AI Generate</span>
+                </motion.button>
+              )}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => { setShowNewDeck(!showNewDeck); setShowAiGenerator(false); }}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/30"
+              >
+                <Plus className="w-5 h-5" />
+                <span className="font-bold">New Deck</span>
+              </motion.button>
+            </div>
           </motion.div>
+
+          {/* AI Generator Panel */}
+          <AnimatePresence>
+            {showAiGenerator && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className={`mb-8 p-6 rounded-2xl border-2 overflow-hidden ${isSun ? "bg-white/80 border-amber-200" : "bg-slate-800/95 border-amber-500/30"}`}
+              >
+                <h3 className={`text-base font-bold mb-1 ${isSun ? "text-slate-700" : "text-white"}`}>
+                  🤖 AI Flashcard Generator
+                </h3>
+                <p className={`text-xs mb-4 ${isSun ? "text-slate-500" : "text-slate-400"}`}>
+                  Pick a subject and topic from your syllabus — AI will create 8 study cards.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <select
+                      value={selectedSubjectId}
+                      onChange={(e) => { setSelectedSubjectId(e.target.value); setSelectedTopicId(""); }}
+                      className={`flex-1 px-4 py-3 rounded-xl outline-none font-medium ${
+                        isSun
+                          ? "bg-slate-50 border border-slate-200 text-slate-800"
+                          : "bg-slate-700/80 border border-slate-600 text-white [&>option]:bg-slate-700 [&>option]:text-white"
+                      }`}
+                    >
+                      <option value="">Select Subject...</option>
+                      {syllabusSubjects.map(s => (
+                        <option key={s.id} value={s.id}>{s.emoji} {s.name}</option>
+                      ))}
+                    </select>
+
+                    {selectedSubjectId && (
+                      <select
+                        value={selectedTopicId}
+                        onChange={(e) => setSelectedTopicId(e.target.value)}
+                        className={`flex-1 px-4 py-3 rounded-xl outline-none font-medium ${
+                          isSun
+                            ? "bg-slate-50 border border-slate-200 text-slate-800"
+                            : "bg-slate-700/80 border border-slate-600 text-white [&>option]:bg-slate-700 [&>option]:text-white"
+                        }`}
+                      >
+                        <option value="">All Topics (General)</option>
+                        {syllabusSubjects.find(s => s.id === selectedSubjectId)?.topics.map(t => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleAiGenerate}
+                    disabled={!selectedSubjectId || isGenerating}
+                    className="w-full sm:w-auto self-start px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+                  >
+                    {isGenerating ? (
+                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating...</>
+                    ) : (
+                      <><BrainCircuit className="w-4 h-4" /> Generate 8 Cards</>
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <AnimatePresence>
             {showNewDeck && (
@@ -350,16 +558,16 @@ export default function FlashcardsPage() {
                     className={`w-full h-full p-6 rounded-2xl text-left transition-all ${
                       isSun
                         ? "bg-white/80 backdrop-blur-sm border-2 border-slate-200 hover:shadow-xl hover:border-purple-300 hover:-translate-y-1"
-                        : "bg-white/5 backdrop-blur-sm border-2 border-white/10 hover:shadow-xl hover:border-purple-400/40 hover:-translate-y-1"
+                        : "bg-slate-800/90 backdrop-blur-sm border-2 border-purple-400/20 hover:shadow-xl hover:border-purple-400/50 hover:-translate-y-1"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div className="text-4xl">{deck.emoji}</div>
                     </div>
-                    <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
+                    <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white drop-shadow-sm"}`}>
                       {deck.name}
                     </h3>
-                    <p className={`text-sm mt-1 ${isSun ? "text-slate-500" : "text-slate-400"}`}>
+                    <p className={`text-sm mt-1 ${isSun ? "text-slate-500" : "text-slate-300"}`}>
                       {deck.cards.length} cards
                     </p>
                     {/* Mastery bar */}

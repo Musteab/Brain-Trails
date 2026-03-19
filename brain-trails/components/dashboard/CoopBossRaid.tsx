@@ -112,7 +112,7 @@ export default function CoopBossRaid() {
           </div>
         </div>
 
-        <p className={`text-sm mb-4 ${isSun ? "text-slate-600" : "text-slate-400"}`}>
+        <p className={`text-sm mb-4 ${isSun ? "text-slate-600" : "text-slate-300"}`}>
           Test your knowledge by battling bosses with flashcards or quizzes!
         </p>
 
@@ -247,7 +247,7 @@ export default function CoopBossRaid() {
             {isVictory ? <Trophy className="w-4 h-4" /> : <Swords className="w-4 h-4" />}
             {isVictory ? "Victory!" : "Defeated"}
           </span>
-          <span className={`text-xs font-semibold font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-500" : "text-slate-400"}`}>
+          <span className={`text-xs font-semibold font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-500" : "text-slate-300"}`}>
             {accuracy}% accuracy
           </span>
         </div>
@@ -285,7 +285,7 @@ export default function CoopBossRaid() {
             +{lastBattle.xp_earned} XP
           </span>
         ) : (
-          <span className={isSun ? "text-slate-500" : "text-slate-400"}>No XP</span>
+          <span className={isSun ? "text-slate-500" : "text-slate-300"}>No XP</span>
         )}
       </div>
 

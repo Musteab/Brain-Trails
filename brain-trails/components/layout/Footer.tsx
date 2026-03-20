@@ -43,7 +43,7 @@ export default function Footer() {
           <span className={`font-serif italic text-sm font-[family-name:var(--font-quicksand)] ${
             isSun ? "text-slate-500" : "text-slate-400"
           }`}>
-            — Archie the Scholar <span className="ml-3 not-italic text-[10px] bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold border border-amber-500/30">Brain Trails is still in Beta</span>
+            — Archie the Scholar <span className="ml-3 not-italic text-[10px] bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold border border-amber-500/30">v1.0.0.0</span>
           </span>
         </div>
       </div>

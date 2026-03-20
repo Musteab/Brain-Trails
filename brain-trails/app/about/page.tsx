@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
   ArrowLeft, BookOpen, Code2, Shield, Star, Sparkles, Heart,
-  ChevronLeft, ChevronRight, Github, Linkedin, Globe, Mail,
+  ChevronLeft, ChevronRight, Github, Linkedin, Globe, Mail, MessageSquare,
   Sword, Scroll, Flame, Crown
 } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
@@ -337,12 +337,13 @@ export default function AboutPage() {
                       <p>Want to follow the development, report bugs, or just say hello?</p>
                       <div className="space-y-3 mt-4">
                         {[
-                          { icon: Github, label: "GitHub", handle: "@musteab", color: "text-white" },
-                          { icon: Linkedin, label: "LinkedIn", handle: "Mustafa Ahmed", color: "text-sky-500" },
-                          { icon: Globe, label: "Website", handle: "braintrails.app", color: "text-emerald-400" },
-                          { icon: Mail, label: "Email", handle: "hello@braintrails.app", color: "text-rose-400" },
+                          { icon: Github, label: "GitHub", handle: "@musteab", color: "text-white", href: "https://github.com/musteab" },
+                          { icon: Linkedin, label: "LinkedIn", handle: "Mustafa Ahmed", color: "text-sky-500", href: "https://www.linkedin.com/in/mustafe-ahmed-421006319" },
+                          { icon: Globe, label: "Website", handle: "braintrails.dev", color: "text-emerald-400", href: "https://braintrails.dev" },
+                          { icon: Mail, label: "Email", handle: "muste@braintrails.dev", color: "text-rose-400", href: "mailto:muste@braintrails.dev" },
+                          { icon: MessageSquare, label: "Discord", handle: "@afromuste", color: "text-indigo-400", href: "https://discordapp.com/users/afromuste" },
                         ].map((s) => (
-                          <motion.a key={s.label} href="#" whileHover={{ scale: 1.02, x: 4 }}
+                          <motion.a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.02, x: 4 }}
                             className={`flex items-center gap-4 p-4 rounded-xl border transition-all shadow-sm hover:shadow-xl hover:shadow-purple-500/5 ${cardBg}`}>
                             <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-white/5 shadow-sm">
                               <s.icon className={`w-5 h-5 ${s.color}`} />
@@ -360,7 +361,7 @@ export default function AboutPage() {
                           <Sparkles className="w-3.5 h-3.5 text-amber-400/50" />
                           <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-500/40" />
                         </div>
-                        <p className={`text-xs ${textMuted}`}>Brain Trails v1.0 Beta · Built with 💜 by Muste</p>
+                        <p className={`text-xs ${textMuted}`}>Brain Trails v1.0.0.0 · Built with 💜 by Muste</p>
                       </div>
                     </div>
                   )}

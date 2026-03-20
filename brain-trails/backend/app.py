@@ -90,7 +90,7 @@ def health_check():
     """Health check endpoint for monitoring."""
     return jsonify({
         "status": "healthy",
-        "version": "0.5.0",
+        "version": "1.0.0.0",
         "ai_provider": "groq" if os.getenv("GROQ_API_KEY") else "gemini",
         "features": {
             "ai_chat": True,
@@ -106,7 +106,7 @@ def api_root():
     """API root with available endpoints."""
     return jsonify({
         "name": "Brain Trails API",
-        "version": "0.5.0",
+        "version": "1.0.0.0",
         "endpoints": {
             "health": "/api/health",
             "ai_chat": "/api/ai/chat [POST]",

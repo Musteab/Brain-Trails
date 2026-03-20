@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const cookieStore = await cookies();
+    const redirectTo = new URL("/", request.url);
+    const response = NextResponse.redirect(redirectTo);
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,13 +22,9 @@ export async function GET(request: NextRequest) {
             return cookieStore.getAll();
           },
           setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => {
-                cookieStore.set(name, value, options);
-              });
-            } catch (err) {
-              console.error("Cookie setting failed in callback:", err);
-            }
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
+            });
           },
         },
       }
@@ -35,7 +33,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return response;
     } else {
       console.error("Auth callback exchange error:", error);
       return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url));

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useGameStore } from "@/stores";
 import { resetSettingsCache } from "@/hooks/useSettings";
@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const statsUnsubRef = useRef<(() => void) | null>(null);
 
   const fetchProfile = async (userId: string, retries = 1): Promise<void> => {
     const { data, error } = await supabase
@@ -130,14 +131,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (sessionUser) {
         // Fetch profile on login
         await fetchProfile(sessionUser.id);
+        
+        // Subscribe to real-time stat updates
+        const unsubscribe = useGameStore.getState().subscribeToStats(sessionUser.id);
+        statsUnsubRef.current = unsubscribe;
       } else {
         setProfile(null);
         setIsLoading(false);
+        // Cleanup subscription on logout
+        statsUnsubRef.current?.();
+        statsUnsubRef.current = null;
       }
     };
 
-    // Use onAuthStateChange as the single source of truth.
-    // INITIAL_SESSION fires on mount and covers getSession().
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
@@ -145,9 +151,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    // Re-validate session when the user comes back to the tab.
+    // Covers: laptop wake, mobile browser unfreeze, idle timeout.
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+        await handleSession(currentSession?.user ?? null);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      statsUnsubRef.current?.();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchProfile is intentionally excluded to avoid infinite loops
   }, []);

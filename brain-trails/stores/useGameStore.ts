@@ -25,6 +25,8 @@ interface GameStoreState extends GameStats {
     xpEarned: number,
     metadata?: Record<string, Json>
   ) => Promise<void>;
+  /** Subscribe to real-time changes for stats */
+  subscribeToStats: (userId: string) => () => void;
   /** Reset store (on logout) */
   reset: () => void;
 }
@@ -95,6 +97,35 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       xp_earned: xpEarned,
       metadata: metadata ?? {},
     });
+  },
+
+  subscribeToStats: (userId: string) => {
+    const channel = supabase
+      .channel(`profile-stats-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${userId}`,
+        },
+        (payload) => {
+          const row = payload.new as { xp: number; level: number; gold: number; streak_days: number };
+          set({
+            xp: row.xp ?? 0,
+            level: row.level ?? 1,
+            gold: row.gold ?? 0,
+            streakDays: row.streak_days ?? 0,
+          });
+        }
+      )
+      .subscribe();
+
+    // Return the cleanup function so callers can unsubscribe
+    return () => {
+      supabase.removeChannel(channel);
+    };
   },
 
   reset: () => set(INITIAL_STATE),

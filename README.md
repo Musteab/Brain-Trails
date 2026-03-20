@@ -1,63 +1,82 @@
 <p align="center">
-  <img src="brain-trails/public/assets/icons/idr-coin.png" width="64" alt="Brain Trails" />
+  <img src="brain-trails/public/assets/icons/idr-coin.png" width="80" alt="Brain Trails Logo" />
 </p>
 
-<h1 align="center">Brain Trails</h1>
+<h1 align="center">Brain Trails 🧠✨</h1>
 
 <p align="center">
   <strong>A gamified study companion with an RPG soul.</strong><br/>
-  Focus timers · Flashcards · Guilds · AI Tutoring · Cosmetics · Knowledge Paths<br/><br/>
-  <em>Still in Beta — built with 💜</em>
+  Focus timers 🍄 · Flashcards 🃏 · Guilds 🏰 · AI Tutoring 🤖 · Cosmetics 💎 · Knowledge Paths 📜
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Beta-blueviolet?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/License-MIT-success?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" alt="PRs Welcome" />
 </p>
 
 ---
 
-## ✨ Features
+## 📊 Project Activity 📈
 
-| Module | What it does | Status |
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api/pin/?username=Musteab&repo=Brain-Trails&theme=tokyonight&bg_color=1A1B27&hide_border=true" alt="Brain Trails Repo Card" />
+</p>
+
+## 🛠 Tech Stack ⚒️
+
+**Frontend & Design 🎨** 
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
+
+**Backend, Data & AI 🗄️🧠** 
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![Gemini AI](https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+
+**State & Architecture 🏗️** 
+![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=react&logoColor=white)
+![Tiptap](https://img.shields.io/badge/Tiptap-000000?style=for-the-badge&logo=editorconfig&logoColor=white)
+
+---
+
+## ✨ Features 🌟
+
+| Module 🧩 | What it does 📋 | Status 🔖 |
 |--------|-------------|--------|
-| **Dashboard** | RPG-styled home with quest log, leaderboard, activity feed, and daily progress rings | ✅ Live |
-| **Focus Garden** | Pomodoro timer with plant growth animation, session tracking, and XP/gold rewards | ✅ Live |
-| **Spellbook** | Rich-text note editor (Tiptap) with slash commands, `.docx` import, auto-save | ✅ Live |
-| **Spell Cards** | Flashcard decks with flip animation, shuffle, SM-2 spaced repetition | ✅ Live |
-| **Trials** | Quiz engine with timed questions and XP rewards | ✅ Live |
-| **Battle Arena** | Boss battles against AI using your studied material | ✅ Live |
-| **AI Familiar** | Study assistant powered by Google Gemini — summarize, quiz, explain, parse syllabi | ✅ Live |
-| **Guild Hall** | Create/join study guilds, real-time chat, co-op boss raids, weekly leaderboard | 🧪 Beta |
-| **Knowledge Map** | Visual node-map skill trees with progress tracking and boss nodes | 🧪 Beta |
-| **Cosmetics Shop** | Spend in-game gold on themes, avatar frames, titles, and backgrounds (4 rarity tiers) | ✅ Live |
-| **Achievements** | 50+ unlockable badges across study, social, combat, exploration, and streak categories | ✅ Live |
-| **Study Music** | Embedded Spotify player with curated playlists and custom playlist support | 🧪 Beta |
-| **The Grand Archive** | Animated "about" experience with cinematic portal intro and lore pages | ✅ Live |
-| **Weekly Report** | Analytics dashboard — focus time, XP, streak, daily activity chart | ✅ Live |
-| **Support Center** | Bug reports and feature requests with Discord integration | ✅ Live |
-| **Onboarding** | Guided setup wizard — upload syllabus (AI-parsed) or manually add subjects/topics/exams | ✅ Live |
-| **Sun / Moon Theme** | Full light/dark mode with animated sky backgrounds and localStorage persistence | ✅ Live |
+| **Dashboard** 🏰 | RPG-styled home with quest log, leaderboard, activity feed, and daily progress rings | ✅ Live |
+| **Focus Garden** 🌻 | Pomodoro timer with plant growth animation, session tracking, and XP/gold block rewards | ✅ Live |
+| **Spellbook** 📖 | Rich-text note editor (Tiptap) with slash commands, `.docx` import, auto-save | ✅ Live |
+| **Spell Cards** 🃏 | Flashcard decks with flip animation, shuffle, SM-2 spaced repetition | ✅ Live |
+| **Trials** ⚔️ | Quiz engine with timed questions and XP rewards | ✅ Live |
+| **Battle Arena** 🐉 | Boss battles against AI using your studied material | ✅ Live |
+| **AI Familiar** 🧚 | Study assistant powered by Google Gemini — summarize, quiz, explain, parse syllabi | ✅ Live |
+| **Guild Hall** 🛡️ | Create/join study guilds, real-time chat, co-op boss raids, weekly leaderboard | 🧪 Beta |
+| **Knowledge Map** 🗺️ | Visual node-map skill trees with progress tracking and boss nodes | 🧪 Beta |
+| **Cosmetics Shop** 🛍️ | Spend in-game gold on themes, avatar frames, titles, and backgrounds (4 rarity tiers) | ✅ Live |
+| **Achievements** 🏆 | 50+ unlockable badges across study, social, combat, exploration, and streak categories | ✅ Live |
+| **Study Music** 🎵 | Embedded Spotify player with curated playlists and custom playlist support | 🧪 Beta |
+| **The Grand Archive** 🏛️ | Animated "about" experience with cinematic portal intro and lore pages | ✅ Live |
+| **Weekly Report** 📜 | Analytics dashboard — focus time, XP, streak, daily activity chart | ✅ Live |
+| **Support Center** 🛠️ | Bug reports and feature requests with Discord integration | ✅ Live |
+| **Onboarding** 🎒 | Guided setup wizard — upload syllabus (AI-parsed) or manually add subjects/topics/exams | ✅ Live |
+| **Sun / Moon Theme** ☀️🌙| Full light/dark mode with animated sky backgrounds and localStorage persistence | ✅ Live |
 
-## 🛠 Tech Stack
+---
 
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | Next.js 16 (App Router) · React 19 |
-| **Styling** | Tailwind CSS 4 · Framer Motion |
-| **Editor** | Tiptap (ProseMirror) |
-| **State** | Zustand 5 (game store + UI store) |
-| **Database** | Supabase (PostgreSQL + Row-Level Security) |
-| **Auth** | Supabase Auth (email/password + Google OAuth) |
-| **AI Backend** | Flask + Google Gemini API |
-| **Realtime** | Supabase Realtime (guild chat, presence) |
-| **Fonts** | Nunito + Quicksand (Google Fonts) |
-| **Sounds** | Web Audio API oscillator synthesis |
+## 🚀 Getting Started 🏁
 
-## 🚀 Getting Started
+### Prerequisites 🎒
 
-### Prerequisites
+- **Node.js 20+** 🟢
+- **Python 3.12+** 🐍 (for AI backend only)
+- A **Supabase** project ⚡
 
-- **Node.js 20+**
-- **Python 3.12+** (for AI backend only)
-- A **Supabase** project
-
-### 1. Clone & Install
+### 1. Clone & Install 📥
 
 ```bash
 git clone https://github.com/Musteab/Brain-Trails.git
@@ -65,7 +84,7 @@ cd Brain-Trails/brain-trails
 npm install
 ```
 
-### 2. Environment Variables
+### 2. Environment Variables 🔑
 
 Create `brain-trails/.env.local`:
 
@@ -74,17 +93,16 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 3. Database Setup
+### 3. Database Setup 💾
 
 Open the **Supabase SQL Editor** and run the contents of:
 
-```
+```bash
 brain-trails/supabase/schema.sql
 ```
+This creates all necessary tables, RLS policies, and triggers.
 
-This creates all tables, RLS policies, and triggers for: `profiles`, `focus_sessions`, `notes`, `decks`, `cards`, `guilds`, `guild_members`, `guild_messages`, `cosmetics`, `user_cosmetics`, `achievements`, `user_achievements`, `knowledge_paths`, `knowledge_nodes`, `semesters`, `subjects`, `topics`, `exams`, and more.
-
-### 4. Run the Frontend
+### 4. Run the Frontend 🌐
 
 ```bash
 npm run dev
@@ -92,7 +110,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### 5. Run the AI Backend (optional)
+### 5. Run the AI Backend (optional) 🧠
 
 ```bash
 cd backend
@@ -107,80 +125,73 @@ python app.py
 
 Backend runs on [http://localhost:5000](http://localhost:5000).
 
-## 📁 Project Structure
+---
 
-```
+## 📁 Project Structure 🏗️
+
+```plaintext
 brain-trails/
-├── app/                        # Next.js App Router pages
-│   ├── layout.tsx              # Root layout (providers, SEO metadata)
-│   ├── page.tsx                # Dashboard
-│   ├── login/                  # Login
-│   ├── register/               # Registration
-│   ├── onboarding/             # New-user setup wizard
-│   ├── focus/                  # Focus Garden (Pomodoro + Cram Mode)
-│   ├── battle/                 # Boss Battle (Arcane Arena)
-│   ├── knowledge/              # Knowledge Paths (visual node map)
-│   ├── notes/                  # Spellbook (rich-text editor)
-│   ├── flashcards/             # Spell Cards (flashcards)
-│   ├── quiz/                   # Trials (quiz engine)
-│   ├── guild/                  # Guild Hall (chat, raids, leaderboard)
-│   ├── shop/                   # Cosmetics Shop
-│   ├── achievements/           # Achievement Tracker
-│   ├── about/                  # The Grand Archive (animated about page)
-│   ├── report/                 # Weekly Analytics Report
-│   ├── support/                # Support Center + Bug Reports
-│   ├── settings/               # User Settings
-│   └── admin/                  # Admin Panel
-├── components/
-│   ├── dashboard/              # StudyRoom, QuestLog, LeaderboardPodium, etc.
-│   ├── focus/                  # FocusTimer, CramMode
-│   ├── battle/                 # SkillTree, ResourcePanel, CardForge
-│   ├── knowledge/              # KnowledgeMap, PathCreator
-│   ├── notes/                  # SpellbookEditor, AIFamiliar, NotesSidebar
-│   ├── guild/                  # GuildCreate, GuildChat, GuildRaid, MemberList
-│   ├── layout/                 # TravelerHotbar, BackgroundLayer, Footer
-│   └── ui/                     # ProfileHoverCard, AmbientPlayer, Toasts, etc.
-├── stores/                     # Zustand state management
-├── context/                    # AuthContext, ThemeContext
-├── hooks/                      # useCardStyles, useAchievements, useSoundEffects
-├── lib/                        # supabase.ts, database.types.ts, utilities
-├── constants/                  # Game text configuration (RPG terminology)
-├── styles/                     # background-atmosphere.css, editor styles
-├── supabase/                   # schema.sql (full DB schema + RLS)
-├── backend/                    # Flask + Gemini AI server
-├── middleware.ts               # Auth + route protection
-└── public/assets/              # Static images, icons, backgrounds
+├── app/                  # Next.js App Router pages
+│   ├── battle/           # Boss Battle (Arcane Arena)
+│   ├── focus/            # Focus Garden (Pomodoro + Cram Mode)
+│   ├── guild/            # Guild Hall (chat, raids, leaderboard)
+│   ├── knowledge/        # Knowledge Paths (visual node map)
+│   └── notes/            # Spellbook (rich-text editor)
+├── backend/              # Flask + Gemini AI server
+├── components/           # Modular React components
+├── constants/            # Game text configuration (RPG terminology)
+├── context/              # AuthContext, ThemeContext
+├── hooks/                # Custom hooks (e.g., useAchievements)
+├── lib/                  # Utilities and Supabase clients
+├── public/assets/        # Static images, icons, backgrounds
+├── stores/               # Zustand state management
+├── styles/               # Global and atmosphere CSS
+└── supabase/             # DB schema and configurations
 ```
-
-## 🧪 Testing
-
-```bash
-# Lint
-npm run lint
-
-# Production build (includes TypeScript checks)
-npm run build
-
-# Backend tests
-cd backend && pytest tests/ -v
-```
-
-## 🎨 Design Philosophy
-
-- **"Nintendo meets Notion"** — playful RPG theming with clean, functional UI
-- **Premium glassmorphism** — frosted glass cards with subtle borders and backdrop blur
-- **Animated backgrounds** — parallax moon/sun skies with particles, clouds, and stars
-- **Rarity-tiered cosmetics** — Common → Rare → Epic → Legendary with escalating visual effects
-- **Zustand over Redux** — lightweight stores, no boilerplate
-- **Web Audio over audio files** — oscillator synthesis for UI sounds, zero `.mp3` assets
-- **Supabase over custom backend** — auth, database, and realtime in one. Flask is AI-only
-
-## 📜 License
-
-MIT
+*(Abridged for readability)*
 
 ---
 
+## 🧪 Testing 🎮
+
+```bash
+npm run lint                    # Linting
+npm run build                   # Production build (includes TS checks)
+cd backend && pytest tests/ -v  # Backend tests
+```
+
+---
+
+## 🎨 Design Philosophy ✨
+
+- **"Nintendo meets Notion"** 🍄 — playful RPG theming with clean, functional UI.
+- **Premium glassmorphism** 💎 — frosted glass cards with subtle borders and backdrop blur.
+- **Animated backgrounds** 🌌 — parallax moon/sun skies with particles, clouds, and stars.
+- **Rarity-tiered cosmetics** 🎁 — Common ⚪ → Rare 🔵 → Epic 🟣 → Legendary 🟡 with escalating visual effects.
+- **Zustand over Redux** ⚡ — lightweight stores, no boilerplate.
+- **Web Audio over audio files** 🎶 — oscillator synthesis for UI sounds, zero `.mp3` assets.
+- **Supabase over custom backend** 🗄️ — auth, database, and realtime in one. Flask is AI-only.
+
+---
+
+## 🤝 Contributing (The Developer's Quest Log) 🛡️
+
+Want to help make Brain Trails truly legendary? We'd love your help! 🌟
+
+- **Find a Quest 📜:** Check out the Issues tab for bugs or feature requests. Drop a comment if you want to take one on!
+- **Gear Up ⚔️:** Fork the repo, clone it locally, and set up your `.env` variables (see Getting Started).
+- **Slay the Code 🐉:** Create a new branch (`git checkout -b feature/your-feature`). Keep your code clean and try to match the existing "Nintendo meets Notion" design style.
+- **Submit for Review 🚩:** Push your branch and open a Pull Request. Include screenshots if you changed the UI!
+
+*Please ensure your code passes `npm run build` and `npm run lint` before submitting.*
+
+---
+
+## 📜 License 🕊️
+
+Distributed under the **MIT License**.
+
+<br />
 <p align="center">
-  <em>"Every quest completed brings you closer to mastery..." — Archie 🦉</em>
+<em>"Every quest completed brings you closer to mastery..." — Archie 🦉</em>
 </p>

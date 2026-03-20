@@ -35,9 +35,12 @@ export async function GET(request: NextRequest) {
 
     if (!error) {
       return NextResponse.redirect(new URL("/", request.url));
+    } else {
+      console.error("Auth callback exchange error:", error);
+      return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url));
     }
   }
 
-  // If no code or exchange failed, redirect to login
-  return NextResponse.redirect(new URL("/login", request.url));
+  // If no code, redirect to login
+  return NextResponse.redirect(new URL("/login?error=No+authentication+code+received", request.url));
 }

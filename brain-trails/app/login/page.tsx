@@ -235,13 +235,26 @@ export default function LoginPage() {
             Continue with Google
           </motion.button>
 
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center space-y-4">
             <p className={`text-sm ${isSun ? "text-slate-600" : "text-white/70"}`}>
               New to Brain Trails?{" "}
-              <Link href="/register" className={`font-bold transition-colors ${isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"}`}>
+              <Link
+                href="/register"
+                className={`font-bold transition-colors ${
+                  isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"
+                }`}
+              >
                 Begin Adventure
               </Link>
             </p>
+            
+            <div className={`flex items-center justify-center gap-4 text-[10px] font-bold uppercase tracking-widest ${
+              isSun ? "text-slate-400" : "text-white/30"
+            }`}>
+              <Link href="/privacy" className="hover:text-violet-500 transition-colors">Privacy Policy</Link>
+              <div className="w-1 h-1 rounded-full bg-current opacity-50" />
+              <Link href="/terms" className="hover:text-violet-500 transition-colors">Terms of Service</Link>
+            </div>
           </div>
         </div>
       </motion.div>

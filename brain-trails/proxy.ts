@@ -47,10 +47,9 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/reset-password" ||
     request.nextUrl.pathname.startsWith("/auth/");
 
-  // KEY FIX: Only redirect to login if we DEFINITIVELY have no user AND no error.
-  // If authError is present, the session may be mid-exchange (e.g. OAuth PKCE).
-  // Let it through — the destination page will handle unauthenticated state.
-  if (!user && !authError && !isAuthPage) {
+  // KEY FIX: Only redirect to login if we have no user.
+  // The isAuthPage check ensures we don't redirect during login/register/reset.
+  if (!user && !isAuthPage) {
     console.log("Middleware: No user, redirecting to /login");
     return NextResponse.redirect(new URL("/login", request.url));
   }

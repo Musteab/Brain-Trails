@@ -13,6 +13,6 @@ import { usePWA } from "@/hooks/usePWA";
  */
 export default function AppInitializer() {
   useStudyReminders();
-  usePWA();
+  // usePWA(); // Temporarily disabled to debug "Script resource is behind a redirect" error
   return null;
 }

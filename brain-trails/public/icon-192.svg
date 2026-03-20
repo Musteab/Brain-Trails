@@ -1,11 +1,64 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#7c3aed"/>
-      <stop offset="100%" style="stop-color:#4f46e5"/>
+    <!-- Dark mystical background -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b0764" /> <!-- violet-900 -->
+      <stop offset="100%" stop-color="#1e1b4b" /> <!-- indigo-950 -->
     </linearGradient>
+    
+    <!-- Golden magical accent -->
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" /> <!-- amber-400 -->
+      <stop offset="100%" stop-color="#d97706" /> <!-- amber-600 -->
+    </linearGradient>
+    
+    <!-- Arcane core glow -->
+    <radialGradient id="cardGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="192" height="192" rx="40" fill="url(#bg)"/>
-  <text x="96" y="110" text-anchor="middle" font-size="80" font-family="serif" fill="white">🧠</text>
-  <text x="96" y="160" text-anchor="middle" font-size="22" font-weight="bold" font-family="sans-serif" fill="rgba(255,255,255,0.9)">TRAILS</text>
+
+  <!-- Base App Background (rounded corners for maskable safety) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGradient)" />
+
+  <!-- Subtle glow behind the logo -->
+  <circle cx="256" cy="256" r="180" fill="url(#cardGlow)" />
+
+  <!-- Outer magic rings -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="rgba(168,85,247,0.2)" stroke-width="4" />
+  <circle cx="256" cy="256" r="170" fill="none" stroke="rgba(251,191,36,0.2)" stroke-width="3" stroke-dasharray="16 16" />
+
+  <!-- Brain Trails Geometric Logo (An open knowledge tree + owl wings + trails) -->
+  <g transform="translate(128, 110) scale(1.3)" filter="url(#glow)">
+    <!-- Central Brain Node (Diamond) -->
+    <polygon points="100,50 140,90 100,130 60,90" fill="url(#goldGradient)" />
+    <polygon points="100,60 130,90 100,120 70,90" fill="#fef3c7" opacity="0.6"/>
+    
+    <!-- Left Wing / Trail -->
+    <path d="M40,90 Q70,40 100,50" fill="none" stroke="url(#goldGradient)" stroke-width="12" stroke-linecap="round" />
+    <path d="M20,130 Q60,90 80,110" fill="none" stroke="url(#goldGradient)" stroke-width="10" stroke-linecap="round" />
+    <path d="M40,170 Q80,140 100,130" fill="none" stroke="url(#goldGradient)" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Right Wing / Trail -->
+    <path d="M160,90 Q130,40 100,50" fill="none" stroke="url(#goldGradient)" stroke-width="12" stroke-linecap="round" />
+    <path d="M180,130 Q140,90 120,110" fill="none" stroke="url(#goldGradient)" stroke-width="10" stroke-linecap="round" />
+    <path d="M160,170 Q120,140 100,130" fill="none" stroke="url(#goldGradient)" stroke-width="8" stroke-linecap="round" />
+    
+    <!-- Floating Arcane Dots -->
+    <circle cx="100" cy="20" r="8" fill="#d946ef" />
+    <circle cx="150" cy="40" r="6" fill="#a855f7" />
+    <circle cx="50" cy="40" r="6" fill="#a855f7" />
+  </g>
+
+  <!-- Typography: BT -->
+  <text x="50%" y="420" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="44" fill="url(#goldGradient)" text-anchor="middle" letter-spacing="8" filter="url(#glow)">BRAIN TRAILS</text>
 </svg>

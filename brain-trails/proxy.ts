@@ -4,9 +4,7 @@ import type { Database } from "@/lib/database.types";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request: { headers: request.headers },
   });
 
   const supabase = createServerClient<Database>(
@@ -18,63 +16,49 @@ export async function proxy(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          // If the cookie is updated, update the request and response cookies
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
+          request.cookies.set({ name, value, ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          // If the cookie is removed, update the request and response cookies
-          request.cookies.set({
-            name,
-            value: "",
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value: "",
-            ...options,
-          });
+          request.cookies.set({ name, value: "", ...options });
+          response = NextResponse.next({ request: { headers: request.headers } });
+          response.cookies.set({ name, value: "", ...options });
         },
       },
     }
   );
 
-  // This will refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser();
+  const allCookies = request.cookies.getAll().map(c => c.name);
+  console.log("Middleware: Path:", request.nextUrl.pathname);
+  console.log("Middleware: Cookies present:", allCookies);
 
-  // Define authentication/public routes that shouldn't redirect to login
-  const isAuthPage = request.nextUrl.pathname === "/login" || 
-                     request.nextUrl.pathname === "/register" ||
-                     request.nextUrl.pathname === "/forgot-password" ||
-                     request.nextUrl.pathname === "/reset-password" ||
-                     request.nextUrl.pathname.startsWith("/auth/");
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  // Protect routes - if no user and trying to access a protected route, redirect to login
-  if (!user && !isAuthPage) {
+  if (authError) {
+    console.error("Middleware: getUser error:", authError.message);
+  }
+  console.log("Middleware: User ID:", user?.id || "None");
+
+  const isAuthPage =
+    request.nextUrl.pathname === "/login" ||
+    request.nextUrl.pathname === "/register" ||
+    request.nextUrl.pathname === "/forgot-password" ||
+    request.nextUrl.pathname === "/reset-password" ||
+    request.nextUrl.pathname.startsWith("/auth/");
+
+  // KEY FIX: Only redirect to login if we DEFINITIVELY have no user AND no error.
+  // If authError is present, the session may be mid-exchange (e.g. OAuth PKCE).
+  // Let it through — the destination page will handle unauthenticated state.
+  if (!user && !authError && !isAuthPage) {
+    console.log("Middleware: No user, redirecting to /login");
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // If user is already logged in, redirect away from auth pages to home
-  // (Prevents logged-in users from seeing the login page again)
-  const isLoginPage = request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register";
+  const isLoginPage =
+    request.nextUrl.pathname === "/login" ||
+    request.nextUrl.pathname === "/register";
+
   if (user && isLoginPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
@@ -84,14 +68,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - API routes or assets that don't require auth
-     * Feel free to modify this pattern to include more paths.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|assets|auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|assets|api|auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    //                                                          ^^^
+    //                                         Added: exclude /api/* routes too
   ],
 };

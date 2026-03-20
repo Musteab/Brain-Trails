@@ -27,6 +27,20 @@ export default function LoginPage() {
     }
   }, [user, profile, router]);
 
+  // Catch errors from OAuth callback redirect
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlError = params.get("error");
+      if (urlError) {
+        setError(urlError);
+        // Clean up UI by removing the error param from URL
+        const nextUrl = window.location.pathname;
+        window.history.replaceState({}, "", nextUrl);
+      }
+    }
+  }, []);
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {

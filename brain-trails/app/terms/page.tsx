@@ -6,9 +6,11 @@ import { useCardStyles } from "@/hooks/useCardStyles";
 import Link from "next/link";
 import { ArrowLeft, Scale } from "lucide-react";
 import Footer from "@/components/layout/Footer";
+import { useAuth } from "@/context/AuthContext";
 
 export default function TermsOfServicePage() {
   const { card, title, isSun } = useCardStyles();
+  const { user } = useAuth();
 
   return (
     <div className={`min-h-screen ${isSun ? "text-slate-800" : "text-white"}`}>
@@ -16,13 +18,13 @@ export default function TermsOfServicePage() {
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 pt-12 pb-32">
         <Link
-          href="/"
+          href={user ? "/" : "/login"}
           className={`inline-flex items-center gap-2 mb-8 text-sm font-medium transition-colors ${
             isSun ? "text-slate-500 hover:text-slate-700" : "text-slate-400 hover:text-white"
           }`}
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
+          {user ? "Back to Dashboard" : "Back to Login"}
         </Link>
 
         <div className={`p-8 md:p-12 rounded-3xl border shadow-xl ${card}`}>
@@ -70,7 +72,7 @@ export default function TermsOfServicePage() {
         <Footer />
       </div>
 
-      <TravelerHotbar />
+      {user && <TravelerHotbar />}
     </div>
   );
 }

@@ -60,7 +60,11 @@ export async function proxy(request: NextRequest) {
   // This will refresh session if expired
   const { data: { user } } = await supabase.auth.getUser();
 
-  const isAuthPage = request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register";
+  const isAuthPage = request.nextUrl.pathname === "/login" || 
+                     request.nextUrl.pathname === "/register" ||
+                     request.nextUrl.pathname === "/forgot-password" ||
+                     request.nextUrl.pathname === "/reset-password" ||
+                     request.nextUrl.pathname.startsWith("/auth/");
 
   // Protect routes - if no user and trying to access a protected route, redirect to login
   if (!user && !isAuthPage) {
@@ -68,7 +72,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // If user is already logged in, redirect away from auth pages to home
-  if (user && isAuthPage) {
+  // (But don't redirect away from the callback itself or password reset)
+  const isLoginPage = request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register";
+  if (user && isLoginPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

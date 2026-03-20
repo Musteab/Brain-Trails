@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/assets/icons/idr-coin.png" width="64" alt="Brain Trails" />
+  <img src="brain-trails/public/assets/icons/idr-coin.png" width="64" alt="Brain Trails" />
 </p>
 
 <h1 align="center">Brain Trails</h1>

@@ -8,9 +8,17 @@ import os
 import json
 import re
 import base64
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -134,47 +142,53 @@ that fits the app's cozy adventure theme. Use emojis sparingly but effectively."
 
 @app.route("/api/ai/chat", methods=["POST"])
 def ai_chat():
-    """AI chat endpoint using Groq (primary) or Gemini (fallback).
+    """AI chat endpoint using Groq (primary) or Gemini (fallback)."""
+    try:
+        data = request.get_json(silent=True)
+        if not data or "message" not in data:
+            logger.warning("AI Chat: Missing 'message' in request body")
+            return jsonify({"error": "Missing 'message' in request body"}), 400
 
-    Request body:
-    {
-        "message": "user's question or prompt",
-        "noteContent": "optional - the user's current note content for context"
-    }
-    """
-    data = request.get_json()
-    if not data or "message" not in data:
-        return jsonify({"error": "Missing 'message' in request body"}), 400
+        user_message = data["message"]
+        note_content = data.get("noteContent", "")
+        
+        logger.info(f"AI Chat request: {user_message[:50]}...")
 
-    user_message = data["message"]
-    note_content = data.get("noteContent", "")
+        # Build context
+        user_prompt = ""
+        if note_content:
+            user_prompt += f"The student's current notes:\n---\n{note_content[:3000]}\n---\n\n"
+        user_prompt += f"Student's question: {user_message}"
 
-    # Build context
-    user_prompt = ""
-    if note_content:
-        user_prompt += f"The student's current notes:\n---\n{note_content[:3000]}\n---\n\n"
-    user_prompt += f"Student's question: {user_message}"
+        # Try Groq (with key rotation)
+        messages = [
+            {"role": "system", "content": STUDY_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ]
+        response_text, error = groq_chat(messages, temperature=0.7, max_tokens=1500)
+        if response_text:
+            return jsonify({"response": response_text, "model": GROQ_MODEL})
 
-    # Try Groq (with key rotation)
-    messages = [
-        {"role": "system", "content": STUDY_SYSTEM_PROMPT},
-        {"role": "user", "content": user_prompt},
-    ]
-    response_text, error = groq_chat(messages, temperature=0.7, max_tokens=1500)
-    if response_text:
-        return jsonify({"response": response_text, "model": GROQ_MODEL})
+        if error:
+            logger.error(f"Groq failed: {error}")
 
-    # Fallback to Gemini
-    gemini = get_gemini_model()
-    if gemini:
-        try:
-            prompt = STUDY_SYSTEM_PROMPT + "\n\n" + user_prompt
-            response = gemini.generate_content(prompt)
-            return jsonify({"response": response.text, "model": "gemini-2.0-flash"})
-        except Exception as e:
-            return jsonify({"error": f"AI generation failed: {str(e)}"}), 500
+        # Fallback to Gemini
+        gemini = get_gemini_model()
+        if gemini:
+            try:
+                prompt = STUDY_SYSTEM_PROMPT + "\n\n" + user_prompt
+                response = gemini.generate_content(prompt)
+                return jsonify({"response": response.text, "model": "gemini-2.0-flash"})
+            except Exception as e:
+                logger.error(f"Gemini generation failed: {str(e)}")
+                return jsonify({"error": f"AI generation failed (Gemini): {str(e)}"}), 500
 
-    return jsonify({"error": error or "No AI provider configured"}), 500
+        logger.error("No AI provider available or all failed.")
+        return jsonify({"error": error or "No AI provider configured. Please check environment variables on Render."}), 500
+
+    except Exception as e:
+        logger.exception("AI Chat: Internal server error")
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
 # ============================================
@@ -237,23 +251,26 @@ Rules:
 @app.route("/api/ai/parse-syllabus", methods=["POST"])
 def parse_syllabus():
     """Parse a syllabus using Groq (text) or Gemini (files)."""
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Missing request body"}), 400
-
-    file_type = data.get("file_type", "text")
-    content = data.get("content", "")
-    file_data = data.get("file_data", "")
-
-    if file_type == "text" and not content.strip():
-        return jsonify({"error": "Missing 'content' for text mode"}), 400
-
-    if file_type in ("pdf", "image") and not file_data:
-        return jsonify({"error": f"Missing 'file_data' for {file_type} mode"}), 400
-
-    response_text = ""
-
     try:
+        data = request.get_json(silent=True)
+        if not data:
+            logger.warning("Syllabus Parsing: Missing request body")
+            return jsonify({"error": "Missing request body"}), 400
+
+        file_type = data.get("file_type", "text")
+        content = data.get("content", "")
+        file_data = data.get("file_data", "")
+
+        logger.info(f"Syllabus Parsing request: type={file_type}")
+
+        if file_type == "text" and not content.strip():
+            return jsonify({"error": "Missing 'content' for text mode"}), 400
+
+        if file_type in ("pdf", "image") and not file_data:
+            return jsonify({"error": f"Missing 'file_data' for {file_type} mode"}), 400
+
+        response_text = ""
+
         # For text input, prefer Groq
         if file_type == "text":
             messages = [
@@ -264,10 +281,11 @@ def parse_syllabus():
             if result:
                 response_text = result.strip()
             else:
+                logger.warning(f"Syllabus Parsing: Groq failed ({groq_err}), trying Gemini fallback")
                 # Fallback to Gemini for text
                 gemini = get_gemini_model()
                 if not gemini:
-                    return jsonify({"error": "No AI provider configured"}), 500
+                    return jsonify({"error": "No AI provider configured. Check Render environment variables."}), 500
                 prompt = SYLLABUS_SYSTEM_PROMPT + "\n\nHere is the syllabus content to parse:\n---\n" + content[:8000] + "\n---\n\nReturn the JSON now."
                 response = gemini.generate_content(prompt)
                 response_text = response.text.strip()
@@ -282,6 +300,7 @@ def parse_syllabus():
                     reader = PdfReader(io.BytesIO(raw_bytes))
                     pdf_text = "\n".join(page.extract_text() or "" for page in reader.pages)
                 except Exception as pdf_err:
+                    logger.error(f"Syllabus Parsing: PDF extraction failed: {str(pdf_err)}")
                     return jsonify({"error": f"Failed to read PDF: {str(pdf_err)}"}), 400
 
                 if not pdf_text.strip():
@@ -295,17 +314,23 @@ def parse_syllabus():
                 if result:
                     response_text = result.strip()
                 else:
+                    logger.error(f"Syllabus Parsing: Groq failed for PDF text: {groq_err}")
                     return jsonify({"error": groq_err or "Failed to parse PDF text"}), 500
             else:
                 # For images, try Gemini (multimodal) as last resort
                 gemini = get_gemini_model()
                 if not gemini:
                     return jsonify({"error": "Image parsing requires Gemini API. Try uploading a PDF or pasting text instead."}), 400
-                response = gemini.generate_content([
-                    SYLLABUS_SYSTEM_PROMPT + "\n\nParse the attached syllabus document and return the JSON.",
-                    {"mime_type": "image/png", "data": raw_bytes},
-                ])
-                response_text = response.text.strip()
+                
+                try:
+                    response = gemini.generate_content([
+                        SYLLABUS_SYSTEM_PROMPT + "\n\nParse the attached syllabus document and return the JSON.",
+                        {"mime_type": "image/png", "data": raw_bytes},
+                    ])
+                    response_text = response.text.strip()
+                except Exception as gem_err:
+                    logger.error(f"Syllabus Parsing: Gemini image parsing failed: {str(gem_err)}")
+                    return jsonify({"error": f"Image parsing failed: {str(gem_err)}"}), 500
 
         # Clean markdown fences
         response_text = re.sub(r"^```(?:json)?\s*", "", response_text)
@@ -319,11 +344,13 @@ def parse_syllabus():
         })
 
     except json.JSONDecodeError as e:
+        logger.error(f"Syllabus Parsing: JSON decode error: {str(e)}")
         return jsonify({
             "error": f"Failed to parse AI response as JSON: {str(e)}",
             "raw_response": response_text[:1000] if response_text else ""
         }), 500
     except Exception as e:
+        logger.exception("Syllabus Parsing: Internal server error")
         return jsonify({
             "error": f"Syllabus parsing failed: {str(e)}"
         }), 500
@@ -384,64 +411,67 @@ Rules:
 @app.route("/api/ai/generate-quiz", methods=["POST"])
 def generate_quiz():
     """Generate a quiz or flashcards from study content or a subject/topic."""
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Missing request body"}), 400
-
-    content = data.get("content", "")
-    subject = data.get("subject", "")
-    topic = data.get("topic", "")
-    gen_type = data.get("type", "quiz")  # "quiz" or "flashcard"
-    count = data.get("count", data.get("num_questions", 10))
-    difficulty = data.get("difficulty", "medium")
-    question_types = data.get("question_types", ["mcq"])
-
-    # Build the user prompt based on what was provided
-    if gen_type == "flashcard":
-        if subject and topic:
-            user_prompt = (
-                f"Generate exactly {count} flashcard-style question and answer pairs about "
-                f"the topic '{topic}' within the subject '{subject}'.\n"
-                f"Each item MUST have a 'question' field and an 'answer' field.\n"
-                f"Questions should test understanding, not trivial facts.\n"
-                f"Return JSON: {{\"questions\": [{{\"question\": \"...\", \"answer\": \"...\"}}]}}\n"
-                "Return the JSON now."
-            )
-        elif subject:
-            user_prompt = (
-                f"Generate exactly {count} flashcard-style question and answer pairs about "
-                f"the subject '{subject}'.\n"
-                f"Each item MUST have a 'question' field and an 'answer' field.\n"
-                f"Cover the most important concepts a student should know.\n"
-                f"Return JSON: {{\"questions\": [{{\"question\": \"...\", \"answer\": \"...\"}}]}}\n"
-                "Return the JSON now."
-            )
-        else:
-            return jsonify({"error": "Flashcard generation requires at least a subject"}), 400
-    else:
-        # Original quiz generation
-        if not content.strip() and not subject:
-            return jsonify({"error": "Missing 'content' or 'subject' in request body"}), 400
-
-        types_str = ", ".join(question_types)
-        if content.strip():
-            user_prompt = (
-                f"Generate {count} {difficulty} difficulty questions.\n"
-                f"Use these question types: {types_str}\n\n"
-                f"Study content:\n---\n{content[:6000]}\n---\n\n"
-                "Return the JSON now."
-            )
-        else:
-            user_prompt = (
-                f"Generate {count} {difficulty} difficulty questions about '{subject}"
-                + (f" - {topic}" if topic else "") + f"'.\n"
-                f"Use these question types: {types_str}\n\n"
-                "Return the JSON now."
-            )
-
-    response_text = ""
-
     try:
+        data = request.get_json(silent=True)
+        if not data:
+            logger.warning("Quiz Generation: Missing request body")
+            return jsonify({"error": "Missing request body"}), 400
+
+        content = data.get("content", "")
+        subject = data.get("subject", "")
+        topic = data.get("topic", "")
+        gen_type = data.get("type", "quiz")  # "quiz" or "flashcard"
+        count = data.get("count", data.get("num_questions", 10))
+        difficulty = data.get("difficulty", "medium")
+        question_types = data.get("question_types", ["mcq"])
+
+        logger.info(f"Quiz Generation request: type={gen_type}, subject={subject}, topic={topic}")
+
+        # Build the user prompt based on what was provided
+        if gen_type == "flashcard":
+            if subject and topic:
+                user_prompt = (
+                    f"Generate exactly {count} flashcard-style question and answer pairs about "
+                    f"the topic '{topic}' within the subject '{subject}'.\n"
+                    f"Each item MUST have a 'question' field and an 'answer' field.\n"
+                    f"Questions should test understanding, not trivial facts.\n"
+                    f"Return JSON: {{\"questions\": [{{\"question\": \"...\", \"answer\": \"...\"}}]}}\n"
+                    "Return the JSON now."
+                )
+            elif subject:
+                user_prompt = (
+                    f"Generate exactly {count} flashcard-style question and answer pairs about "
+                    f"the subject '{subject}'.\n"
+                    f"Each item MUST have a 'question' field and an 'answer' field.\n"
+                    f"Cover the most important concepts a student should know.\n"
+                    f"Return JSON: {{\"questions\": [{{\"question\": \"...\", \"answer\": \"...\"}}]}}\n"
+                    "Return the JSON now."
+                )
+            else:
+                return jsonify({"error": "Flashcard generation requires at least a subject"}), 400
+        else:
+            # Original quiz generation
+            if not content.strip() and not subject:
+                return jsonify({"error": "Missing 'content' or 'subject' in request body"}), 400
+
+            types_str = ", ".join(question_types)
+            if content.strip():
+                user_prompt = (
+                    f"Generate {count} {difficulty} difficulty questions.\n"
+                    f"Use these question types: {types_str}\n\n"
+                    f"Study content:\n---\n{content[:6000]}\n---\n\n"
+                    "Return the JSON now."
+                )
+            else:
+                user_prompt = (
+                    f"Generate {count} {difficulty} difficulty questions about '{subject}"
+                    + (f" - {topic}" if topic else "") + f"'.\n"
+                    f"Use these question types: {types_str}\n\n"
+                    "Return the JSON now."
+                )
+
+        response_text = ""
+
         # Try Groq (with key rotation)
         messages = [
             {"role": "system", "content": QUIZ_SYSTEM_PROMPT},
@@ -451,10 +481,11 @@ def generate_quiz():
         if result:
             response_text = result.strip()
         else:
+            logger.warning(f"Quiz Generation: Groq failed ({groq_err}), trying Gemini fallback")
             # Fallback to Gemini
             gemini = get_gemini_model()
             if not gemini:
-                return jsonify({"error": groq_err or "No AI provider configured"}), 500
+                return jsonify({"error": groq_err or "No AI provider configured. Check Render environment variables."}), 500
             prompt = QUIZ_SYSTEM_PROMPT + "\n\n" + user_prompt
             response = gemini.generate_content(prompt)
             response_text = response.text.strip()
@@ -471,11 +502,13 @@ def generate_quiz():
         })
 
     except json.JSONDecodeError as e:
+        logger.error(f"Quiz Generation: JSON decode error: {str(e)}")
         return jsonify({
             "error": f"Failed to parse AI response as JSON: {str(e)}",
             "raw_response": response_text[:1000] if response_text else ""
         }), 500
     except Exception as e:
+        logger.exception("Quiz Generation: Internal server error")
         return jsonify({
             "error": f"Quiz generation failed: {str(e)}"
         }), 500

@@ -51,7 +51,10 @@ export const metadata: Metadata = {
     siteName: "Brain Trails",
     type: "website",
   },
-  metadataBase: new URL("https://brain-trails.vercel.app"),
+  metadataBase: new URL("https://braintrails.dev"),
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export const viewport: Viewport = {

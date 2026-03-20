@@ -17,10 +17,12 @@ export default function Footer() {
       <div className="max-w-4xl mx-auto px-6 text-center">
         {/* Footer Navigation */}
         <nav className="mb-8">
-          <ul className="flex justify-center space-x-6 text-sm font-medium">
+          <ul className="flex justify-center flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
             <li><Link href="/shop" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Merchant</Link></li>
             <li><Link href="/about" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Grand Archive</Link></li>
             <li><Link href="/support" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Support</Link></li>
+            <li><Link href="/privacy" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Privacy Policy</Link></li>
+            <li><Link href="/terms" className={`hover:underline ${isSun ? "text-slate-600 hover:text-amber-500" : "text-slate-300 hover:text-amber-400"}`}>Terms of Service</Link></li>
           </ul>
         </nav>
 

@@ -949,7 +949,7 @@ export default function SettingsPage() {
 
           {/* Version footer */}
           <p className={`text-center text-xs mt-6 mb-8 ${mutedText}`}>
-            Brain Trails v0.2.0
+            Brain Trails v1.0.0.0
           </p>
         </div>
       </div>

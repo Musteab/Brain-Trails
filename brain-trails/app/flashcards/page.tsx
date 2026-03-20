@@ -129,7 +129,8 @@ export default function FlashcardsPage() {
 
     try {
       // Call the AI backend to generate flashcard content
-      const res = await fetch("http://localhost:5000/api/ai/generate-quiz", {
+      const aiUrl = process.env.NEXT_PUBLIC_AI_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+      const res = await fetch(`${aiUrl}/api/ai/generate-quiz`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

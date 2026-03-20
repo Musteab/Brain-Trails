@@ -31,7 +31,7 @@ const quickActions: QuickAction[] = [
   { icon: <BookOpen className="w-3.5 h-3.5" />, label: "Explain", prompt: "Explain the key concepts in my notes in simpler terms" },
 ];
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_AI_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle }: AIFamiliarProps) {
   const { theme } = useTheme();

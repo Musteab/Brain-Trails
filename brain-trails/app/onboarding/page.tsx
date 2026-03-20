@@ -71,7 +71,7 @@ const SUBJECT_COLORS = [
 
 const EXAM_TYPES = ["exam", "quiz", "assignment", "project", "presentation", "other"];
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_AI_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 // ============================================
 // Helpers

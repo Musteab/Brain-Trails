@@ -16,7 +16,7 @@ import QuizResults from "@/components/quiz/QuizResults";
 
 type QuizState = "hub" | "creating" | "playing" | "results";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_AI_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 export default function QuizPage() {
   const router = useRouter();

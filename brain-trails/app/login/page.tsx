@@ -156,9 +156,13 @@ export default function LoginPage() {
             </div>
 
             <div className="text-right -mt-1">
-              <Link href="/forgot-password" className={`text-xs font-semibold transition-colors ${isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"}`}>
+              <button 
+                type="button"
+                onClick={() => router.push("/forgot-password")}
+                className={`text-xs font-semibold transition-colors cursor-pointer ${isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"}`}
+              >
                 Forgot Password?
-              </Link>
+              </button>
             </div>
 
             <motion.button

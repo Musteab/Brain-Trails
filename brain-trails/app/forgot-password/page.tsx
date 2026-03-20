@@ -27,19 +27,28 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
     setError("");
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      email,
-      { redirectTo: `${window.location.origin}/reset-password` }
-    );
+    try {
+      console.log("Attempting password reset for:", email);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo: `${window.location.origin}/reset-password` }
+      );
 
-    if (resetError) {
-      setError(resetError.message);
+      if (resetError) {
+        console.error("Supabase Reset Error:", resetError);
+        setError(resetError.message);
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log("Reset email sent successfully");
+      setIsSent(true);
+    } catch (err: any) {
+      console.error("Forgot Password Catch Clause:", err);
+      setError(err.message || "An unexpected error occurred. Please check your connection.");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    setIsSent(true);
-    setIsSubmitting(false);
   };
 
   return (

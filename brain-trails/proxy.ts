@@ -45,6 +45,8 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/register" ||
     request.nextUrl.pathname === "/forgot-password" ||
     request.nextUrl.pathname === "/reset-password" ||
+    request.nextUrl.pathname === "/privacy" ||
+    request.nextUrl.pathname === "/terms" ||
     request.nextUrl.pathname.startsWith("/auth/");
 
   // KEY FIX: Only redirect to login if we have no user.

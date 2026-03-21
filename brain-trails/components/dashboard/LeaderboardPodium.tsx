@@ -125,13 +125,13 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
     : "bg-black/20 border border-white/10 shadow-xl backdrop-blur-md text-white";
 
   return (
-    <div className={`p-6 sm:p-8 rounded-[32px] ${glassClasses} flex flex-col min-h-[220px]`}>
+    <div className={`p-5 rounded-[24px] ${glassClasses} flex flex-col`}>
       {/* Header */}
-      <div className="mb-6">
-        <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
+      <div className="mb-4">
+        <h3 className={`text-base font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
           Realm Leaders
         </h3>
-        <p className={`text-sm font-medium ${isSun ? "text-slate-500" : "text-white/60"}`}>
+        <p className={`text-xs ${isSun ? "text-slate-500" : "text-white/50"}`}>
           Top scholars this week
         </p>
       </div>

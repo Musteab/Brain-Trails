@@ -11,4 +11,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Use createBrowserClient from @supabase/ssr so auth tokens are stored
 // in cookies (matching the server-side middleware client), not localStorage.
 // The Database generic provides end-to-end type safety on .from() calls.
-export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+// We disable the Web Lock API (`lock: false`) because React Strict Mode
+// (and Next.js dev mode) double-mounts components, causing two auth
+// clients to fight over the same lock and trigger cascading AbortErrors.
+export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    flowType: "pkce",
+    lock: false,
+  },
+});

@@ -1,27 +1,80 @@
 # Authentication Flow
 
-Brain Trails uses Supabase Auth with `@supabase/ssr` to ensure secure, SSR-compatible authentication.
+Brain Trails uses Supabase Auth with `@supabase/ssr` for SSR-compatible, cookie-based authentication with PKCE security.
 
-## How it works together
+## Flow Diagram
 
-1. **The Middleware (`middleware.ts`)**
-   - Intercepts every incoming request.
-   - Reconstructs the Supabase client using server-side cookies.
-   - Calls `supabase.auth.getUser()` to verify the token securely on the server.
-   - If the user is unauthenticated and tries to access a protected route (like `/` or `/focus`), they are redirected to `/login`.
-   - If they are authenticated and visit `/login` or `/register`, they are redirected to `/`.
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant B as Browser
+    participant MW as middleware.ts
+    participant CB as /auth/callback
+    participant SA as Supabase Auth
+    participant G as Google OAuth
 
-2. **The Auth Context (`context/AuthContext.tsx`)**
-   - Provides a client-side wrapper around the user session.
-   - Listens to `supabase.auth.onAuthStateChange` to keep the React state in sync with the actual session (e.g. when logging in/out in another tab).
-   - Also listens to `visibilitychange` to re-fetch `getUser()` when a tab is un-frozen or waking from sleep to ensure stale tokens don't cause silent errors.
-   - When a user logs in, it fetches their profile from the `profiles` table. If none exists (e.g. after OAuth), it creates a fallback profile with default game stats.
+    Note over U,G: Email/Password Sign-Up
+    U->>B: Fill register form
+    B->>SA: signUp(email, password, {emailRedirectTo})
+    SA->>U: Confirmation email
+    U->>SA: Click email link → /auth/v1/verify
+    SA->>CB: Redirect with ?code=xxx&next=/email-confirmed
+    CB->>SA: exchangeCodeForSession(code)
+    SA->>CB: Session tokens
+    CB->>B: Set cookies + redirect to /email-confirmed
 
-3. **OAuth Callback (`app/auth/callback/route.ts`)**
-   - Handles the code exchange for Google OAuth.
-   - When Google redirects back with a code, this server route exchanges the code for an active session and sets the cookies before redirecting to the destination URL.
+    Note over U,G: Google OAuth
+    U->>B: Click "Continue with Google"
+    B->>SA: signInWithOAuth({redirectTo: /auth/callback})
+    SA->>G: OAuth consent screen
+    G->>SA: Authorization code
+    SA->>CB: Redirect with ?code=xxx
+    CB->>SA: exchangeCodeForSession(code)
+    SA->>CB: Session tokens
+    CB->>B: Set cookies + redirect to /
+
+    Note over U,G: Password Reset
+    U->>B: Enter email on /forgot-password
+    B->>SA: resetPasswordForEmail({redirectTo: /auth/callback?next=/reset-password})
+    SA->>U: Recovery email
+    U->>SA: Click email link → /auth/v1/verify
+    SA->>CB: Redirect with ?code=xxx&next=/reset-password
+    CB->>SA: exchangeCodeForSession(code)
+    CB->>B: Set cookies + redirect to /reset-password
+    B->>U: Show new password form
+```
+
+## Three Pillars of Auth
+
+### 1. Middleware (`middleware.ts`)
+- Runs on **every request** (except static assets, `/api`, `/auth`, images)
+- Creates a Supabase server client using `getAll/setAll` cookie pattern
+- Calls `supabase.auth.getUser()` to validate the JWT server-side
+- Unauthenticated users on protected routes → redirect to `/login`
+- Authenticated users on `/login` or `/register` → redirect to `/`
+- **Public pages** (whitelisted): `/login`, `/register`, `/forgot-password`, `/reset-password`, `/confirm-email`, `/email-confirmed`, `/privacy`, `/terms`, `/auth/*`
+
+### 2. Auth Context (`context/AuthContext.tsx`)
+- Wraps the entire app via `<AuthProvider>` in `layout.tsx`
+- Listens to `onAuthStateChange` for login/logout events across tabs
+- Listens to `visibilitychange` to re-validate with `getUser()` when a tab wakes from sleep
+- Fetches user profile from `profiles` table; creates a fallback if none exists (e.g., first Google login)
+- Exposes: `user`, `session`, `profile`, `signUp()`, `signIn()`, `signInWithGoogle()`, `signOut()`
+
+### 3. OAuth Callback (`app/auth/callback/route.ts`)
+- Server-side GET route that handles the code exchange for all flows
+- Supports a `?next=` query parameter to redirect to different pages per flow:
+  - OAuth login → `/` (dashboard)
+  - Email confirmation → `/email-confirmed`
+  - Password reset → `/reset-password`
+- Dual-writes cookies to both `cookieStore` and `response.cookies` for maximum reliability
+- If no `?code=` is present (hash-fragment flow), falls through to the target page
 
 ## Security Decisions
 
-- **Cookies over LocalStorage**: We use cookies instead of `localStorage` because Next.js middleware runs on the Edge/Node server. It cannot read `localStorage`. Using cookies ensures the first HTML payload returned by the server is already authenticated, preventing layout shift or flashing login screens.
-- **getUser vs getSession**: `getUser()` sends a request to the Supabase Auth API to validate the token. `getSession()` only decodes the local cookie. For critical security checks (like middleware), we use `getUser()` to ensure the user hasn't been banned or deleted on the backend.
+| Decision | Reasoning |
+|----------|-----------|
+| **Cookies over LocalStorage** | Middleware runs on Edge; can't read `localStorage`. Cookies ensure the first HTML response is already authenticated. |
+| **`getUser()` over `getSession()`** | `getUser()` validates the JWT with Supabase's server. `getSession()` only decodes the local cookie and can't detect banned/deleted users. |
+| **PKCE flow** | Default in `@supabase/ssr` v0.5+. Prevents authorization code interception attacks by requiring a code verifier cookie. |
+| **Dual-write cookies** | The callback writes to both `cookieStore.set()` (native Next.js) and `response.cookies.set()` (redirect fallback) because Next.js has quirks with dropped cookies on 307 redirects. |

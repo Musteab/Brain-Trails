@@ -51,7 +51,7 @@ export default function QuizPage() {
       .limit(20);
 
     if (data) {
-      setPastQuizzes(data.map(d => ({
+      setPastQuizzes(data.map((d: any) => ({
         id: d.id,
         title: `Quiz Attempt`,
         score: d.score,

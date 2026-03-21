@@ -3,133 +3,99 @@
 import { motion } from "framer-motion";
 import QuestLog from "./QuestLog";
 import StudyRoom from "./StudyRoom";
-import AdventureLog from "./AdventureLog";
 import TopStatsBar from "./TopStatsBar";
 import LeaderboardPodium from "./LeaderboardPodium";
-import CoopBossRaid from "./CoopBossRaid";
 import ActivityFeed from "./ActivityFeed";
-import Footer from "../layout/Footer";
-import BackgroundLayer from "../layout/BackgroundLayer";
-import StudyStreakWidget from "../ui/StudyStreakWidget";
 import SyllabusWidget from "./SyllabusWidget";
+import AdventureLog from "./AdventureLog";
+import DashboardTour from "./DashboardTour";
+import BackgroundLayer from "../layout/BackgroundLayer";
 import AmbientPlayer from "../ui/AmbientPlayer";
 import { useTheme } from "@/context/ThemeContext";
-import { useGameStore, useUIStore } from "@/stores";
-import { useKonamiCode } from "@/hooks/useKonamiCode";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
-import { useAuth } from "@/context/AuthContext";
-import confetti from "canvas-confetti";
 
 /**
- * 🗺️ Dashboard — Cleaned-up game-style layout
- * 
- * No greeting banner (user didn't like it).
- * Tighter card hierarchy, no section headers.
- * Relies on the new BackgroundLayer for atmosphere.
+ * 🗺️ Dashboard — Ultra-minimal Glassmorphism Layout
  */
 export default function Dashboard() {
   const { theme } = useTheme();
   const isSun = theme === "sun";
-  const { streakDays, awardGold } = useGameStore();
-  const { addToast } = useUIStore();
-  const { profile, refreshProfile, user } = useAuth();
-  const playSound = useSoundEffects();
-
-  // Konami Code Easter Egg
-  useKonamiCode(() => {
-    playSound("success");
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ["#FBBF24", "#F59E0B", "#D97706"]
-    });
-    if (user?.id) awardGold(user.id, 100);
-    if (profile?.id) refreshProfile();
-    addToast("Konami Code Unlocked! +100 Gold 🎮🪙", "success");
-  });
 
   return (
-    <div className={`min-h-screen bg-transparent ${isSun ? "text-slate-800" : "text-white"}`}>
+    <div className={`min-h-screen relative overflow-hidden bg-transparent ${isSun ? "text-slate-800" : "text-white"}`}>
+      {/* Dynamic Background that changes with time of day */}
       <BackgroundLayer />
+      <DashboardTour />
 
-      <div className="relative min-h-screen flex flex-col">
-        {/* Top Stats Bar */}
-        <header className="w-full px-3 sm:px-[2vw] lg:px-[2.5vw] py-2">
+      <div className="relative min-h-screen flex flex-col z-10 pt-4 pb-20 px-4 sm:px-8 lg:px-12 max-w-[1600px] mx-auto">
+        {/* Minimalist Top Nav */}
+        <header className="w-full mb-6 relative">
           <TopStatsBar />
         </header>
 
         {/* ===== MAIN CONTENT ===== */}
-        <main className="flex-1 px-3 sm:px-[1.5vw] lg:px-[2vw] pt-2 pb-8">
-          <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-start">
+        <main className="flex-1 flex flex-col justify-center items-center w-full gap-6 lg:gap-4">
+          
+          {/* Top Row: Left Panel, Center Mascot, Right Panel */}
+          <div className="w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-end gap-6 lg:gap-4 relative">
             
-            {/* ── Left Column ── */}
+            {/* ── Left Side (Study Realm) ── */}
             <motion.aside
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="order-2 lg:order-1 lg:col-span-3 z-20 relative"
+              transition={{ delay: 0.1, duration: 0.6 }}
+              className="w-full lg:w-[300px] order-2 lg:order-1 flex-shrink-0 flex flex-col gap-4"
             >
-              <div className="lg:sticky lg:top-4 space-y-4">
-                <SyllabusWidget />
-                <StudyStreakWidget streakDays={streakDays} lastStudyDate={null} />
-                <QuestLog />
-              </div>
+              <h2 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"} drop-shadow-md`}>
+                Study Realm
+              </h2>
+              <SyllabusWidget />
             </motion.aside>
 
-            {/* ── Center Stage ── */}
+            {/* ── Centerpiece (Mascot & Floating Stats) ── */}
             <motion.section
-              initial={{ opacity: 0, scale: 0.96 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.05, duration: 0.5 }}
-              className="order-1 lg:order-2 lg:col-span-6 flex items-center justify-center z-10 lg:-mx-2"
+              transition={{ delay: 0.2, duration: 0.7 }}
+              className="order-1 lg:order-2 flex-1 flex flex-col items-center justify-center relative z-20"
             >
-              <div className="w-full max-w-2xl">
-                <StudyRoom />
-              </div>
+              <StudyRoom />
             </motion.section>
 
-            {/* ── Right Column ── */}
+            {/* ── Right Side (Community Hub) ── */}
             <motion.aside
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15, duration: 0.5 }}
-              className="order-3 lg:col-span-3 z-20 relative"
+              transition={{ delay: 0.15, duration: 0.6 }}
+              className="w-full lg:w-[300px] order-3 lg:order-3 flex-shrink-0 flex flex-col gap-4"
             >
-              <div className="lg:sticky lg:top-4 flex flex-col gap-4">
-                <LeaderboardPodium />
-                <AdventureLog />
-              </div>
+              <h2 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"} drop-shadow-md`}>
+                Community Hub
+              </h2>
+              <LeaderboardPodium />
+              <AdventureLog />
             </motion.aside>
-
           </div>
+
+          {/* Bottom Center (Adventures & Activity) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="w-full max-w-4xl order-4 z-20"
+          >
+            <h2 className={`text-xl font-bold font-[family-name:var(--font-nunito)] mb-4 text-center ${isSun ? "text-slate-800" : "text-white"} drop-shadow-md`}>
+              Adventure Dashboard
+            </h2>
+            <div className={`glass rounded-[32px] p-6 sm:p-8 flex flex-col md:flex-row gap-8 shadow-2xl ${isSun ? "bg-white/40 border-white/60" : "bg-black/20 border-white/10"}`}>
+              <div className="flex-1 border-b md:border-b-0 md:border-r border-current border-opacity-10 pb-6 md:pb-0 md:pr-8">
+                <QuestLog />
+              </div>
+              <div className="flex-1">
+                <ActivityFeed />
+              </div>
+            </div>
+          </motion.div>
         </main>
-
-        {/* ===== SCROLL SECTION ===== */}
-        <section className="px-3 sm:px-[1.5vw] lg:px-[2vw] pb-28 pt-2">
-          <div className="max-w-4xl mx-auto space-y-4">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-            >
-              <CoopBossRaid />
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-            >
-              <ActivityFeed />
-            </motion.div>
-          </div>
-        </section>
-
-        <footer className="mt-auto">
-          <Footer />
-        </footer>
       </div>
 
       <AmbientPlayer />

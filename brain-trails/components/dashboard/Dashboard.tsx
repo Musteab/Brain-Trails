@@ -7,6 +7,7 @@ import TopStatsBar from "./TopStatsBar";
 import LeaderboardPodium from "./LeaderboardPodium";
 import ActivityFeed from "./ActivityFeed";
 import SyllabusWidget from "./SyllabusWidget";
+import AdventureLog from "./AdventureLog";
 import DashboardTour from "./DashboardTour";
 import BackgroundLayer from "../layout/BackgroundLayer";
 import AmbientPlayer from "../ui/AmbientPlayer";
@@ -27,23 +28,26 @@ export default function Dashboard() {
 
       <div className="relative min-h-screen flex flex-col z-10 pt-4 pb-20 px-4 sm:px-8 lg:px-12 max-w-[1600px] mx-auto">
         {/* Minimalist Top Nav */}
-        <header className="w-full mb-12">
+        <header className="w-full mb-8">
           <TopStatsBar />
         </header>
 
         {/* ===== MAIN CONTENT ===== */}
-        <main className="flex-1 flex flex-col justify-center items-center w-full gap-12 lg:gap-8">
+        <main className="flex-1 flex flex-col justify-center items-center w-full gap-8 lg:gap-6">
           
           {/* Top Row: Left Panel, Center Mascot, Right Panel */}
-          <div className="w-full flex flex-col lg:flex-row justify-between items-center lg:items-end gap-12 lg:gap-4 relative">
+          <div className="w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-end gap-8 lg:gap-6 relative">
             
-            {/* ── Left Side (My Study Profile) ── */}
+            {/* ── Left Side (Study Realm) ── */}
             <motion.aside
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1, duration: 0.6 }}
-              className="w-full lg:w-[320px] order-2 lg:order-1 flex-shrink-0"
+              className="w-full lg:w-[300px] order-2 lg:order-1 flex-shrink-0 flex flex-col gap-4"
             >
+              <h2 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"} drop-shadow-md`}>
+                Study Realm
+              </h2>
               <SyllabusWidget />
             </motion.aside>
 
@@ -62,9 +66,13 @@ export default function Dashboard() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.15, duration: 0.6 }}
-              className="w-full lg:w-[320px] order-3 lg:order-3 flex-shrink-0"
+              className="w-full lg:w-[300px] order-3 lg:order-3 flex-shrink-0 flex flex-col gap-4"
             >
+              <h2 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"} drop-shadow-md`}>
+                Community Hub
+              </h2>
               <LeaderboardPodium />
+              <AdventureLog />
             </motion.aside>
           </div>
 
@@ -73,8 +81,11 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="w-full max-w-4xl order-4 z-20 mt-8"
+            className="w-full max-w-4xl order-4 z-20"
           >
+            <h2 className={`text-xl font-bold font-[family-name:var(--font-nunito)] mb-4 text-center ${isSun ? "text-slate-800" : "text-white"} drop-shadow-md`}>
+              Adventure Dashboard
+            </h2>
             <div className={`glass rounded-[32px] p-6 sm:p-8 flex flex-col md:flex-row gap-8 shadow-2xl ${isSun ? "bg-white/40 border-white/60" : "bg-black/20 border-white/10"}`}>
               <div className="flex-1 border-b md:border-b-0 md:border-r border-current border-opacity-10 pb-6 md:pb-0 md:pr-8">
                 <QuestLog />

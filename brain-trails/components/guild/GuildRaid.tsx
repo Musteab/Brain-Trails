@@ -61,8 +61,7 @@ export default function GuildRaid({ guildId, isLeader }: GuildRaidProps) {
 
   const fetchRaids = async () => {
     // Fetch active raid
-    const { data: active } = await supabase
-      .from("guild_raids")
+    const { data: active } = await (supabase.from("guild_raids") as any)
       .select("*")
       .eq("guild_id", guildId)
       .eq("status", "active")
@@ -73,8 +72,7 @@ export default function GuildRaid({ guildId, isLeader }: GuildRaidProps) {
     if (active) {
       setActiveRaid(active);
       // Fetch contributions for active raid
-      const { data: contribs } = await supabase
-        .from("guild_raid_contributions")
+      const { data: contribs } = await (supabase.from("guild_raid_contributions") as any)
         .select("*, profiles:user_id ( display_name, avatar_url )")
         .eq("raid_id", active.id)
         .order("damage_dealt", { ascending: false });
@@ -88,8 +86,7 @@ export default function GuildRaid({ guildId, isLeader }: GuildRaidProps) {
     }
 
     // Fetch past raids
-    const { data: past } = await supabase
-      .from("guild_raids")
+    const { data: past } = await (supabase.from("guild_raids") as any)
       .select("*")
       .eq("guild_id", guildId)
       .neq("status", "active")
@@ -115,7 +112,7 @@ export default function GuildRaid({ guildId, isLeader }: GuildRaidProps) {
     weekStart.setDate(now.getDate() - now.getDay());
     weekStart.setHours(0, 0, 0, 0);
 
-    const { error } = await supabase.from("guild_raids").insert({
+    const { error } = await (supabase.from("guild_raids") as any).insert({
       guild_id: guildId,
       topic: raidTopic.trim(),
       boss_hp: bossHp,

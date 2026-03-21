@@ -46,8 +46,7 @@ export default function PathCreator({ existing, onClose, onSaved }: PathCreatorP
     setIsSaving(true);
 
     if (isEditing) {
-      const { error } = await supabase
-        .from("knowledge_paths")
+      const { error } = await (supabase.from("knowledge_paths") as any)
         .update({
           name: name.trim(),
           description: description.trim(),
@@ -65,8 +64,7 @@ export default function PathCreator({ existing, onClose, onSaved }: PathCreatorP
       }
     } else {
       // Create path
-      const { data: pathData, error: pathError } = await supabase
-        .from("knowledge_paths")
+      const { data: pathData, error: pathError } = await (supabase.from("knowledge_paths") as any)
         .insert({
           user_id: user.id,
           name: name.trim(),
@@ -81,8 +79,7 @@ export default function PathCreator({ existing, onClose, onSaved }: PathCreatorP
         addToast("Failed to create path", "error");
       } else {
         // Auto-create a root node
-        const { error: nodeError } = await supabase
-          .from("knowledge_nodes")
+        const { error: nodeError } = await (supabase.from("knowledge_nodes") as any)
           .insert({
             path_id: pathData.id,
             name: name.trim(),

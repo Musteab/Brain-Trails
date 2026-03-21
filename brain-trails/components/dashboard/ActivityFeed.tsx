@@ -26,8 +26,7 @@ const ActivityFeed = memo(function ActivityFeed() {
     if (!user) return;
 
     const fetchFeed = async () => {
-      const { data, error } = await supabase
-        .from('adventure_log')
+      const { data, error } = await (supabase.from('adventure_log') as any)
         .select('id, activity_type, xp_earned, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })

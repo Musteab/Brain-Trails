@@ -30,8 +30,7 @@ const AdventureLog = memo(function AdventureLog() {
       const startDate = subDays(new Date(), DAYS_TO_SHOW - 1);
       startDate.setHours(0, 0, 0, 0);
 
-      const { data, error } = await supabase
-        .from('adventure_log')
+      const { data, error } = await (supabase.from('adventure_log') as any)
         .select('created_at')
         .eq('user_id', user.id)
         .gte('created_at', startDate.toISOString());

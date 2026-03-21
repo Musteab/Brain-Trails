@@ -395,8 +395,8 @@ export default function ShopPage() {
       try {
         setIsLoading(true);
         const [cosmeticsRes, userCosmeticsRes] = await Promise.all([
-          supabase.from("cosmetics").select("*"),
-          supabase.from("user_cosmetics").select("*").eq("user_id", user.id),
+          (supabase.from("cosmetics") as any).select("*"),
+          (supabase.from("user_cosmetics") as any).select("*").eq("user_id", user.id),
         ]);
         if (cancelled) return;
         if (cosmeticsRes.data) {
@@ -502,13 +502,13 @@ export default function ShopPage() {
     const previousGold = gold;
     const newGold = gold - cosmetic.gold_cost;
 
-    const { error: goldError } = await supabase.from("profiles").update({ gold: newGold }).eq("id", user.id);
+    const { error: goldError } = await (supabase.from("profiles") as any).update({ gold: newGold }).eq("id", user.id);
     if (goldError) { addToast("Purchase failed. Try again.", "error"); setPurchasingId(null); return; }
 
-    const { data, error } = await supabase.from("user_cosmetics").insert({ user_id: user.id, cosmetic_id: cosmetic.id }).select().single();
+    const { data, error } = await (supabase.from("user_cosmetics") as any).insert({ user_id: user.id, cosmetic_id: cosmetic.id }).select().single();
     if (error) {
       addToast("Purchase failed. Try again.", "error");
-      await supabase.from("profiles").update({ gold: previousGold }).eq("id", user.id);
+      await (supabase.from("profiles") as any).update({ gold: previousGold }).eq("id", user.id);
       setPurchasingId(null);
       await refreshProfile();
       return;
@@ -535,11 +535,11 @@ export default function ShopPage() {
         return c?.category === cosmetic.category && u.equipped && u.id !== uc.id;
       });
       for (const other of sameCategory) {
-        await supabase.from("user_cosmetics").update({ equipped: false }).eq("id", other.id);
+        await (supabase.from("user_cosmetics") as any).update({ equipped: false }).eq("id", other.id);
       }
     }
 
-    await supabase.from("user_cosmetics").update({ equipped: newEquipped }).eq("id", uc.id);
+    await (supabase.from("user_cosmetics") as any).update({ equipped: newEquipped }).eq("id", uc.id);
 
     const profileUpdate: Record<string, string | null> = {};
     if (cosmetic.category === "title") {
@@ -550,11 +550,11 @@ export default function ShopPage() {
       profileUpdate.title_border = newEquipped ? FRAME_CLASSES[cosmetic.rarity] : null;
     }
     if (Object.keys(profileUpdate).length > 0) {
-      await supabase.from("profiles").update(profileUpdate).eq("id", user.id);
+      await (supabase.from("profiles") as any).update(profileUpdate).eq("id", user.id);
     }
 
     // Re-fetch user cosmetics and force-refresh modal
-    const { data } = await supabase.from("user_cosmetics").select("*").eq("user_id", user.id);
+    const { data } = await (supabase.from("user_cosmetics") as any).select("*").eq("user_id", user.id);
     if (data) setUserCosmetics(data);
 
     await refreshProfile();

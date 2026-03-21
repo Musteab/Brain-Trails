@@ -57,8 +57,7 @@ export default function BossBattle({ boss, deckId, deckName, onExit }: BossBattl
   // Load cards from the selected deck
   useEffect(() => {
     async function loadCards() {
-      const { data, error } = await supabase
-        .from("cards")
+      const { data, error } = await (supabase.from("cards") as any)
         .select("id, front, back, mastery")
         .eq("deck_id", deckId);
 
@@ -84,7 +83,7 @@ export default function BossBattle({ boss, deckId, deckName, onExit }: BossBattl
       const xpEarned = result === "victory" ? boss.xpReward : 0;
       const goldEarned = result === "victory" ? boss.goldReward : 0;
 
-      await supabase.from("boss_battles").insert({
+      await (supabase.from("boss_battles") as any).insert({
         user_id: user.id,
         boss_id: boss.id,
         deck_id: deckId,

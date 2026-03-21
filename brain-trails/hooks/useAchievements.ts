@@ -39,9 +39,8 @@ export function useAchievements(): UseAchievementsReturn {
     setIsLoading(true);
 
     const [achievementsRes, userAchievementsRes] = await Promise.all([
-      supabase.from("achievements").select("*"),
-      supabase
-        .from("user_achievements")
+      (supabase.from("achievements") as any).select("*"),
+      (supabase.from("user_achievements") as any)
         .select("*")
         .eq("user_id", user.id),
     ]);
@@ -72,45 +71,37 @@ export function useAchievements(): UseAchievementsReturn {
       raidContribRes,
     ] = await Promise.all([
       // notes_created
-      supabase
-        .from("notes")
+      (supabase.from("notes") as any)
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id),
       // focus_sessions (count + total minutes)
-      supabase
-        .from("focus_sessions")
+      (supabase.from("focus_sessions") as any)
         .select("duration_minutes")
         .eq("user_id", user.id),
       // cards_reviewed (sum of review_count across user's decks)
-      supabase
-        .from("cards")
+      (supabase.from("cards") as any)
         .select("review_count, decks!inner(user_id)")
         .eq("decks.user_id", user.id),
       // profile (streak_days, level)
-      supabase
-        .from("profiles")
+      (supabase.from("profiles") as any)
         .select("streak_days, level")
         .eq("id", user.id)
         .maybeSingle(),
       // bosses_defeated
-      supabase
-        .from("boss_battles")
+      (supabase.from("boss_battles") as any)
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("result", "victory"),
       // guilds_created
-      supabase
-        .from("guilds")
+      (supabase.from("guilds") as any)
         .select("id", { count: "exact", head: true })
         .eq("leader_id", user.id),
       // guilds_joined
-      supabase
-        .from("guild_members")
+      (supabase.from("guild_members") as any)
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id),
       // raids_contributed
-      supabase
-        .from("guild_raid_contributions")
+      (supabase.from("guild_raid_contributions") as any)
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id),
     ]);
@@ -158,8 +149,7 @@ export function useAchievements(): UseAchievementsReturn {
       if (userValue < achievement.condition_value) continue;
 
       // Achievement condition met — unlock it
-      const { data, error } = await supabase
-        .from("user_achievements")
+      const { data, error } = await (supabase.from("user_achievements") as any)
         .insert({
           user_id: user.id,
           achievement_id: achievement.id,

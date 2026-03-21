@@ -71,8 +71,7 @@ export default function SyllabusWidget() {
         .update({ is_active: false })
         .eq("id", semester.id);
       
-      await supabase
-        .from("profiles")
+      await (supabase.from("profiles") as any)
         .update({ onboarding_completed: false })
         .eq("id", user.id);
       
@@ -172,7 +171,7 @@ export default function SyllabusWidget() {
             </p>
             <button
               onClick={() => {
-                supabase.from("profiles").update({ onboarding_completed: false }).eq("id", user?.id || "").then(() => {
+                (supabase.from("profiles") as any).update({ onboarding_completed: false }).eq("id", user?.id || "").then(() => {
                   router.push("/onboarding");
                 });
               }}

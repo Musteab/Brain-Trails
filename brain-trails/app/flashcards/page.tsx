@@ -149,8 +149,7 @@ export default function FlashcardsPage() {
       const emoji = subject.emoji || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
       const color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
-      const { data: deckData, error: deckErr } = await supabase
-        .from("decks")
+      const { data: deckData, error: deckErr } = await (supabase.from("decks") as any)
         .insert({ user_id: user.id, name: deckName, emoji, color, subject_id: subject.id })
         .select()
         .single();
@@ -166,7 +165,7 @@ export default function FlashcardsPage() {
         review_count: 0,
       }));
 
-      const { data: cardData } = await supabase.from("cards").insert(cardInserts).select();
+      const { data: cardData } = await (supabase.from("cards") as any).insert(cardInserts).select();
 
       const newDeck: Deck = {
         id: deckData.id,
@@ -201,8 +200,7 @@ export default function FlashcardsPage() {
     if (!user) return;
     
     const fetchDecks = async () => {
-      const { data, error } = await supabase
-        .from('decks')
+      const { data, error } = await (supabase.from('decks') as any)
         .select(`
           id, name, emoji, color,
           cards ( id, front, back, mastery, review_count )
@@ -264,8 +262,7 @@ export default function FlashcardsPage() {
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
     };
 
-    const { data, error } = await supabase
-      .from('decks')
+    const { data, error } = await (supabase.from('decks') as any)
       .insert(newDeck)
       .select()
       .single();
@@ -288,7 +285,7 @@ export default function FlashcardsPage() {
     e.stopPropagation();
     if (!confirm("Are you sure you want to delete this deck? All cards inside will be lost!")) return;
 
-    const { error } = await supabase.from('decks').delete().eq('id', deckId);
+    const { error } = await (supabase.from('decks') as any).delete().eq('id', deckId);
     if (!error) {
       setDecks(decks.filter(d => d.id !== deckId));
     }
@@ -297,8 +294,7 @@ export default function FlashcardsPage() {
   const handleAddCard = async () => {
     if (!selectedDeck || !newFront.trim() || !newBack.trim() || !user) return;
     
-    const { data, error } = await supabase
-      .from('cards')
+    const { data, error } = await (supabase.from('cards') as any)
       .insert({
         deck_id: selectedDeck.id,
         front: newFront.trim(),
@@ -353,8 +349,7 @@ export default function FlashcardsPage() {
     setDecks(prev => prev.map(d => d.id === updatedDeck.id ? updatedDeck : d));
 
     // Update in background
-    await supabase
-      .from('cards')
+    await (supabase.from('cards') as any)
       .update({ mastery: newMastery, review_count: updatedCard.review_count })
       .eq('id', currentCard.id);
 

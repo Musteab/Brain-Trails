@@ -184,8 +184,7 @@ export default function SettingsPage() {
       });
       // Load bio separately since Profile interface doesn't include it
       if (user) {
-        supabase
-          .from("profiles")
+        (supabase.from("profiles") as any)
           .select("bio")
           .eq("id", user.id)
           .maybeSingle()
@@ -242,8 +241,7 @@ export default function SettingsPage() {
       return;
     }
 
-    const { error } = await supabase
-      .from("profiles")
+    const { error } = await (supabase.from("profiles") as any)
       .update({
         display_name: trimmedDisplayName || null,
         username: trimmedUsername,
@@ -298,8 +296,7 @@ export default function SettingsPage() {
     setIsResetting(true);
 
     // Reset XP, level, gold in profiles table
-    const { error } = await supabase
-      .from("profiles")
+    const { error } = await (supabase.from("profiles") as any)
       .update({ xp: 0, level: 1, gold: 0, streak_days: 0 })
       .eq("id", user.id);
 
@@ -321,14 +318,13 @@ export default function SettingsPage() {
 
     try {
       const [sessions, notes, decks, cards, log] = await Promise.all([
-        supabase.from("focus_sessions").select("*").eq("user_id", user.id),
-        supabase.from("notes").select("*").eq("user_id", user.id),
-        supabase.from("decks").select("*").eq("user_id", user.id),
-        supabase
-          .from("cards")
+        (supabase.from("focus_sessions") as any).select("*").eq("user_id", user.id),
+        (supabase.from("notes") as any).select("*").eq("user_id", user.id),
+        (supabase.from("decks") as any).select("*").eq("user_id", user.id),
+        (supabase.from("cards") as any)
           .select("*, decks!inner(user_id)")
           .eq("decks.user_id", user.id),
-        supabase.from("adventure_log").select("*").eq("user_id", user.id),
+        (supabase.from("adventure_log") as any).select("*").eq("user_id", user.id),
       ]);
 
       const exportPayload = {

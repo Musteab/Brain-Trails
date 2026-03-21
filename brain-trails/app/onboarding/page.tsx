@@ -131,8 +131,7 @@ export default function OnboardingPage() {
 
   const handleSkip = async () => {
     if (!user) return;
-    await supabase
-      .from("profiles")
+    await (supabase.from("profiles") as any)
       .update({ onboarding_completed: true })
       .eq("id", user.id);
     await refreshProfile();
@@ -413,7 +412,7 @@ export default function OnboardingPage() {
 
           console.log(`[Onboarding] Step 4: Creating exam "${exam.name}"...`);
           const { error: examErr } = await withTimeout(
-            supabase.from("exams").insert({
+            (supabase.from("exams") as any).insert({
               subject_id: subjectId,
               name: exam.name.trim(),
               exam_type: exam.type as "exam" | "quiz" | "assignment" | "project" | "presentation" | "other",
@@ -429,7 +428,7 @@ export default function OnboardingPage() {
 
       // 5. Mark onboarding as completed
       console.log("[Onboarding] Step 5: Marking onboarding complete...");
-      await supabase.from("profiles").update({ onboarding_completed: true }).eq("id", user.id);
+      await (supabase.from("profiles") as any).update({ onboarding_completed: true }).eq("id", user.id);
 
       // 6. Award XP
       console.log("[Onboarding] Step 6: Awarding XP...");

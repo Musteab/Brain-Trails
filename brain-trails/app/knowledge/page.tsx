@@ -142,8 +142,7 @@ export default function KnowledgePage() {
         .select("id, subject_id, name, sort_order, mastery_pct, is_completed")
         .in("subject_id", subjectIds)
         .order("sort_order"),
-      supabase
-        .from("exams")
+      (supabase.from("exams") as any)
         .select("id, subject_id, name, exam_type, exam_date, is_completed")
         .in("subject_id", subjectIds)
         .order("exam_date"),

@@ -149,15 +149,13 @@ export default function ReportPage() {
       const weekStart = startOfWeek.toISOString();
 
       // Fetch focus sessions this week (uses completed_at column)
-      const { data: sessions } = await supabase
-        .from("focus_sessions")
+      const { data: sessions } = await (supabase.from("focus_sessions") as any)
         .select("duration_minutes, completed_at")
         .eq("user_id", user!.id)
         .gte("completed_at", weekStart);
 
       // Fetch adventure log this week
-      const { data: activities } = await supabase
-        .from("adventure_log")
+      const { data: activities } = await (supabase.from("adventure_log") as any)
         .select("activity_type, xp_earned, created_at")
         .eq("user_id", user!.id)
         .gte("created_at", weekStart);

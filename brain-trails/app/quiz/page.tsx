@@ -116,8 +116,7 @@ export default function QuizPage() {
 
       // Save quiz and attempt to Supabase
       try {
-        const { data: quizData } = await supabase
-          .from("quizzes")
+        const { data: quizData } = await (supabase.from("quizzes") as any)
           .insert({
             user_id: user.id,
             title: `Quiz - ${new Date().toLocaleDateString()}`,

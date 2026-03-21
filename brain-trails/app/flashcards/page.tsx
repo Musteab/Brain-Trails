@@ -81,8 +81,7 @@ export default function FlashcardsPage() {
   useEffect(() => {
     if (!user) return;
     const fetchSyllabusSubjects = async () => {
-      const { data: semData } = await supabase
-        .from("semesters")
+      const { data: semData } = await (supabase.from("semesters") as any)
         .select("id")
         .eq("user_id", user.id)
         .eq("is_active", true)
@@ -91,8 +90,7 @@ export default function FlashcardsPage() {
 
       if (!semData) return;
 
-      const { data: subs } = await supabase
-        .from("subjects")
+      const { data: subs } = await (supabase.from("subjects") as any)
         .select("id, name, emoji")
         .eq("semester_id", semData.id)
         .order("name");
@@ -100,8 +98,7 @@ export default function FlashcardsPage() {
       if (!subs || subs.length === 0) return;
 
       const subjectIds = subs.map((s: { id: string }) => s.id);
-      const { data: topics } = await supabase
-        .from("topics")
+      const { data: topics } = await (supabase.from("topics") as any)
         .select("id, name, subject_id")
         .in("subject_id", subjectIds)
         .order("sort_order");

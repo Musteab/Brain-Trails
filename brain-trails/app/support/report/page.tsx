@@ -43,7 +43,7 @@ function ReportIssueForm() {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("support_tickets").insert({
+      const { error } = await (supabase.from("support_tickets") as any).insert({
         user_id: user.id,
         category: "bug",
         subject: `Automated Bug Report: ${pageUrl}`,

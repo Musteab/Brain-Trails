@@ -349,8 +349,7 @@ export default function OnboardingPage() {
       const semesterId = crypto.randomUUID();
       console.log("[Onboarding] Step 1: Creating semester...");
       const { error: semErr } = await withTimeout(
-        supabase
-          .from("semesters")
+        (supabase.from("semesters") as any)
           .insert({ id: semesterId, user_id: user.id, name: data.semesterName || "My Semester", is_active: true }),
         10000,
         "Create semester"
@@ -367,8 +366,7 @@ export default function OnboardingPage() {
         const subjectId = crypto.randomUUID();
         console.log(`[Onboarding] Step 2.${si}: Creating subject "${sub.name}"...`);
         const { error: subErr } = await withTimeout(
-          supabase
-            .from("subjects")
+          (supabase.from("subjects") as any)
             .insert({
               id: subjectId,
               user_id: user.id,
@@ -399,7 +397,7 @@ export default function OnboardingPage() {
           }));
 
           const { error: topErr } = await withTimeout(
-            supabase.from("topics").insert(topicInserts),
+            (supabase.from("topics") as any).insert(topicInserts),
             10000,
             `Create topics for "${sub.name}"`
           );

@@ -156,8 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible") {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
         setSession(currentSession);
-        await handleSession(currentSession?.user ?? null);
+        await handleSession(currentUser ?? null);
       }
     };
 

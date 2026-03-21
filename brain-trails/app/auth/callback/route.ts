@@ -8,9 +8,6 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") || "/";
 
-  // If there's no code, Supabase might be using hash-fragment (implicit) flow.
-  // In that case, redirect to the target page and let the client-side JS
-  // pick up the token from the URL hash via onAuthStateChange.
   if (!code) {
     return NextResponse.redirect(new URL(next, request.url));
   }
@@ -50,5 +47,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // After successful code exchange, ensure we always redirect to dashboard
+  // for OAuth logins (not password reset which passes next=/reset-password)
   return response;
 }

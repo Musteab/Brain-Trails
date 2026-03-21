@@ -28,15 +28,15 @@ export default function Dashboard() {
 
       <div className="relative min-h-screen flex flex-col z-10 pt-4 pb-20 px-4 sm:px-8 lg:px-12 max-w-[1600px] mx-auto">
         {/* Minimalist Top Nav */}
-        <header className="w-full mb-8">
+        <header className="w-full mb-6 relative">
           <TopStatsBar />
         </header>
 
         {/* ===== MAIN CONTENT ===== */}
-        <main className="flex-1 flex flex-col justify-center items-center w-full gap-8 lg:gap-6">
+        <main className="flex-1 flex flex-col justify-center items-center w-full gap-6 lg:gap-4">
           
           {/* Top Row: Left Panel, Center Mascot, Right Panel */}
-          <div className="w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-end gap-8 lg:gap-6 relative">
+          <div className="w-full flex flex-col lg:flex-row justify-between items-stretch lg:items-end gap-6 lg:gap-4 relative">
             
             {/* ── Left Side (Study Realm) ── */}
             <motion.aside

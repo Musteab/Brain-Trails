@@ -69,25 +69,55 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   awardXp: async (userId: string, amount: number) => {
-    const newXp = get().xp + amount;
+    // Optimistic UI update
+    const currentXp = get().xp;
+    const newXp = currentXp + amount;
     const newLevel = calculateLevel(newXp);
-
     set({ xp: newXp, level: newLevel });
 
-    await supabase
-      .from("profiles")
-      .update({ xp: newXp, level: newLevel })
-      .eq("id", userId);
+    // Try atomic RPC first (requires migration 00014)
+    const { error: rpcError } = await supabase.rpc("increment_xp", {
+      user_id: userId,
+      xp_amount: amount,
+    });
+
+    if (rpcError) {
+      console.warn("RPC increment_xp failed, falling back to read-then-write", rpcError);
+      // Fallback: fetch latest to minimize race condition window
+      const { data } = await supabase.from("profiles").select("xp").eq("id", userId).single();
+      if (data) {
+        const trueNewXp = data.xp + amount;
+        const trueNewLevel = calculateLevel(trueNewXp);
+        await supabase
+          .from("profiles")
+          .update({ xp: trueNewXp, level: trueNewLevel })
+          .eq("id", userId);
+      }
+    }
   },
 
   awardGold: async (userId: string, amount: number) => {
-    const newGold = get().gold + amount;
-    set({ gold: newGold });
+    // Optimistic UI update
+    const currentGold = get().gold;
+    set({ gold: currentGold + amount });
 
-    await supabase
-      .from("profiles")
-      .update({ gold: newGold })
-      .eq("id", userId);
+    // Try atomic RPC first
+    const { error: rpcError } = await supabase.rpc("increment_gold", {
+      user_id: userId,
+      gold_amount: amount,
+    });
+
+    if (rpcError) {
+      console.warn("RPC increment_gold failed, falling back to read-then-write", rpcError);
+      // Fallback: fetch latest to minimize race condition window
+      const { data } = await supabase.from("profiles").select("gold").eq("id", userId).single();
+      if (data) {
+        await supabase
+          .from("profiles")
+          .update({ gold: data.gold + amount })
+          .eq("id", userId);
+      }
+    }
   },
 
   logActivity: async (userId, activityType, xpEarned, metadata) => {

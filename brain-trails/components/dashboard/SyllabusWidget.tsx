@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, CheckCircle, Plus, GraduationCap, Flame } from "lucide-react";
+import { BookOpen, Plus, GraduationCap, Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -20,6 +20,10 @@ type Subject = {
   topics: { id: string; is_completed: boolean }[];
 };
 
+/**
+ * Left Panel - My Study Profile
+ * Compact frosted glass panel with Season Mastery progress + action buttons
+ */
 export default function SyllabusWidget() {
   const { user, profile } = useAuth();
   const { theme } = useTheme();
@@ -61,6 +65,7 @@ export default function SyllabusWidget() {
 
   useEffect(() => {
     fetchSyllabus();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleCompleteSemester = async () => {
@@ -82,15 +87,19 @@ export default function SyllabusWidget() {
     }
   };
 
+  const glassPanel = isSun 
+    ? "bg-white/30 border border-white/50 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.06)]" 
+    : "bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]";
+
+  const glassInner = isSun
+    ? "inset 0 1px 0 rgba(255,255,255,0.6)"
+    : "inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.03)";
+
   if (isLoading) {
     return (
-      <div className={`p-5 rounded-[24px] border backdrop-blur-md ${isSun ? "bg-white/50 border-white/60" : "bg-black/20 border-white/10"} animate-pulse h-40`} />
+      <div className={`p-5 rounded-[24px] ${glassPanel} animate-pulse h-48`} />
     );
   }
-
-  const glassClasses = isSun 
-    ? "bg-white/50 border border-white/60 shadow-xl backdrop-blur-md" 
-    : "bg-black/20 border border-white/10 shadow-xl backdrop-blur-md";
 
   let totalTopics = 0;
   let completedTopics = 0;
@@ -102,29 +111,34 @@ export default function SyllabusWidget() {
   const streakDays = profile?.streak_days || 0;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Main Syllabus Card */}
+    <div className="flex flex-col gap-3">
+      {/* Season Mastery Card */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`p-5 rounded-[24px] ${glassClasses}`}
+        className={`p-5 rounded-[24px] ${glassPanel}`}
+        style={{ boxShadow: glassInner }}
       >
         {semester ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${isSun ? "bg-amber-100 text-amber-600" : "bg-indigo-500/20 text-indigo-400"}`}>
+            {/* Header */}
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${isSun ? "bg-amber-100/80 text-amber-600" : "bg-indigo-500/15 text-indigo-400"}`}>
                 <BookOpen className="w-4 h-4" />
               </div>
-              <h3 className={`font-bold text-sm ${isSun ? "text-slate-800" : "text-white"}`}>{semester.name}</h3>
+              <div>
+                <h3 className={`font-bold text-sm ${isSun ? "text-slate-800" : "text-white"}`}>Season Mastery</h3>
+                <p className={`text-[10px] ${isSun ? "text-slate-400" : "text-white/40"}`}>{semester.name}</p>
+              </div>
             </div>
 
-            {/* Overall Mastery Progress */}
+            {/* Progress */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className={`text-xs ${isSun ? "text-slate-600" : "text-slate-300"}`}>Overall Mastery</span>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Progress</span>
                 <span className={`text-xs font-bold ${isSun ? "text-slate-800" : "text-white"}`}>{progressPct}%</span>
               </div>
-              <div className={`h-2.5 rounded-full overflow-hidden ${isSun ? "bg-slate-200/80" : "bg-white/10"}`}>
+              <div className={`h-2 rounded-full overflow-hidden ${isSun ? "bg-slate-200/60" : "bg-white/[0.06]"}`}>
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPct}%` }}
@@ -132,42 +146,41 @@ export default function SyllabusWidget() {
                   className={`h-full rounded-full ${isSun ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-indigo-400 to-purple-500"}`}
                 />
               </div>
-              <p className={`text-[10px] ${isSun ? "text-slate-500" : "text-slate-400"}`}>
-                {subjects.length} Subjects • {totalTopics} Topics
+              <p className={`text-[10px] ${isSun ? "text-slate-400" : "text-white/30"}`}>
+                {subjects.length} Subjects &middot; {completedTopics}/{totalTopics} Topics
               </p>
             </div>
 
-            {/* Action Buttons */}
+            {/* Pill Buttons */}
             <div className="flex gap-2">
+              <button
+                onClick={() => router.push("/knowledge")}
+                className={`flex-1 py-2 rounded-full text-[11px] font-bold text-center transition-all ${
+                  isSun 
+                    ? "bg-white/60 text-slate-600 border border-white/80 hover:bg-white/80" 
+                    : "bg-white/[0.06] text-white/70 border border-white/[0.08] hover:bg-white/[0.1]"
+                }`}
+              >
+                Current Plan
+              </button>
               <button
                 onClick={handleCompleteSemester}
                 disabled={isCompleting}
-                className={`flex-1 py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`flex-1 py-2 rounded-full text-[11px] font-bold text-center transition-all ${
                   isSun 
-                    ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-white hover:shadow-lg" 
-                    : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30"
+                    ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-white hover:shadow-md" 
+                    : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25"
                 }`}
               >
-                <Plus className="w-3.5 h-3.5" />
-                {isCompleting ? "..." : "Start New Plan"}
-              </button>
-              <button
-                onClick={() => router.push("/knowledge")}
-                className={`flex-1 py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  isSun 
-                    ? "bg-white/80 text-slate-700 border border-slate-200 hover:bg-white" 
-                    : "bg-white/10 text-white/80 border border-white/10 hover:bg-white/20"
-                }`}
-              >
-                View Current Plan
+                {isCompleting ? "..." : "Set New Goal"}
               </button>
             </div>
           </div>
         ) : (
           <div className="text-center py-4 space-y-3">
-            <GraduationCap className={`w-8 h-8 mx-auto ${isSun ? "text-slate-300" : "text-slate-600"}`} />
-            <p className={`text-sm ${isSun ? "text-slate-500" : "text-slate-300"}`}>
-              No active syllabus found.
+            <GraduationCap className={`w-7 h-7 mx-auto ${isSun ? "text-slate-300" : "text-slate-600"}`} />
+            <p className={`text-xs ${isSun ? "text-slate-400" : "text-slate-400"}`}>
+              No active syllabus
             </p>
             <button
               onClick={() => {
@@ -175,11 +188,11 @@ export default function SyllabusWidget() {
                   router.push("/onboarding");
                 });
               }}
-              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2 mx-auto transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 mx-auto transition-all ${
                 isSun ? "bg-amber-500 text-white hover:bg-amber-600" : "bg-indigo-500 text-white hover:bg-indigo-600"
               }`}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               Create Syllabus
             </button>
           </div>
@@ -190,21 +203,22 @@ export default function SyllabusWidget() {
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-        className={`p-4 rounded-[20px] ${glassClasses} flex items-center gap-3`}
+        transition={{ delay: 0.1 }}
+        className={`p-4 rounded-[20px] ${glassPanel} flex items-center gap-3`}
+        style={{ boxShadow: glassInner }}
       >
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-          isSun ? "bg-orange-100" : "bg-orange-500/20"
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+          isSun ? "bg-orange-100/80" : "bg-orange-500/15"
         }`}>
-          <Flame className={`w-5 h-5 ${isSun ? "text-orange-500" : "text-orange-400"}`} />
+          <Flame className={`w-4.5 h-4.5 ${isSun ? "text-orange-500" : "text-orange-400"}`} />
         </div>
         <div className="flex-1">
           <div className="flex items-baseline gap-1">
-            <span className={`text-2xl font-black ${isSun ? "text-slate-800" : "text-white"}`}>{streakDays}</span>
-            <span className={`text-xs font-bold ${isSun ? "text-slate-500" : "text-white/60"}`}>days</span>
+            <span className={`text-xl font-black ${isSun ? "text-slate-800" : "text-white"}`}>{streakDays}</span>
+            <span className={`text-[10px] font-bold ${isSun ? "text-slate-400" : "text-white/40"}`}>day streak</span>
           </div>
-          <p className={`text-[10px] ${isSun ? "text-slate-500" : "text-white/50"}`}>
-            🔥 Keep Trying, Never Be Tired
+          <p className={`text-[9px] ${isSun ? "text-slate-400" : "text-white/30"}`}>
+            Keep the flame alive
           </p>
         </div>
       </motion.div>

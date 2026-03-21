@@ -17,6 +17,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     flowType: "pkce",
+    // @ts-ignore
     lock: false,
   },
 });

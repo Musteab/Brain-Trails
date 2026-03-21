@@ -3,13 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Zap, ChevronDown, User as UserIcon, Users, Search, Settings } from "lucide-react";
+import { Zap, User as UserIcon, Users, Search, Settings } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePresence } from "@/hooks/usePresence";
 import ProfileHoverCard from "@/components/ui/ProfileHoverCard";
-import { gameText } from "@/constants/gameText";
 import Link from "next/link";
 
 function getFrameClass(role?: string | null, avatarFrame?: string | null) {
@@ -21,9 +20,9 @@ function getFrameClass(role?: string | null, avatarFrame?: string | null) {
 }
 
 /**
- * 🎮 TopStatsBar — Extremely Minimal
+ * TopStatsBar - Extremely Minimal
  * Left: Pill indicators (Gold, Level, Online)
- * Center: Theme toggle
+ * Center: Theme toggle (centered)
  * Right: Clean circular icons (Search, Settings, Profile)
  */
 export default function TopStatsBar() {
@@ -44,36 +43,40 @@ export default function TopStatsBar() {
   };
 
   const pillClass = isSun 
-    ? "bg-white/70 border-white/80 backdrop-blur-sm" 
-    : "bg-white/5 border-white/10 backdrop-blur-sm";
+    ? "bg-white/50 border-white/60 backdrop-blur-md" 
+    : "bg-white/[0.04] border-white/[0.08] backdrop-blur-md";
+
+  const iconBtnClass = isSun
+    ? "bg-white/50 border-white/60 hover:bg-white/70 text-slate-500"
+    : "bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.08] text-slate-400";
 
   return (
     <motion.div
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="w-full flex items-center justify-between"
+      className="w-full flex items-center justify-between py-1"
     >
       {/* Left: Pill indicators */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {/* Gold */}
-        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${pillClass}`}>
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${pillClass}`}>
           <span className="text-sm">🪙</span>
           {isLoading ? (
-            <div className={`w-6 h-3 rounded animate-pulse ${isSun ? "bg-amber-200" : "bg-amber-500/40"}`} />
+            <div className={`w-5 h-3 rounded animate-pulse ${isSun ? "bg-amber-200" : "bg-amber-500/40"}`} />
           ) : (
             <span className={`font-bold text-xs ${isSun ? "text-amber-700" : "text-amber-300"}`}>{gold}</span>
           )}
         </div>
 
         {/* Level + XP Bar */}
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${pillClass}`}>
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${pillClass}`}>
           <Zap className="w-3.5 h-3.5 text-amber-500" fill="currentColor" />
           {isLoading ? (
-            <div className="w-6 h-3 bg-white/20 rounded animate-pulse" />
+            <div className="w-5 h-3 bg-white/20 rounded animate-pulse" />
           ) : (
             <span className={`font-bold text-xs ${isSun ? "text-slate-700" : "text-white"}`}>Lv.{level}</span>
           )}
-          <div className={`hidden sm:block w-20 h-1.5 rounded-full overflow-hidden ${isSun ? "bg-slate-200" : "bg-white/10"}`}>
+          <div className={`hidden sm:block w-16 h-1.5 rounded-full overflow-hidden ${isSun ? "bg-slate-200/80" : "bg-white/10"}`}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${xpPercentage}%` }}
@@ -84,7 +87,7 @@ export default function TopStatsBar() {
         </div>
 
         {/* Online Count */}
-        <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${pillClass}`}>
+        <div className={`hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full border ${pillClass}`}>
           <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
@@ -96,36 +99,32 @@ export default function TopStatsBar() {
         </div>
       </div>
 
-      {/* Center: Theme Toggle */}
-      <div className="absolute left-1/2 -translate-x-1/2">
+      {/* Center: Theme Toggle - properly centered */}
+      <div className="absolute left-1/2 -translate-x-1/2 z-10">
         <ThemeToggle />
       </div>
 
       {/* Right: Clean circular icons */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {/* Search */}
         <button
           onClick={() => {
             const ev = new CustomEvent("open-command-palette");
             window.dispatchEvent(ev);
           }}
-          className={`hidden sm:flex w-9 h-9 rounded-full items-center justify-center border transition-colors ${
-            isSun ? "bg-white/70 border-white/80 hover:bg-white text-slate-500" : "bg-white/5 border-white/10 hover:bg-white/10 text-slate-400"
-          }`}
+          className={`hidden sm:flex w-8 h-8 rounded-full items-center justify-center border transition-colors ${iconBtnClass}`}
           title="Search (Ctrl+/)"
         >
-          <Search className="w-4 h-4" />
+          <Search className="w-3.5 h-3.5" />
         </button>
 
         {/* Settings */}
         <Link
           href="/settings"
-          className={`w-9 h-9 rounded-full flex items-center justify-center border transition-colors ${
-            isSun ? "bg-white/70 border-white/80 hover:bg-white text-slate-500" : "bg-white/5 border-white/10 hover:bg-white/10 text-slate-400"
-          }`}
+          className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors ${iconBtnClass}`}
           title="Settings"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-3.5 h-3.5" />
         </Link>
 
         {/* Profile */}
@@ -135,7 +134,7 @@ export default function TopStatsBar() {
           onMouseLeave={() => setDropdownOpen(false)}
         >
           <button
-            className={`w-9 h-9 rounded-full flex items-center justify-center border-2 overflow-hidden transition-colors ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center border-2 overflow-hidden transition-colors ${
               getFrameClass(profile?.role, profile?.avatar_frame)
             } ${isSun ? "bg-white/80 border-slate-200" : "bg-slate-800/60 border-slate-700/50"}`}
             title={profile?.display_name || "Profile"}
@@ -144,13 +143,13 @@ export default function TopStatsBar() {
               <Image 
                 src={profile.avatar_url} 
                 alt="Avatar"
-                width={36}
-                height={36}
+                width={32}
+                height={32}
                 unoptimized
                 className="w-full h-full object-cover"
               />
             ) : (
-              <UserIcon className={`w-4 h-4 ${isSun ? "text-slate-400" : "text-white"}`} />
+              <UserIcon className={`w-3.5 h-3.5 ${isSun ? "text-slate-400" : "text-white"}`} />
             )}
           </button>
 

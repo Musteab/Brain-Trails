@@ -103,7 +103,7 @@ const ActivityFeed = memo(function ActivityFeed() {
       {/* Header */}
       <div className="mb-6">
         <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-          Activity Feed
+          Completed Activity Feed
         </h3>
       </div>
 

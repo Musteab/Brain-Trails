@@ -4,19 +4,18 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
-  console.log("Auth Callback Route Hit:", request.url);
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const next = requestUrl.searchParams.get("next") || "/";
 
+  // If there's no code, Supabase might be using hash-fragment (implicit) flow.
+  // In that case, redirect to the target page and let the client-side JS
+  // pick up the token from the URL hash via onAuthStateChange.
   if (!code) {
-    return NextResponse.redirect(
-      new URL("/login?error=No+authentication+code+received", request.url)
-    );
+    return NextResponse.redirect(new URL(next, request.url));
   }
 
   const cookieStore = await cookies();
-  // Determine where to redirect based on the flow type
-  const next = requestUrl.searchParams.get("next") || "/";
   const redirectTo = new URL(next, request.url);
   const response = NextResponse.redirect(redirectTo);
 
@@ -45,12 +44,11 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    console.error("Auth callback exchange error:", error);
+    console.error("Auth callback exchange error:", error.message);
     return NextResponse.redirect(
       new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url)
     );
   }
 
-  // Session cookie is now persisted — middleware will see the user
   return response;
 }

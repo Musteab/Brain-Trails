@@ -144,10 +144,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // CRITICAL: Do NOT await async work inside onAuthStateChange.
+    // The callback holds the Supabase auth lock; awaiting blocks lock
+    // release and causes cascading AbortErrors in React Strict Mode.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
-        await handleSession(session?.user ?? null);
+        // Fire-and-forget — the lock is released immediately
+        handleSession(session?.user ?? null);
       }
     );
 

@@ -24,7 +24,7 @@ export default function StudyRoom() {
     transition: {
       duration: 4,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: "easeInOut" as const
     }
   };
 
@@ -83,7 +83,7 @@ export default function StudyRoom() {
 
         {/* Floating Stat - Stars (Right) */}
         <motion.div 
-          animate={{ y: [0, -8, 0], transition: { duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 } }}
+          animate={{ y: [0, -8, 0], transition: { duration: 3.5, repeat: Infinity, ease: "easeInOut" as const, delay: 1 } }}
           className="absolute right-[-20px] top-[100px] flex items-center gap-2 flex-row-reverse"
         >
           <span className={`font-bold text-sm ${isSun ? "text-slate-700" : "text-white"}`}>{stars} Days</span>
@@ -94,7 +94,7 @@ export default function StudyRoom() {
 
         {/* Floating Stat - Coins (Bottom Left) */}
         <motion.div 
-          animate={{ y: [0, -12, 0], transition: { duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 } }}
+          animate={{ y: [0, -12, 0], transition: { duration: 4.5, repeat: Infinity, ease: "easeInOut" as const, delay: 0.5 } }}
           className="absolute left-[10px] bottom-[40px] flex items-center gap-2"
         >
           <span className={`font-bold text-sm ${isSun ? "text-slate-700" : "text-white"}`}>{gold}</span>

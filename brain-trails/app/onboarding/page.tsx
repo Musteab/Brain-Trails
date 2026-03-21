@@ -347,7 +347,7 @@ export default function OnboardingPage() {
       // 1. Create semester (generate ID client-side to avoid .select().single() hanging)
       const semesterId = crypto.randomUUID();
       console.log("[Onboarding] Step 1: Creating semester...");
-      const { error: semErr } = await withTimeout(
+      const { error: semErr } = await withTimeout<any>(
         (supabase.from("semesters") as any)
           .insert({ id: semesterId, user_id: user.id, name: data.semesterName || "My Semester", is_active: true }),
         10000,
@@ -364,7 +364,7 @@ export default function OnboardingPage() {
 
         const subjectId = crypto.randomUUID();
         console.log(`[Onboarding] Step 2.${si}: Creating subject "${sub.name}"...`);
-        const { error: subErr } = await withTimeout(
+        const { error: subErr } = await withTimeout<any>(
           (supabase.from("subjects") as any)
             .insert({
               id: subjectId,
@@ -395,7 +395,7 @@ export default function OnboardingPage() {
             sort_order: ti,
           }));
 
-          const { error: topErr } = await withTimeout(
+          const { error: topErr } = await withTimeout<any>(
             (supabase.from("topics") as any).insert(topicInserts),
             10000,
             `Create topics for "${sub.name}"`
@@ -411,7 +411,7 @@ export default function OnboardingPage() {
           if (isNaN(parsedDate.getTime())) continue;
 
           console.log(`[Onboarding] Step 4: Creating exam "${exam.name}"...`);
-          const { error: examErr } = await withTimeout(
+          const { error: examErr } = await withTimeout<any>(
             (supabase.from("exams") as any).insert({
               subject_id: subjectId,
               name: exam.name.trim(),

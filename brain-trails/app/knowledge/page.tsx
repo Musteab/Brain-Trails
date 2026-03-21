@@ -110,8 +110,7 @@ export default function KnowledgePage() {
     if (!user) return;
 
     // 1. Get the active semester
-    const { data: semData } = await supabase
-      .from("semesters")
+    const { data: semData } = await (supabase.from("semesters") as any)
       .select("id")
       .eq("user_id", user.id)
       .eq("is_active", true)
@@ -125,8 +124,7 @@ export default function KnowledgePage() {
     }
 
     // 2. Get subjects for this semester
-    const { data: subjects, error: subErr } = await supabase
-      .from("subjects")
+    const { data: subjects, error: subErr } = await (supabase.from("subjects") as any)
       .select("id, name, code, emoji, color, description")
       .eq("semester_id", semData.id)
       .order("name");
@@ -140,8 +138,7 @@ export default function KnowledgePage() {
 
     // 3. Fetch all topics and exams for these subjects in parallel
     const [topicsRes, examsRes] = await Promise.all([
-      supabase
-        .from("topics")
+      (supabase.from("topics") as any)
         .select("id, subject_id, name, sort_order, mastery_pct, is_completed")
         .in("subject_id", subjectIds)
         .order("sort_order"),

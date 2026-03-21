@@ -34,8 +34,7 @@ export default function SyllabusWidget() {
   const fetchSyllabus = async () => {
     if (!user) return;
     try {
-      const { data: semData } = await supabase
-        .from("semesters")
+      const { data: semData } = await (supabase.from("semesters") as any)
         .select("*")
         .eq("user_id", user.id)
         .eq("is_active", true)
@@ -45,8 +44,7 @@ export default function SyllabusWidget() {
 
       if (semData) {
         setSemester(semData);
-        const { data: subData } = await supabase
-          .from("subjects")
+        const { data: subData } = await (supabase.from("subjects") as any)
           .select(`id, name, topics ( id, is_completed )`)
           .eq("semester_id", semData.id);
 
@@ -69,8 +67,7 @@ export default function SyllabusWidget() {
     if (!user || !semester) return;
     setIsCompleting(true);
     try {
-      await supabase
-        .from("semesters")
+      await (supabase.from("semesters") as any)
         .update({ is_active: false })
         .eq("id", semester.id);
       

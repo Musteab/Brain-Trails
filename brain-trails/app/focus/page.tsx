@@ -42,8 +42,7 @@ export default function FocusPage() {
 
     const fetchSubjects = async () => {
       // Try fetching from the active semester's subjects first
-      const { data: semData } = await supabase
-        .from("semesters")
+      const { data: semData } = await (supabase.from("semesters") as any)
         .select("id")
         .eq("user_id", user.id)
         .eq("is_active", true)
@@ -51,8 +50,7 @@ export default function FocusPage() {
         .single();
 
       if (semData) {
-        const { data: subs } = await supabase
-          .from("subjects")
+        const { data: subs } = await (supabase.from("subjects") as any)
           .select("id, name, emoji")
           .eq("semester_id", semData.id)
           .order("name");

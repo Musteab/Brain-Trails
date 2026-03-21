@@ -80,8 +80,7 @@ export function useQuests() {
       ...monthlyPick.map(t => ({ ...t, period: "monthly" as const, user_id: user.id, expires_at: getExpiry("monthly") })),
     ];
 
-    const { data, error } = await supabase
-      .from("daily_quests")
+    const { data, error } = await (supabase.from("daily_quests") as any)
       .insert(newQuests)
       .select("*");
 
@@ -96,8 +95,7 @@ export function useQuests() {
   const fetchQuests = useCallback(async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from("daily_quests")
+    const { data, error } = await (supabase.from("daily_quests") as any)
       .select("*")
       .eq("user_id", user.id)
       .gte("expires_at", new Date().toISOString())
@@ -126,8 +124,7 @@ export function useQuests() {
     const newValue = Math.min(quest.current_value + increment, quest.target_value);
     const completed = newValue >= quest.target_value;
 
-    const { error } = await supabase
-      .from("daily_quests")
+    const { error } = await (supabase.from("daily_quests") as any)
       .update({ current_value: newValue, is_completed: completed })
       .eq("id", questId);
 

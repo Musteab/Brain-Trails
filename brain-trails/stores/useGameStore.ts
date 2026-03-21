@@ -76,7 +76,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ xp: newXp, level: newLevel });
 
     // Try atomic RPC first (requires migration 00014)
-    const { error: rpcError } = await supabase.rpc("increment_xp", {
+    const { error: rpcError } = await (supabase.rpc as any)("increment_xp", {
       user_id: userId,
       xp_amount: amount,
     });
@@ -102,7 +102,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ gold: currentGold + amount });
 
     // Try atomic RPC first
-    const { error: rpcError } = await supabase.rpc("increment_gold", {
+    const { error: rpcError } = await (supabase.rpc as any)("increment_gold", {
       user_id: userId,
       gold_amount: amount,
     });

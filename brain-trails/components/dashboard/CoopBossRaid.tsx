@@ -38,8 +38,7 @@ export default function CoopBossRaid() {
     let cancelled = false;
 
     async function fetchLatest() {
-      const { data, error } = await supabase
-        .from("boss_battles")
+      const { data, error } = await (supabase.from("boss_battles") as any)
         .select("boss_id, result, cards_correct, cards_answered, xp_earned, completed_at")
         .eq("user_id", user!.id)
         .order("completed_at", { ascending: false })

@@ -65,8 +65,8 @@ export default function FocusPage() {
 
       // Fallback: decks + past focus sessions
       const [decksRes, sessionsRes] = await Promise.all([
-        supabase.from("decks").select("name").eq("user_id", user.id),
-        supabase.from("focus_sessions").select("subject").eq("user_id", user.id),
+        (supabase.from("decks") as any).select("name").eq("user_id", user.id),
+        (supabase.from("focus_sessions") as any).select("subject").eq("user_id", user.id),
       ]);
 
       const userSubjects = new Set<string>();

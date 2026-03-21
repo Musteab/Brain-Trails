@@ -49,8 +49,7 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
     if (!user) return;
     
     const fetchNotes = async () => {
-      const { data, error } = await supabase
-        .from('notes')
+      const { data, error } = await (supabase.from('notes') as any)
         .select('id, title, folder, is_pinned, tags, parent_folder_id, updated_at')
         .eq('user_id', user.id)
         .order('is_pinned', { ascending: false })
@@ -128,8 +127,7 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
   const handleCreateNote = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('notes')
+    const { data, error } = await (supabase.from('notes') as any)
       .insert({
         user_id: user.id,
         title: 'Untitled Note',
@@ -165,7 +163,7 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
       })
     })));
 
-    const { error } = await supabase.from("notes").update({ is_pinned: newStatus }).eq("id", noteId);
+    const { error } = await (supabase.from("notes") as any).update({ is_pinned: newStatus }).eq("id", noteId);
     if (error) {
        addToast("Failed to pin note", "error");
     }
@@ -175,7 +173,7 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
     e.stopPropagation();
     if (!confirm("Are you sure you want to delete this note?")) return;
 
-    const { error } = await supabase.from('notes').delete().eq('id', noteId);
+    const { error } = await (supabase.from('notes') as any).delete().eq('id', noteId);
     if (error) {
       addToast("Failed to delete note", "error");
       console.error(error);

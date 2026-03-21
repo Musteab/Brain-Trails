@@ -66,8 +66,7 @@ export default function GuildPage() {
       // Check if user is in a guild
       if (profile?.guild_id) {
         // Fetch user's guild
-        const { data: guild } = await supabase
-          .from("guilds")
+        const { data: guild } = await (supabase.from("guilds") as any)
           .select("*")
           .eq("id", profile.guild_id)
           .single();
@@ -76,8 +75,7 @@ export default function GuildPage() {
           setMyGuild(guild);
 
           // Get user's role
-          const { data: membership } = await supabase
-            .from("guild_members")
+          const { data: membership } = await (supabase.from("guild_members") as any)
             .select("role")
             .eq("guild_id", guild.id)
             .eq("user_id", user.id)
@@ -91,8 +89,7 @@ export default function GuildPage() {
         setMyGuild(null);
 
         // Fetch available guilds
-        const { data: availableGuilds } = await supabase
-          .from("guilds")
+        const { data: availableGuilds } = await (supabase.from("guilds") as any)
           .select("*")
           .order("weekly_xp", { ascending: false })
           .limit(50);
@@ -125,7 +122,7 @@ export default function GuildPage() {
 
     try {
       // Insert into guild_members
-      const { error: memberError } = await supabase.from("guild_members").insert({
+      const { error: memberError } = await (supabase.from("guild_members") as any).insert({
         guild_id: guild.id,
         user_id: user.id,
         role: "member",
@@ -139,14 +136,12 @@ export default function GuildPage() {
       }
 
       // Update profile.guild_id
-      await supabase
-        .from("profiles")
+      await (supabase.from("profiles") as any)
         .update({ guild_id: guild.id })
         .eq("id", user.id);
 
       // Increment member count
-      await supabase
-        .from("guilds")
+      await (supabase.from("guilds") as any)
         .update({ member_count: guild.member_count + 1 })
         .eq("id", guild.id);
 
@@ -170,21 +165,18 @@ export default function GuildPage() {
     if (!confirm("Are you sure you want to leave this guild?")) return;
 
     // Remove from guild_members
-    await supabase
-      .from("guild_members")
+    await (supabase.from("guild_members") as any)
       .delete()
       .eq("guild_id", myGuild.id)
       .eq("user_id", user.id);
 
     // Clear profile guild_id
-    await supabase
-      .from("profiles")
+    await (supabase.from("profiles") as any)
       .update({ guild_id: null })
       .eq("id", user.id);
 
     // Decrement member count
-    await supabase
-      .from("guilds")
+    await (supabase.from("guilds") as any)
       .update({ member_count: Math.max(0, myGuild.member_count - 1) })
       .eq("id", myGuild.id);
 

@@ -66,8 +66,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
     if (!guildId) return;
 
     const fetchMembers = async () => {
-      const { data, error } = await supabase
-        .from("guild_members")
+      const { data, error } = await (supabase.from("guild_members") as any)
         .select("*, profiles:user_id ( display_name, avatar_url, level )")
         .eq("guild_id", guildId)
         .order("role", { ascending: true })
@@ -119,8 +118,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
 
   const handlePromote = async (member: Member) => {
     const newRole = member.role === "member" ? "officer" : "member";
-    const { error } = await supabase
-      .from("guild_members")
+    const { error } = await (supabase.from("guild_members") as any)
       .update({ role: newRole })
       .eq("id", member.id);
 
@@ -142,8 +140,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
     if (!confirm(`Remove ${member.profiles.display_name || "this member"} from the guild?`)) return;
 
     // Remove from guild_members
-    const { error: removeError } = await supabase
-      .from("guild_members")
+    const { error: removeError } = await (supabase.from("guild_members") as any)
       .delete()
       .eq("id", member.id);
 
@@ -154,14 +151,12 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
     }
 
     // Clear their profile guild_id
-    await supabase
-      .from("profiles")
+    await (supabase.from("profiles") as any)
       .update({ guild_id: null })
       .eq("id", member.user_id);
 
     // Decrement member count
-    await supabase
-      .from("guilds")
+    await (supabase.from("guilds") as any)
       .update({ member_count: Math.max(0, members.length - 1) })
       .eq("id", guildId);
 

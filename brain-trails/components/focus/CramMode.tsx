@@ -57,8 +57,7 @@ const AMBIENT_OPTIONS: { key: Exclude<AmbientSound, "none">; icon: typeof Drople
  * Update the user's streak (mirrors FocusTimer logic).
  */
 async function updateStreak(userId: string): Promise<void> {
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: profile } = await (supabase.from("profiles") as any)
     .select("streak_days, streak_last_date")
     .eq("id", userId)
     .maybeSingle();
@@ -78,8 +77,7 @@ async function updateStreak(userId: string): Promise<void> {
       ? (profile.streak_days || 0) + 1
       : 1;
 
-  await supabase
-    .from("profiles")
+  await (supabase.from("profiles") as any)
     .update({ streak_days: newStreak, streak_last_date: todayStr })
     .eq("id", userId);
 }
@@ -129,8 +127,7 @@ export default function CramMode({
 
     async function loadCards() {
       // Find decks matching the subject name
-      const { data: decks } = await supabase
-        .from("decks")
+      const { data: decks } = await (supabase.from("decks") as any)
         .select("id")
         .eq("user_id", user!.id)
         .ilike("name", `%${subject}%`);
@@ -138,8 +135,7 @@ export default function CramMode({
       if (!decks || decks.length === 0) return;
 
       const deckIds = decks.map((d) => d.id);
-      const { data: cardsData } = await supabase
-        .from("cards")
+      const { data: cardsData } = await (supabase.from("cards") as any)
         .select("id, front, back, mastery")
         .in("deck_id", deckIds);
 
@@ -171,7 +167,7 @@ export default function CramMode({
     const gainedXp = focusMinutes * 2;
     const gainedGold = focusMinutes;
 
-    await supabase.from("focus_sessions").insert({
+    await (supabase.from("focus_sessions") as any).insert({
       user_id: user.id,
       subject,
       duration_minutes: focusMinutes,

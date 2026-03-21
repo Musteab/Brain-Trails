@@ -178,8 +178,7 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
+      const { data, error } = await (supabase.from('profiles') as any)
         .select('id, display_name, avatar_url, xp, title, title_border, level, role')
         .order('xp', { ascending: false })
         .limit(3);

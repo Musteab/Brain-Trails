@@ -51,8 +51,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   ...INITIAL_STATE,
 
   loadStats: async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
+    const { data, error } = await (supabase.from("profiles") as any)
       .select("xp, level, gold, streak_days")
       .eq("id", userId)
       .maybeSingle();
@@ -84,12 +83,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (rpcError) {
       console.warn("RPC increment_xp failed, falling back to read-then-write", rpcError);
       // Fallback: fetch latest to minimize race condition window
-      const { data } = await supabase.from("profiles").select("xp").eq("id", userId).single();
+      const { data } = await (supabase.from("profiles") as any).select("xp").eq("id", userId).single();
       if (data) {
         const trueNewXp = data.xp + amount;
         const trueNewLevel = calculateLevel(trueNewXp);
-        await supabase
-          .from("profiles")
+        await (supabase.from("profiles") as any)
           .update({ xp: trueNewXp, level: trueNewLevel })
           .eq("id", userId);
       }
@@ -110,10 +108,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (rpcError) {
       console.warn("RPC increment_gold failed, falling back to read-then-write", rpcError);
       // Fallback: fetch latest to minimize race condition window
-      const { data } = await supabase.from("profiles").select("gold").eq("id", userId).single();
+      const { data } = await (supabase.from("profiles") as any).select("gold").eq("id", userId).single();
       if (data) {
-        await supabase
-          .from("profiles")
+        await (supabase.from("profiles") as any)
           .update({ gold: data.gold + amount })
           .eq("id", userId);
       }
@@ -121,7 +118,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   logActivity: async (userId, activityType, xpEarned, metadata) => {
-    await supabase.from("adventure_log").insert({
+    await (supabase.from("adventure_log") as any).insert({
       user_id: userId,
       activity_type: activityType,
       xp_earned: xpEarned,

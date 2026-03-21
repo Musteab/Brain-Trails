@@ -40,8 +40,7 @@ export default function NotesPage() {
   // Create note and auto-select it
   const handleQuickCreate = async () => {
     if (!user) return;
-    const { data, error } = await supabase
-      .from('notes')
+    const { data, error } = await (supabase.from('notes') as any)
       .insert({
         user_id: user.id,
         title: 'Untitled Note',
@@ -68,8 +67,7 @@ export default function NotesPage() {
 
     const fetchNote = async () => {
       setIsNoteLoading(true);
-      const { data, error } = await supabase
-        .from('notes')
+      const { data, error } = await (supabase.from('notes') as any)
         .select('content_html, title')
         .eq('id', selectedNoteId)
         .single();
@@ -112,8 +110,7 @@ export default function NotesPage() {
     if (!noteId) return;
     setSaveStatus('saving');
     const payload = JSON.stringify({ left: leftHtml, right: rightHtml });
-    const { error } = await supabase
-      .from('notes')
+    const { error } = await (supabase.from('notes') as any)
       .update({ content_html: payload, title: currentTitle, updated_at: new Date().toISOString() })
       .eq('id', noteId);
     if (error) {

@@ -48,7 +48,7 @@ export default function AdminPage() {
       setLoading(true);
       try {
         const [{ count: userCount, data: usersData }, { count: ticketCount, data: ticketsData }] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact" }).order('created_at', { ascending: false }),
+          (supabase.from("profiles") as any).select("*", { count: "exact" }).order('created_at', { ascending: false }),
           (supabase.from("support_tickets") as any).select("*", { count: "exact" }).order('created_at', { ascending: false }),
         ]);
 

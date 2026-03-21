@@ -32,8 +32,7 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
 
     try {
       // 1. Insert guild
-      const { data: guild, error: guildError } = await supabase
-        .from("guilds")
+      const { data: guild, error: guildError } = await (supabase.from("guilds") as any)
         .insert({
           name: name.trim(),
           description: description.trim(),
@@ -57,8 +56,7 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
       }
 
       // 2. Insert creator as leader in guild_members
-      const { error: memberError } = await supabase
-        .from("guild_members")
+      const { error: memberError } = await (supabase.from("guild_members") as any)
         .insert({
           guild_id: guild.id,
           user_id: user.id,
@@ -73,8 +71,7 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
       }
 
       // 3. Update profile.guild_id
-      await supabase
-        .from("profiles")
+      await (supabase.from("profiles") as any)
         .update({ guild_id: guild.id })
         .eq("id", user.id);
 

@@ -41,8 +41,7 @@ export default function RegisterPage() {
     const cleanUsername = username.trim();
 
     // Check username uniqueness (case-insensitive)
-    const { data: existingUser } = await supabase
-      .from("profiles")
+    const { data: existingUser } = await (supabase.from("profiles") as any)
       .select("id")
       .ilike("username", cleanUsername)
       .maybeSingle();

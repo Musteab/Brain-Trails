@@ -51,8 +51,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
     if (!searchQuery.trim() || searchQuery.length < 2) return;
     setSearching(true);
     try {
-      const { data } = await supabase
-        .from("profiles")
+      const { data } = await (supabase.from("profiles") as any)
         .select("id, display_name, avatar_url, level, role")
         .ilike("display_name", `%${searchQuery}%`)
         .neq("id", profile.id)
@@ -96,7 +95,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
         const reader = new FileReader();
         reader.onload = async (ev) => {
           const dataUrl = ev.target?.result as string;
-          await supabase.from("profiles").update({ avatar_url: dataUrl }).eq("id", user.id);
+          await (supabase.from("profiles") as any).update({ avatar_url: dataUrl }).eq("id", user.id);
           await refreshProfile();
           addToast("Avatar updated! ✨", "success");
           setUploadingAvatar(false);
@@ -111,7 +110,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
         .getPublicUrl(path);
 
       // Update profile with avatar URL
-      await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
+      await (supabase.from("profiles") as any).update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
       await refreshProfile();
       addToast("Avatar updated! ✨", "success");
     } catch (err) {

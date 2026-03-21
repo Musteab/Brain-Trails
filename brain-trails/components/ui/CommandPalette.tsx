@@ -131,7 +131,7 @@ export default function CommandPalette() {
         category: "dev",
         action: async () => {
           if (user) {
-            await supabase.from("profiles").update({ onboarding_completed: false }).eq("id", user.id);
+            await (supabase.from("profiles") as any).update({ onboarding_completed: false }).eq("id", user.id);
             await refreshProfile();
             addToast("Onboarding reset!", "info");
             router.push("/onboarding");

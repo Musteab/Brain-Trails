@@ -44,8 +44,7 @@ export default function GuildLeaderboard({ guildId }: GuildLeaderboardProps) {
     if (!guildId) return;
 
     const fetch = async () => {
-      const { data, error } = await supabase
-        .from("guild_members")
+      const { data, error } = await (supabase.from("guild_members") as any)
         .select("id, user_id, role, weekly_xp, profiles:user_id ( display_name, avatar_url, level )")
         .eq("guild_id", guildId)
         .order("weekly_xp", { ascending: false });

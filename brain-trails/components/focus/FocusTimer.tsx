@@ -13,8 +13,7 @@ import { supabase } from "@/lib/supabase";
  * If it was today, do nothing (already counted). Otherwise, reset to 1.
  */
 async function updateStreak(userId: string): Promise<void> {
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: profile } = await (supabase.from("profiles") as any)
     .select("streak_days, streak_last_date")
     .eq("id", userId)
     .maybeSingle();
@@ -42,8 +41,7 @@ async function updateStreak(userId: string): Promise<void> {
     newStreak = 1;
   }
 
-  await supabase
-    .from("profiles")
+  await (supabase.from("profiles") as any)
     .update({ streak_days: newStreak, streak_last_date: todayStr })
     .eq("id", userId);
 }
@@ -142,7 +140,7 @@ export default function FocusTimer({
     const gainedGold = defaultMinutes;
 
     // 1. Insert into focus_sessions
-    await supabase.from('focus_sessions').insert({
+    await (supabase.from('focus_sessions') as any).insert({
       user_id: user.id,
       subject: focusSubject,
       duration_minutes: defaultMinutes,

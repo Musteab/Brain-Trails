@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
   }
 
   const cookieStore = await cookies();
-  const redirectTo = new URL("/", request.url);
+  // Determine where to redirect based on the flow type
+  const next = requestUrl.searchParams.get("next") || "/";
+  const redirectTo = new URL(next, request.url);
   const response = NextResponse.redirect(redirectTo);
 
   const supabase = createServerClient(
@@ -27,10 +29,6 @@ export async function GET(request: NextRequest) {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet: { name: string; value: string; options: any }[]) {
-          // Dual-write: set on BOTH the cookieStore and the response.
-          // cookieStore.set works in Route Handlers (Next 15+) and is
-          // the most reliable way to persist across redirects.
-          // response.cookies.set is a fallback for older runtimes.
           cookiesToSet.forEach(({ name, value, options }) => {
             try {
               cookieStore.set(name, value, options);

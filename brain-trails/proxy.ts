@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
 
@@ -49,6 +49,7 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname === "/forgot-password" ||
     request.nextUrl.pathname === "/reset-password" ||
     request.nextUrl.pathname === "/confirm-email" ||
+    request.nextUrl.pathname === "/email-confirmed" ||
     request.nextUrl.pathname === "/privacy" ||
     request.nextUrl.pathname === "/terms" ||
     request.nextUrl.pathname.startsWith("/auth/");

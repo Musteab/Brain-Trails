@@ -52,6 +52,9 @@ export const metadata: Metadata = {
     type: "website",
   },
   metadataBase: new URL("https://braintrails.dev"),
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/favicon.ico",
   },

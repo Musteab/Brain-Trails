@@ -6,7 +6,7 @@ import { Share2, Download, Upload, Loader2, Check, Sparkles, PanelLeftClose, Pan
 import { useParams } from "next/navigation";
 import SpellbookEditor, { type SpellbookEditorRef } from "@/components/notes/SpellbookEditor";
 import AIFamiliar from "@/components/notes/AIFamiliar";
-import NotesSidebar from "@/components/notes/NotesSidebar";
+import GrimoireSidebar from "@/components/notes/GrimoireSidebar";
 import StuckOwl from "@/components/notes/StuckOwl";
 import { supabase } from "@/lib/supabase";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
@@ -274,7 +274,7 @@ export default function SpellbookPage() {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed left-0 top-20 h-[calc(100%-80px)] z-40"
           >
-            <NotesSidebar onSelectNote={handleSelectNote} selectedNoteId={selectedNoteId} onCloseMobile={() => setIsSidebarOpen(false)} />
+            <GrimoireSidebar onSelectNote={handleSelectNote} selectedNoteId={selectedNoteId} onCloseMobile={() => setIsSidebarOpen(false)} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -6,6 +6,8 @@ import type { NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  console.log("[Auth Callback] Code received:", code ? code.substring(0, 10) + "..." : null);
+  console.log("[Auth Callback] Full URL:", request.url);
   const next = requestUrl.searchParams.get("next") || "/";
 
   if (!code) {
@@ -39,6 +41,7 @@ export async function GET(request: NextRequest) {
   );
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
+  console.log("[Auth Callback] Exchange error:", error || "None (Success)");
 
   if (error) {
     console.error("Auth callback exchange error:", error.message);

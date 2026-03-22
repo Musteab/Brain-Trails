@@ -53,6 +53,11 @@
 | **Spellbook** 📖 | Rich-text note editor (Tiptap) with slash commands, `.docx` import, auto-save | ✅ Live |
 | **Spell Cards** 🃏 | Flashcard decks with flip animation, shuffle, SM-2 spaced repetition | ✅ Live |
 | **Trials** ⚔️ | Quiz engine with timed questions and XP rewards | ✅ Live |
+| **Arcane Archive** 📚 | Subject-centric learning hub with knowledge paths and mastery system | ✅ Live |
+| **Grimoire Sidebar** 📚✨ | Enhanced note organization with folders, search, and pin system | ✅ Live |
+| **Ornate Flashcards** 🃏✨ | Card-reading stand UI with glowing effects and magical styling | ✅ Live |
+| **Knowledge Map** 🗺️ | Visual subject connections with glowing nodes and interactive hover | ✅ Live |
+| **Confetti Celebrations** 🎉 | Performance-based celebration effects on quiz completion | ✅ Live |
 | **Battle Arena** 🐉 | Boss battles against AI using your studied material | ✅ Live |
 | **AI Familiar** 🧚 | Study assistant powered by Google Gemini — summarize, quiz, explain, parse syllabi | ✅ Live |
 | **Guild Hall** 🛡️ | Create/join study guilds, real-time chat, co-op boss raids, weekly leaderboard | 🧪 Beta |
@@ -68,7 +73,44 @@
 
 ---
 
-## 🚀 Getting Started 🏁
+## 📚 The Arcane Archive - Subject-Centric Learning 🧙‍♂️
+
+The **Arcane Archive** revolutionizes how you organize your learning journey:
+
+### 🎯 Core Concept
+Instead of separate global notes, flashcards, and quizzes, everything is now organized by **subjects**. Create a subject (e.g., "Biology", "Spanish", "Calculus") and all your study materials are contained within it.
+
+### 🏗️ Architecture
+```
+Arcane Archive (Hub)
+└── Subject 1 (e.g., Biology)
+    ├── Spellbook (Notes) 📖
+    │   └── Enhanced with Grimoire Sidebar
+    ├── Spell Cards (Flashcards) 🃏
+    │   └── Ornate card-reading stand UI
+    └── Trials (Quizzes) ⚔️
+        └── Locked until mastery thresholds reached
+└── Subject 2 (e.g., Spanish)
+    └── [Same structure]
+```
+
+### 🎨 UI Features
+- **Grimoire Sidebar**: Magical folder organization with search, pins, and color coding
+- **Ornate Flashcards**: Card-reading stand theme with glowing effects
+- **Knowledge Map**: Interactive canvas showing connections between subjects
+- **Mastery System**: Quizzes unlock when you reach ≥30% notes + ≥40% card mastery
+- **Confetti Celebrations**: Performance-based effects on quiz completion
+
+### 🔗 Quick Navigation
+- **Archive Hub**: `/arcane-archive` — View all your subjects
+- **Subject Overview**: `/arcane-archive/[subjectId]` — Choose study mode
+- **Notes**: `/arcane-archive/[subjectId]/spellbook` — Write notes for this subject
+- **Flashcards**: `/arcane-archive/[subjectId]/flashcards` — Practice cards for this subject
+- **Quiz**: `/arcane-archive/[subjectId]/quiz` — Take quizzes (if mastery unlocked)
+
+For detailed implementation info, see [ARCANE_ARCHIVE_REFACTORING.md](./ARCANE_ARCHIVE_REFACTORING.md) 📖
+
+---
 
 ### Prerequisites 🎒
 
@@ -131,22 +173,34 @@ Backend runs on [http://localhost:5000](http://localhost:5000).
 
 ```plaintext
 brain-trails/
-├── app/                  # Next.js App Router pages
-│   ├── battle/           # Boss Battle (Arcane Arena)
-│   ├── focus/            # Focus Garden (Pomodoro + Cram Mode)
-│   ├── guild/            # Guild Hall (chat, raids, leaderboard)
-│   ├── knowledge/        # Knowledge Paths (visual node map)
-│   └── notes/            # Spellbook (rich-text editor)
-├── backend/              # Flask + Gemini AI server
-├── components/           # Modular React components
-├── constants/            # Game text configuration (RPG terminology)
-├── context/              # AuthContext, ThemeContext
-├── hooks/                # Custom hooks (e.g., useAchievements)
-├── lib/                  # Utilities and Supabase clients
-├── public/assets/        # Static images, icons, backgrounds
-├── stores/               # Zustand state management
-├── styles/               # Global and atmosphere CSS
-└── supabase/             # DB schema and configurations
+├── app/                       # Next.js App Router pages
+│   ├── arcane-archive/        # Subject-centric learning hub
+│   │   ├── page.tsx           # Archive hub with all subjects
+│   │   └── [subjectId]/       # Subject-specific routes
+│   │       ├── layout.tsx      # Shared "Wizard's Desk" layout
+│   │       ├── page.tsx        # Subject overview
+│   │       ├── spellbook/      # Subject notes with Grimoire sidebar
+│   │       ├── flashcards/     # Subject flashcards with ornate UI
+│   │       └── quiz/           # Subject quizzes with mastery gate
+│   ├── battle/                # Boss Battle (Arcane Arena)
+│   ├── focus/                 # Focus Garden (Pomodoro + Cram Mode)
+│   ├── guild/                 # Guild Hall (chat, raids, leaderboard)
+│   ├── knowledge/             # Knowledge Paths (visual node map)
+│   └── notes/                 # Legacy Spellbook (backward compatible)
+├── backend/                   # Flask + Gemini AI server
+├── components/
+│   ├── arcane-archive/        # Archive-specific components (Map)
+│   ├── notes/                 # Spellbook components (GrimoireSidebar)
+│   ├── quiz/                  # Quiz components (ConfettiCelebration)
+│   └── ...                    # Other modular React components
+├── constants/                 # Game text configuration (RPG terminology)
+├── context/                   # AuthContext, ThemeContext
+├── hooks/                     # Custom hooks (e.g., useAchievements)
+├── lib/                       # Utilities and Supabase clients
+├── public/assets/             # Static images, icons, backgrounds
+├── stores/                    # Zustand state management
+├── styles/                    # Global and atmosphere CSS
+└── supabase/                  # DB schema and configurations
 ```
 *(Abridged for readability)*
 

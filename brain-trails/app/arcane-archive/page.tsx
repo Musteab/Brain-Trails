@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, Sparkles, BookMarked, Wand2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import BackgroundLayer from "@/components/layout/BackgroundLayer";
+import ArcaneArchiveMap from "@/components/arcane-archive/ArcaneArchiveMap";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useUIStore } from "@/stores";
@@ -25,6 +26,7 @@ export default function ArcaneArchivePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState("");
+  const [hoveredMapSubject, setHoveredMapSubject] = useState<string | null>(null);
 
   // Fetch all subjects for the current user
   useEffect(() => {
@@ -191,6 +193,26 @@ export default function ArcaneArchivePage() {
             </div>
           </div>
         </motion.div>
+
+        {/* Arcane Archive Map */}
+        {subjects.length > 0 && !isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-12"
+          >
+            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-2 ${
+              isSun ? "text-slate-800" : "text-white"
+            }`}>
+              <Sparkles className="w-6 h-6 text-purple-500" />
+              Knowledge Map
+            </h2>
+            <ArcaneArchiveMap
+              subjects={subjects}
+              onSubjectHover={setHoveredMapSubject}
+            />
+          </motion.div>
+        )}
 
         {/* Subjects Grid */}
         {isLoading ? (

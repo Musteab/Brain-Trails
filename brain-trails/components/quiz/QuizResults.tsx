@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Coins, Zap, RotateCcw, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
+import ConfettiCelebration from "./ConfettiCelebration";
 import type { QuizQuestion } from "./QuizPlayer";
 
 interface QuizResultsProps {
@@ -38,6 +39,9 @@ export default function QuizResults({
       animate={{ opacity: 1, scale: 1 }}
       className="space-y-4"
     >
+      {/* Confetti Celebration */}
+      <ConfettiCelebration triggerOn={true} performanceScore={pct} />
+
       {/* Grade Card */}
       <div className={`${card} p-8 text-center`}>
         <motion.div

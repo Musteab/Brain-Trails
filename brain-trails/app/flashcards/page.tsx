@@ -200,25 +200,16 @@ export default function FlashcardsPage() {
     if (!user) return;
     
     const fetchDecks = async () => {
-      const { data, error } = await (supabase.from('decks') as any)
-        .select(`
-          id, name, emoji, color,
-          cards ( id, front, back, mastery, review_count )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error("Error fetching decks:", error);
-      } else {
-        // Sort cards within decks by created_at or id so they have a stable order
-        const raw = (data ?? []) as unknown as Deck[];
-        const formattedDecks = raw.map(d => ({
-          ...d,
-          cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id))
-        }));
-        setDecks(formattedDecks);
-      }
+      // Use legacy helper for backward compatibility with General subject
+      const { getLegacyDecks } = await import('@/lib/legacySubjectHelper');
+      const legacyDecks = await getLegacyDecks(user.id);
+      
+      // Sort cards within decks by created_at or id so they have a stable order
+      const formattedDecks = legacyDecks.map(d => ({
+        ...d,
+        cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id))
+      }));
+      setDecks(formattedDecks);
       setIsLoading(false);
     };
 
@@ -255,11 +246,16 @@ export default function FlashcardsPage() {
   const handleCreateDeck = async () => {
     if (!user || !newDeckName.trim()) return;
 
+    // Get or create General subject for backward compatibility
+    const { getOrCreateGeneralSubject } = await import('@/lib/legacySubjectHelper');
+    const generalSubjectId = await getOrCreateGeneralSubject(user.id);
+
     const newDeck = {
       user_id: user.id,
       name: newDeckName.trim(),
       emoji: EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      subject_id: generalSubjectId || null, // Link to General subject if available
     };
 
     const { data, error } = await (supabase.from('decks') as any)

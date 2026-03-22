@@ -40,11 +40,17 @@ export default function NotesPage() {
   // Create note and auto-select it
   const handleQuickCreate = async () => {
     if (!user) return;
+    
+    // Get or create General subject for backward compatibility
+    const { getOrCreateGeneralSubject } = await import('@/lib/legacySubjectHelper');
+    const generalSubjectId = await getOrCreateGeneralSubject(user.id);
+    
     const { data, error } = await (supabase.from('notes') as any)
       .insert({
         user_id: user.id,
         title: 'Untitled Note',
         folder: 'root',
+        subject_id: generalSubjectId || null, // Link to General subject if available
         content_html: JSON.stringify({ left: '', right: '' }),
       })
       .select('id')

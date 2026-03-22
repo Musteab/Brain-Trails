@@ -139,7 +139,7 @@ export default function NotesPage() {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
         saveToSupabase(selectedNoteId, html, rightContent.html, noteTitle);
-      }, 1000);
+      }, 500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNoteId, rightContent.html, noteTitle]);
@@ -151,10 +151,23 @@ export default function NotesPage() {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
         saveToSupabase(selectedNoteId, leftContent.html, html, noteTitle);
-      }, 1000);
+      }, 500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNoteId, leftContent.html, noteTitle]);
+
+  // Cleanup: Save on unmount or route change
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+      // Force save on unmount
+      if (selectedNoteId) {
+        saveToSupabase(selectedNoteId, leftContent.html, rightContent.html, noteTitle);
+      }
+    };
+  }, [selectedNoteId, leftContent.html, rightContent.html, noteTitle]);
 
   const handleSelectNote = (noteId: string) => {
     // Save current note before switching

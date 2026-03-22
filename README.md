@@ -30,6 +30,7 @@
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
+![Canvas Confetti](https://img.shields.io/badge/Canvas_Confetti-FF6B6B?style=for-the-badge&logo=canvas&logoColor=white)
 
 **Backend, Data & AI 🗄️🧠** 
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
@@ -53,15 +54,15 @@
 | **Spellbook** 📖 | Rich-text note editor (Tiptap) with slash commands, `.docx` import, auto-save | ✅ Live |
 | **Spell Cards** 🃏 | Flashcard decks with flip animation, shuffle, SM-2 spaced repetition | ✅ Live |
 | **Trials** ⚔️ | Quiz engine with timed questions and XP rewards | ✅ Live |
-| **Arcane Archive** 📚 | Subject-centric learning hub with knowledge paths and mastery system | ✅ Live |
-| **Grimoire Sidebar** 📚✨ | Enhanced note organization with folders, search, and pin system | ✅ Live |
-| **Ornate Flashcards** 🃏✨ | Card-reading stand UI with glowing effects and magical styling | ✅ Live |
-| **Knowledge Map** 🗺️ | Visual subject connections with glowing nodes and interactive hover | ✅ Live |
-| **Confetti Celebrations** 🎉 | Performance-based celebration effects on quiz completion | ✅ Live |
+| **Arcane Archive** 📚 | Subject-centric learning hub with knowledge paths, mastery gates, and UI polish | ✅ Live |
+| **Grimoire Sidebar** 📚✨ | Enhanced note organization with folders, search, pins, and color coding | ✅ Live |
+| **Ornate Flashcards** 🃏✨ | Card-reading stand UI with glowing effects, ornate borders, and magical styling | ✅ Live |
+| **Arcane Archive Map** 🗺️ | Interactive canvas showing subject connections with glowing nodes | ✅ Live |
+| **Confetti Celebrations** 🎉 | Performance-scaled celebration effects on quiz completion | ✅ Live |
 | **Battle Arena** 🐉 | Boss battles against AI using your studied material | ✅ Live |
 | **AI Familiar** 🧚 | Study assistant powered by Google Gemini — summarize, quiz, explain, parse syllabi | ✅ Live |
 | **Guild Hall** 🛡️ | Create/join study guilds, real-time chat, co-op boss raids, weekly leaderboard | 🧪 Beta |
-| **Knowledge Map** 🗺️ | Visual node-map skill trees with progress tracking and boss nodes | 🧪 Beta |
+| **Skill Trees** 🌳 | Visual node-map skill trees with progress tracking and boss nodes | 🧪 Beta |
 | **Cosmetics Shop** 🛍️ | Spend in-game gold on themes, avatar frames, titles, and backgrounds (4 rarity tiers) | ✅ Live |
 | **Achievements** 🏆 | 50+ unlockable badges across study, social, combat, exploration, and streak categories | ✅ Live |
 | **Study Music** 🎵 | Embedded Spotify player with curated playlists and custom playlist support | 🧪 Beta |
@@ -95,11 +96,11 @@ Arcane Archive (Hub)
 ```
 
 ### 🎨 UI Features
-- **Grimoire Sidebar**: Magical folder organization with search, pins, and color coding
-- **Ornate Flashcards**: Card-reading stand theme with glowing effects
-- **Knowledge Map**: Interactive canvas showing connections between subjects
-- **Mastery System**: Quizzes unlock when you reach ≥30% notes + ≥40% card mastery
-- **Confetti Celebrations**: Performance-based effects on quiz completion
+- **Grimoire Sidebar**: Magical note organization with folder hierarchy, search, pins, and color tags
+- **Ornate Flashcards**: Card-reading stand theme with glassmorphic effects, ornate borders, and serif typography
+- **Arcane Archive Map**: Interactive canvas visualization of subject connections with glowing nodes and hover effects
+- **Mastery System**: Quizzes unlock when you reach ≥30% notes + ≥40% card mastery (dual-gate system)
+- **Confetti Celebrations**: Performance-scaled particle effects on quiz completion with theme-aware colors
 
 ### 🔗 Quick Navigation
 - **Archive Hub**: `/arcane-archive` — View all your subjects

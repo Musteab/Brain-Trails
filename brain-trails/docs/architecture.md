@@ -46,10 +46,19 @@ app/
 │   ├── page.tsx          → Main dashboard (TopStatsBar, QuestLog, ActivityFeed, etc.)
 │   └── focus/            → Pomodoro focus timer with ambient sounds
 │
+├── arcane-archive/       → Subject-centric learning hub ✨ NEW
+│   ├── page.tsx          → Archive hub showing all subjects
+│   └── [subjectId]/
+│       ├── layout.tsx    → Wizard's Desk shared layout
+│       ├── page.tsx      → Subject overview
+│       ├── spellbook/    → Subject-specific notes with Grimoire Sidebar
+│       ├── flashcards/   → Subject-specific flashcards with ornate UI
+│       └── quiz/         → Subject-specific quizzes with mastery gate
+│
 ├── (features)
-│   ├── flashcards/       → Spaced repetition flashcard decks
-│   ├── quiz/             → Auto-generated quizzes from syllabus
-│   ├── notes/            → Rich text note editor with persistence
+│   ├── flashcards/       → Spaced repetition flashcard decks (legacy)
+│   ├── quiz/             → Auto-generated quizzes from syllabus (legacy)
+│   ├── notes/            → Rich text note editor with persistence (legacy)
 │   ├── knowledge/        → AI Syllabus parser — upload PDFs, generate topics
 │   ├── battle/           → Co-op Boss Raid system
 │   ├── guild/            → Join/create guilds, group leaderboards
@@ -110,6 +119,52 @@ graph LR
         H10[useKonamiCode]
     end
 ```
+
+## Arcane Archive Architecture ✨
+
+The **Arcane Archive** is a subject-centric learning hub that organizes all study materials (notes, flashcards, quizzes) by subject.
+
+### Route Structure
+```
+/arcane-archive                    Hub showing all subjects
+├── /arcane-archive/[subjectId]    Subject overview & study mode selector
+│   ├── /spellbook                 Subject-specific notes editor
+│   ├── /flashcards                Subject-specific flashcard practice
+│   └── /quiz                       Subject-specific quiz with mastery gate
+```
+
+### Component Hierarchy
+```mermaid
+graph TD
+    Archive["📚 Arcane Archive Hub<br/>(page.tsx)"]
+    
+    Archive -->|View Subject| Overview["📖 Subject Overview<br/>([subjectId]/page.tsx)"]
+    Overview -->|Choose Mode| Spellbook["📝 Spellbook<br/>(Grimoire Sidebar)"]
+    Overview -->|Choose Mode| Flashcards["🃏 Flashcards<br/>(Ornate UI)"]
+    Overview -->|Choose Mode| Quiz["⚔️ Quiz<br/>(Mastery Gate)"]
+    
+    Spellbook -->|Enhanced| GrimoireSidebar["📂 Grimoire Sidebar<br/>Folders + Search + Pins"]
+    Flashcards -->|Card Display| OrnateCard["✨ Ornate Card<br/>Glowing Effects"]
+    Quiz -->|Completion| Confetti["🎉 Confetti<br/>Celebration"]
+    
+    Archive -->|Visualization| Map["🗺️ Arcane Archive Map<br/>Subject Connections"]
+    
+    subgraph Shared["Shared Layout (Wizard's Desk)"]
+        Header["📍 Subject Header<br/>Tabs + Progress Bars"]
+    end
+    
+    Spellbook --> Shared
+    Flashcards --> Shared
+    Quiz --> Shared
+```
+
+### New Components Added
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **GrimoireSidebar** | `components/notes/` | Enhanced note sidebar with folders, search, pins |
+| **ArcaneArchiveMap** | `components/arcane-archive/` | Canvas-based subject connection visualization |
+| **ConfettiCelebration** | `components/quiz/` | Performance-based confetti effects |
 
 ## Key Technology Choices
 

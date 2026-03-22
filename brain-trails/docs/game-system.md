@@ -64,7 +64,43 @@ graph LR
 - Visible in the `TopStatsBar` on the dashboard
 - Triggers achievement unlocks at milestones (7-day, 30-day, 100-day)
 
+## Mastery System ✨ (Arcane Archive)
+
+The **Mastery System** gates quiz access based on demonstrated knowledge:
+
+### Unlock Requirements
+- **Spellbook Mastery**: ≥ 30% completion (notes written for a subject)
+- **Spell Cards Mastery**: ≥ 40% card mastery (average mastery across all cards in a subject)
+- **Combined Requirement**: BOTH thresholds must be met to unlock quizzes
+
+### How It Works
+1. User creates a subject in the Arcane Archive
+2. Writes notes (Spellbook) — system tracks note count per subject
+3. Creates and practices flashcards (Spell Cards) — system tracks SM-2 mastery scores
+4. When both thresholds are met, Quiz page unlocks
+5. Quiz is locked until thresholds are maintained
+
+### UI Indicators
+- **Locked Quiz**: Shows 🔒 icon with "Locked" badge and requirement breakdown
+- **Unlocked Quiz**: Shows 🔓 icon with "Trials Unlocked!" celebration
+- **Progress Bars**: Real-time display of Spellbook % and Spell Cards mastery %
+- **Confetti Effect**: Performance-based celebration on quiz completion
+
+### Data Flow
+```
+Subject Created
+    ↓
+Notes Written (Spellbook %) → Refreshes Progress
+    ↓
+Cards Practiced (Cards %) → Updates Mastery
+    ↓
+30% + 40%? → Quiz Unlocks ✅
+    ↓
+Quiz Attempted → Confetti Celebration 🎉
+```
+
 ## Quests 📋
+
 
 | Type | Duration | Reward |
 |------|----------|--------|

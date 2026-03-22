@@ -14,6 +14,10 @@ erDiagram
     PROFILES ||--o{ BOSS_BATTLES : "participates in"
     PROFILES }o--|| GUILDS : "belongs to"
     PROFILES ||--|| USER_SETTINGS : "has one"
+    PROFILES ||--o{ KNOWLEDGE_PATHS : "creates"
+    KNOWLEDGE_PATHS ||--o{ NOTES : "scopes"
+    KNOWLEDGE_PATHS ||--o{ DECKS : "scopes"
+    KNOWLEDGE_PATHS ||--o{ QUIZZES : "scopes"
     DECKS ||--o{ CARDS : "contains"
     SEMESTERS ||--o{ SUBJECTS : "contains"
     SUBJECTS ||--o{ TOPICS : "contains"
@@ -34,6 +38,16 @@ erDiagram
         text title
         text title_border
         text avatar_frame
+    }
+
+    KNOWLEDGE_PATHS {
+        uuid id PK
+        uuid user_id FK
+        text name
+        text emoji
+        text color
+        text description
+        timestamptz created_at
     }
 
     FOCUS_SESSIONS {
@@ -77,18 +91,19 @@ erDiagram
 | Table | Purpose | Key Columns |
 |-------|---------|-------------|
 | `focus_sessions` | Pomodoro session logs | `subject`, `duration_minutes`, `xp_earned`, `gold_earned` |
-| `notes` | Rich text notes with persistence | `user_id`, `title`, `content`, `subject_id` |
-| `decks` | Flashcard deck containers | `user_id`, `title`, `subject` |
+| `notes` | Rich text notes with persistence | `user_id`, `title`, `content`, `subject_id` ✨ |
+| `decks` | Flashcard deck containers | `user_id`, `title`, `subject_id` ✨ |
 | `cards` | Individual flashcards in a deck | `deck_id`, `front`, `back`, `difficulty` |
-| `quizzes` | Auto-generated quizzes | `subject_id`, `title`, `question_count` |
+| `quizzes` | Auto-generated quizzes | `subject_id` ✨, `title`, `question_count` |
 | `quiz_questions` | Questions within a quiz | `quiz_id`, `question`, `options`, `correct_answer` |
 
 ### 🗺️ Syllabus & Knowledge
 | Table | Purpose | Key Columns |
 |-------|---------|-------------|
-| `semesters` | Top-level academic term | `name`, `user_id` |
-| `subjects` | Courses within a semester | `semester_id`, `name`, `color` |
-| `topics` | Individual topics within a subject | `subject_id`, `name`, `is_completed` |
+| `knowledge_paths` | Subject-centric learning hubs ✨ NEW | `user_id`, `name`, `emoji`, `color`, `description` |
+| `semesters` | Top-level academic term (legacy) | `name`, `user_id` |
+| `subjects` | Courses within a semester (legacy) | `semester_id`, `name`, `color` |
+| `topics` | Individual topics within a subject (legacy) | `subject_id`, `name`, `is_completed` |
 
 ### ⚔️ Game Systems
 | Table | Purpose | Key Columns |
@@ -124,3 +139,40 @@ erDiagram
 | 12 | `create_quests` | Daily quests |
 | 13 | `final_polish` | Cosmetics, achievements, guilds |
 | 14 | `atomic_increments` | Race-safe XP/gold RPCs |
+| 15 | `add_subject_linking` ✨ NEW | Arcane Archive subject-centric structure: adds `subject_id` FK to notes, decks, quizzes + creates `knowledge_paths` table |
+
+## Subject-Centric Architecture ✨
+
+### Knowledge Paths (New)
+
+The `knowledge_paths` table is the anchor for the **Arcane Archive** — a subject-centric learning hub.
+
+```sql
+CREATE TABLE knowledge_paths (
+    id uuid PRIMARY KEY,
+    user_id uuid NOT NULL REFERENCES profiles(id),
+    name text NOT NULL,           -- e.g., "Biology", "Spanish"
+    emoji text,                   -- e.g., "📚", "🔬", "🌍"
+    color text,                   -- e.g., "from-purple-500 to-indigo-600"
+    description text,
+    created_at timestamptz DEFAULT NOW()
+);
+```
+
+### Subject Scoping
+
+All study materials now link to a `knowledge_path`:
+
+- **Notes**: `notes.subject_id` → `knowledge_paths.id`
+- **Flashcard Decks**: `decks.subject_id` → `knowledge_paths.id`
+- **Quizzes**: `quizzes.subject_id` → `knowledge_paths.id`
+
+This enables:
+1. **Organized Learning**: All materials for a subject in one place
+2. **Progress Tracking**: Per-subject mastery metrics
+3. **Mastery Gating**: Quiz unlock requires ≥30% notes + ≥40% card mastery
+4. **Visual Connections**: Arcane Archive Map shows subject relationships
+
+### Backward Compatibility
+
+Existing notes, decks, and quizzes have `subject_id = NULL` until explicitly migrated or newly created. Legacy routes (`/notes`, `/flashcards`, `/quiz`) continue to work.

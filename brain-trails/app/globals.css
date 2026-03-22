@@ -661,12 +661,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cosmetic-title-legendary {
-  --title-glow: rgba(251, 191, 36, 0.7);
-  background: linear-gradient(90deg, #fbbf24, #fcd34d, #fff7ed, #fcd34d, #f59e0b, #fbbf24);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: title-shimmer 2.5s linear infinite;
-  filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.5)) drop-shadow(0 0 24px rgba(251, 191, 36, 0.2));
+   --title-glow: rgba(251, 191, 36, 0.7);
+   background: linear-gradient(90deg, #fbbf24, #fcd34d, #fff7ed, #fcd34d, #f59e0b, #fbbf24);
+   background-size: 300% 100%;
+   -webkit-background-clip: text;
+   -webkit-text-fill-color: transparent;
+   background-clip: text;
+   animation: title-shimmer 2.5s linear infinite;
+   filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.5)) drop-shadow(0 0 24px rgba(251, 191, 36, 0.2));
+}
+
+/* ============================================
+    🔮 Ornate Flashcard Animations
+    ============================================ */
+
+@keyframes card-pulse {
+   0%, 100% { opacity: 1; }
+   50% { opacity: 0.8; }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, ChevronLeft, ChevronRight, Plus, Shuffle, BrainCircuit, Trash2, Loader2, BookMarked } from "lucide-react";
+import { RotateCcw, ChevronLeft, ChevronRight, Plus, Shuffle, BrainCircuit, Trash2, Loader2, BookMarked, Sparkles, Wand2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -536,60 +536,147 @@ export default function SubjectFlashcardsPage() {
           </motion.div>
         ) : (
           <>
-            {/* Flashcard */}
+            {/* Ornate Card Reading Stand */}
             <motion.div
               key={currentCard?.id}
-              initial={{ opacity: 0, rotateY: isFlipped ? 180 : 0 }}
-              animate={{ opacity: 1, rotateY: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               className="mb-8"
             >
+              {/* Stand Frame */}
+              <div className="flex justify-center mb-4">
+                <div className={`relative w-full max-w-2xl ${
+                  isSun ? "text-amber-700" : "text-amber-400"
+                }`}>
+                  {/* Ornate Top Border */}
+                  <div className="text-center text-2xl mb-2 opacity-50">✦ ✦ ✦</div>
+                </div>
+              </div>
+
+              {/* The Magical Card */}
               <motion.div
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ 
+                  rotateZ: isFlipped ? 0 : 3,
+                  scale: 1.02 
+                }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setIsFlipped(!isFlipped)}
+                animate={{
+                  rotateX: isFlipped ? 180 : 0,
+                }}
+                transition={{ type: "spring", damping: 20 }}
                 style={{
-                  perspective: "1000px",
+                  perspective: "1200px",
                   transformStyle: "preserve-3d",
                 }}
-                className={`h-80 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all border-2 ${
+                className={`relative h-96 rounded-3xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all border-4 overflow-hidden group ${
                   isSun
-                    ? "bg-gradient-to-br from-white to-slate-50 border-slate-200 shadow-lg"
-                    : "bg-gradient-to-br from-slate-800 to-slate-900 border-purple-500/30 shadow-lg shadow-purple-500/10"
+                    ? "bg-gradient-to-br from-amber-50 via-white to-orange-50 border-amber-300 shadow-2xl"
+                    : "bg-gradient-to-br from-purple-900 via-slate-900 to-indigo-900 border-purple-500/60 shadow-2xl shadow-purple-500/20"
                 }`}
               >
-                <div className={`text-center ${
-                  isSun ? "text-slate-800" : "text-white"
+                {/* Decorative corner ornaments */}
+                <div className={`absolute top-3 left-3 text-lg opacity-40 ${
+                  isSun ? "text-amber-700" : "text-purple-300"
+                }`}>✦</div>
+                <div className={`absolute top-3 right-3 text-lg opacity-40 ${
+                  isSun ? "text-amber-700" : "text-purple-300"
+                }`}>✦</div>
+                <div className={`absolute bottom-3 left-3 text-lg opacity-40 ${
+                  isSun ? "text-amber-700" : "text-purple-300"
+                }`}>✦</div>
+                <div className={`absolute bottom-3 right-3 text-lg opacity-40 ${
+                  isSun ? "text-amber-700" : "text-purple-300"
+                }`}>✦</div>
+
+                {/* Glowing background effect */}
+                <div className={`absolute inset-0 opacity-20 ${
+                  isSun 
+                    ? "bg-gradient-to-br from-amber-400/30 to-transparent"
+                    : "bg-gradient-to-br from-purple-400/30 via-transparent to-indigo-400/30"
+                }`} style={{
+                  animation: "card-pulse 3s ease-in-out infinite"
+                }} />
+
+                {/* Content */}
+                <div className={`text-center relative z-10 ${
+                  isSun ? "text-amber-900" : "text-white"
                 }`}>
-                  <p className={`text-xs font-semibold mb-4 opacity-60 ${
-                    isSun ? "text-slate-500" : "text-slate-400"
-                  }`}>
-                    {isFlipped ? "ANSWER" : "QUESTION"}
-                  </p>
-                  <p className="text-2xl font-bold leading-relaxed">
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className={`text-xs font-semibold mb-6 tracking-widest uppercase ${
+                      isSun ? "text-amber-700" : "text-purple-300"
+                    }`}
+                  >
+                    {isFlipped ? "✨ Answer ✨" : "❔ Question ❔"}
+                  </motion.p>
+                  
+                  <motion.p 
+                    key={`content-${isFlipped}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", damping: 20 }}
+                    className={`text-3xl font-serif leading-relaxed font-bold ${
+                      isSun ? "text-amber-950" : "text-white"
+                    }`}
+                  >
                     {isFlipped ? currentCard?.back : currentCard?.front}
-                  </p>
-                  <p className={`text-xs mt-4 opacity-50 ${
-                    isSun ? "text-slate-500" : "text-slate-400"
-                  }`}>
-                    Click to reveal answer
-                  </p>
+                  </motion.p>
+                  
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.6 }}
+                    transition={{ delay: 0.2 }}
+                    className={`text-xs mt-6 uppercase tracking-widest ${
+                      isSun ? "text-amber-600" : "text-purple-400"
+                    }`}
+                  >
+                    {isFlipped ? "Tap to see question" : "Tap to reveal answer"}
+                  </motion.p>
                 </div>
               </motion.div>
 
-              {/* Mastery Indicator */}
-              <div className="mt-4 flex items-center gap-3">
-                <span className={`text-xs font-semibold ${
-                  isSun ? "text-slate-600" : "text-slate-400"
-                }`}>
-                  Mastery:
-                </span>
-                <MasteryDots mastery={currentCard?.mastery || 0} />
-                <span className={`text-xs font-bold ${
-                  isSun ? "text-slate-700" : "text-slate-300"
-                }`}>
-                  {currentCard?.mastery || 0}%
-                </span>
+              {/* Ornate Bottom Border */}
+              <div className="flex justify-center mt-4 mb-6">
+                <div className={`text-center text-2xl opacity-50 ${
+                  isSun ? "text-amber-700" : "text-amber-400"
+                }`}>✦ ✦ ✦</div>
               </div>
+
+              {/* Mastery Indicator - Enhanced */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex items-center gap-4 p-4 rounded-2xl justify-center ${
+                  isSun
+                    ? "bg-amber-100 border border-amber-300"
+                    : "bg-purple-900/30 border border-purple-500/30"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Wand2 className={`w-5 h-5 ${isSun ? "text-amber-700" : "text-purple-400"}`} />
+                  <span className={`text-sm font-semibold ${
+                    isSun ? "text-amber-800" : "text-purple-300"
+                  }`}>
+                    Mastery:
+                  </span>
+                </div>
+                <MasteryDots mastery={currentCard?.mastery || 0} />
+                <motion.span 
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  className={`text-sm font-bold px-3 py-1 rounded-full ${
+                    isSun
+                      ? "bg-amber-200 text-amber-900"
+                      : "bg-purple-500/30 text-purple-200"
+                  }`}
+                >
+                  {currentCard?.mastery || 0}%
+                </motion.span>
+              </motion.div>
             </motion.div>
 
             {/* Navigation & Grading */}

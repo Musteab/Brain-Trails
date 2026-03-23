@@ -1,0 +1,51 @@
+# DigitalOcean App Platform Specification
+# Deploy with: doctl apps create --spec .do/app.yaml
+
+name: brain-trails-backend
+
+services:
+  - name: api
+    github:
+      repo: Musteab/Brain-Trails
+      branch: main
+      deploy_on_push: true
+    source_dir: brain-trails/backend
+    dockerfile_path: brain-trails/backend/Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: basic-xxs  # $5/mo - 512MB RAM, 1 vCPU
+    
+    # Health check
+    health_check:
+      http_path: /api/health
+      initial_delay_seconds: 10
+      period_seconds: 30
+      timeout_seconds: 10
+      success_threshold: 1
+      failure_threshold: 3
+    
+    # Environment variables (set these in DO dashboard)
+    envs:
+      - key: GROQ_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: GROQ_API_KEYS
+        scope: RUN_TIME
+        type: SECRET
+      - key: GEMINI_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: FLASK_ENV
+        scope: RUN_TIME
+        value: production
+
+    # Auto-scaling (optional, for higher tiers)
+    # autoscaling:
+    #   min_instance_count: 1
+    #   max_instance_count: 3
+    #   metrics:
+    #     cpu:
+    #       percent: 80
+
+# Region - choose closest to your users
+region: nyc

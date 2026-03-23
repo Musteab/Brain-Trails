@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Zap, User as UserIcon, Users, Search, Settings } from "lucide-react";
@@ -24,8 +24,9 @@ function getFrameClass(role?: string | null, avatarFrame?: string | null) {
  * Left: Pill indicators (Gold, Level, Online)
  * Center: Theme toggle (centered)
  * Right: Clean circular icons (Search, Settings, Profile)
+ * Memoized to prevent unnecessary re-renders from parent components
  */
-export default function TopStatsBar() {
+function TopStatsBar() {
   const { theme } = useTheme();
   const { profile, user, signOut, isLoading } = useAuth();
   const onlineCount = usePresence();
@@ -38,9 +39,14 @@ export default function TopStatsBar() {
   const maxXP = level * 1000; 
   const xpPercentage = Math.min((currentXP / maxXP) * 100, 100);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await signOut();
-  };
+  }, [signOut]);
+
+  const openCommandPalette = useCallback(() => {
+    const ev = new CustomEvent("open-command-palette");
+    window.dispatchEvent(ev);
+  }, []);
 
   const pillClass = isSun 
     ? "bg-white/50 border-white/60 backdrop-blur-md" 
@@ -108,10 +114,7 @@ export default function TopStatsBar() {
       <div className="flex items-center gap-1.5">
         {/* Search */}
         <button
-          onClick={() => {
-            const ev = new CustomEvent("open-command-palette");
-            window.dispatchEvent(ev);
-          }}
+          onClick={openCommandPalette}
           className={`hidden sm:flex w-8 h-8 rounded-full items-center justify-center border transition-colors ${iconBtnClass}`}
           title="Search (Ctrl+/)"
         >
@@ -163,3 +166,5 @@ export default function TopStatsBar() {
     </motion.div>
   );
 }
+
+export default memo(TopStatsBar);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { motion } from "framer-motion";
 import { BookOpen, Plus, GraduationCap, Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -23,8 +23,9 @@ type Subject = {
 /**
  * Left Panel - My Study Profile
  * Compact frosted glass panel with Season Mastery progress + action buttons
+ * Memoized to prevent unnecessary re-renders from parent components
  */
-export default function SyllabusWidget() {
+function SyllabusWidget() {
   const { user, profile } = useAuth();
   const { theme } = useTheme();
   const isSun = theme === "sun";
@@ -225,3 +226,5 @@ export default function SyllabusWidget() {
     </div>
   );
 }
+
+export default memo(SyllabusWidget);

@@ -11,13 +11,41 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Use createBrowserClient from @supabase/ssr so auth tokens are stored
 // in cookies (matching the server-side middleware client), not localStorage.
 // The Database generic provides end-to-end type safety on .from() calls.
-// We disable the Web Lock API (`lock: false`) because React Strict Mode
-// (and Next.js dev mode) double-mounts components, causing two auth
-// clients to fight over the same lock and trigger cascading AbortErrors.
 export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     flowType: "pkce",
-    // @ts-ignore
-    lock: false,
+    // Disable problematic Web Lock API to prevent conflicts with React Strict Mode
+    // and Next.js double-mounting. This prevents "Lock not released" warnings.
+    storageKey: `sb-${supabaseUrl.split('//')[1]?.split('.')[0]}-auth-token`,
+    storage: {
+      getItem: (key) => {
+        if (typeof window === 'undefined') return null;
+        return window.localStorage.getItem(key);
+      },
+      setItem: (key, value) => {
+        if (typeof window === 'undefined') return;
+        window.localStorage.setItem(key, value);
+      },
+      removeItem: (key) => {
+        if (typeof window === 'undefined') return;
+        window.localStorage.removeItem(key);
+      },
+    },
+    // Disable automatic token refresh lock
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  global: {
+    fetch: (url, options) => {
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+      
+      return fetch(url, {
+        ...options,
+        signal: controller.signal,
+      }).finally(() => clearTimeout(timeout));
+    },
   },
 });

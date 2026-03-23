@@ -46,73 +46,95 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const statsUnsubRef = useRef<(() => void) | null>(null);
 
-  const fetchProfile = async (userId: string, retries = 1): Promise<void> => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+  const fetchProfile = async (userId: string, retries = 2): Promise<void> => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
 
-    if (error) {
-      console.error("AuthContext: fetchProfile query error:", error);
-    }
+      if (error) {
+        // Ignore abort errors - they're expected during lock conflicts
+        if (error.message?.includes('AbortError') || error.message?.includes('Lock broken')) {
+          console.warn("AuthContext: Request aborted, will retry...");
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return fetchProfile(userId, retries - 1);
+          }
+        } else {
+          console.error("AuthContext: fetchProfile query error:", error);
+        }
+      }
 
-    if (!error && data) {
-      setProfile(data as Profile);
-      useGameStore.getState().loadStats(userId);
-      setIsLoading(false);
-      return;
-    }
-    
-    if (!data && retries > 0) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return fetchProfile(userId, retries - 1);
-    }
-    
-    // Retries exhausted — create a fallback profile
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) {
-      console.error("AuthContext: Could not get current user for fallback creation.");
-      setIsLoading(false);
-      return;
-    }
-
-    const fallbackProfile: Profile = {
-      id: currentUser.id,
-      username: currentUser.email?.split('@')[0] || 'Traveler',
-      display_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Traveler',
-      avatar_url: currentUser.user_metadata?.avatar_url || null,
-      role: 'student',
-      xp: 0,
-      level: 1,
-      gold: 0,
-      streak_days: 0,
-      guild_id: null,
-      onboarding_completed: false,
-      title: null,
-      title_border: null,
-      beta_joined_at: null,
-    };
-
-    const { error: insertError } = await supabase
-      .from("profiles")
-      .insert({
-        id: fallbackProfile.id,
-        username: fallbackProfile.username,
-        display_name: fallbackProfile.display_name,
-        avatar_url: fallbackProfile.avatar_url,
-      } as any);
+      if (!error && data) {
+        setProfile(data as Profile);
+        useGameStore.getState().loadStats(userId);
+        setIsLoading(false);
+        return;
+      }
       
-    if (insertError) {
-      console.error("AuthContext: Fallback profile insertion failed:", insertError);
-    } else {
-      await supabase.from("user_settings").insert({ user_id: currentUser.id });
-    }
+      if (!data && retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return fetchProfile(userId, retries - 1);
+      }
+      
+      // Retries exhausted — create a fallback profile
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        console.error("AuthContext: Could not get current user for fallback creation.");
+        setIsLoading(false);
+        return;
+      }
 
-    // Set the profile either way so the user isn't stuck loading forever
-    setProfile(fallbackProfile);
-    useGameStore.getState().loadStats(currentUser.id);
-    setIsLoading(false);
+      const fallbackProfile: Profile = {
+        id: currentUser.id,
+        username: currentUser.email?.split('@')[0] || 'Traveler',
+        display_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Traveler',
+        avatar_url: currentUser.user_metadata?.avatar_url || null,
+        role: 'student',
+        xp: 0,
+        level: 1,
+        gold: 0,
+        streak_days: 0,
+        guild_id: null,
+        onboarding_completed: false,
+        title: null,
+        title_border: null,
+        beta_joined_at: null,
+      };
+
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert({
+          id: fallbackProfile.id,
+          username: fallbackProfile.username,
+          display_name: fallbackProfile.display_name,
+          avatar_url: fallbackProfile.avatar_url,
+        } as any);
+        
+      if (insertError) {
+        console.error("AuthContext: Fallback profile insertion failed:", insertError);
+      } else {
+        await supabase.from("user_settings").insert({ user_id: currentUser.id });
+      }
+
+      // Set the profile either way so the user isn't stuck loading forever
+      setProfile(fallbackProfile);
+      useGameStore.getState().loadStats(currentUser.id);
+      setIsLoading(false);
+    } catch (err: any) {
+      // Catch any unexpected errors (network issues, etc.)
+      if (err?.name === 'AbortError' || err?.message?.includes('AbortError')) {
+        console.warn("AuthContext: Request aborted");
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          return fetchProfile(userId, retries - 1);
+        }
+      }
+      console.error("AuthContext: Unexpected error in fetchProfile:", err);
+      setIsLoading(false);
+    }
   };
 
   const refreshProfile = async () => {
@@ -159,11 +181,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Re-validate session when the user comes back to the tab.
     // Covers: laptop wake, mobile browser unfreeze, idle timeout.
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === "visible") {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        setSession(currentSession);
-        await handleSession(currentUser ?? null);
+      if (document.visibilityState === "visible" && mounted) {
+        try {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          if (mounted) {
+            setSession(currentSession);
+            await handleSession(currentUser ?? null);
+          }
+        } catch (err: any) {
+          // Silently handle abort errors on visibility change
+          if (!err?.message?.includes('AbortError')) {
+            console.warn("AuthContext: Error refreshing session on visibility change:", err);
+          }
+        }
       }
     };
 

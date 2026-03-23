@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useAdmin } from "@/hooks/useAdmin";
-import { Settings, LogOut, Shield, Star, User as UserIcon, Search, UserPlus, Coins, Flame, Zap, Camera, Loader2 } from "lucide-react";
+import { Settings, LogOut, Shield, Star, User as UserIcon, Search, UserPlus, Coins, Flame, Zap, Camera, Loader2, Users } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
@@ -267,16 +267,28 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
             {/* ― Friend Search ― */}
             <div className="px-5 mb-3">
               {!showFriendSearch ? (
-                <button
-                  onClick={() => setShowFriendSearch(true)}
-                  className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${
-                    isSun
-                      ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200"
-                      : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
-                  }`}
-                >
-                  <Search className="w-3.5 h-3.5" /> Find Friends
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowFriendSearch(true)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${
+                      isSun
+                        ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200"
+                        : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20"
+                    }`}
+                  >
+                    <Search className="w-3.5 h-3.5" /> Find Friends
+                  </button>
+                  <button
+                    onClick={() => addToast("Co-op Ritual coming in v1.1! 🧙", "success")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${
+                      isSun
+                        ? "bg-violet-50 text-violet-600 hover:bg-violet-100 border border-violet-200"
+                        : "bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 border border-violet-500/20"
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" /> Co-op Ritual
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-2">
                   <div className="flex gap-2">

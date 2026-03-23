@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion';
+import { X, GripVertical } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
 type NavItem = {
@@ -34,6 +34,36 @@ export default function TravelerHotbar() {
   const isSun = theme === 'sun';
 
   const [isOpen, setIsOpen] = useState(false);
+  const dragControls = useDragControls();
+  const constraintsRef = useRef<HTMLDivElement>(null);
+  
+  // Position state for persistence
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Load saved position from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('hotbar-position');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setPosition(parsed);
+      } catch {
+        // Invalid saved position, use default
+      }
+    }
+  }, []);
+
+  // Save position to localStorage on drag end
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const newPosition = {
+      x: position.x + info.offset.x,
+      y: position.y + info.offset.y,
+    };
+    setPosition(newPosition);
+    localStorage.setItem('hotbar-position', JSON.stringify(newPosition));
+    setIsDragging(false);
+  };
 
   // Close when clicking outside or hitting Escape
   useEffect(() => {
@@ -100,6 +130,9 @@ export default function TravelerHotbar() {
 
   return (
     <>
+      {/* Drag constraints container (full viewport) */}
+      <div ref={constraintsRef} className="fixed inset-0 pointer-events-none z-40" />
+
       {/* Backdrop overlay when open */}
       <AnimatePresence>
         {isOpen && (
@@ -113,8 +146,20 @@ export default function TravelerHotbar() {
         )}
       </AnimatePresence>
 
-      {/* Floating UI Container */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+      {/* Floating UI Container - Draggable */}
+      <motion.div 
+        className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto"
+        drag
+        dragControls={dragControls}
+        dragMomentum={false}
+        dragElastic={0.1}
+        dragConstraints={constraintsRef}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={handleDragEnd}
+        initial={position}
+        animate={position}
+        style={{ touchAction: 'none' }}
+      >
         
         {/* Expanded Grid Menu */}
         <AnimatePresence>
@@ -146,17 +191,33 @@ export default function TravelerHotbar() {
           )}
         </AnimatePresence>
 
-        {/* The Orb (Toggle Button) */}
-        <motion.button
-          onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`relative flex items-center justify-center w-16 h-16 rounded-full border-[3px] shadow-2xl transition-colors z-50 overflow-hidden ${
-            isOpen
-              ? 'bg-gradient-to-br from-violet-500 to-purple-600 border-purple-400 shadow-purple-500/40'
-              : 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-300 shadow-orange-500/40'
-          }`}
-        >
+        {/* The Orb (Toggle Button) with Drag Handle */}
+        <div className="relative">
+          {/* Drag indicator - appears on hover */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ 
+              opacity: isDragging ? 1 : 0,
+              scale: isDragging ? 1 : 0.8 
+            }}
+            className={`absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap ${
+              isSun ? 'bg-slate-800 text-white' : 'bg-white text-slate-800'
+            }`}
+          >
+            <GripVertical className="w-3 h-3 inline mr-1" />
+            Drag to move
+          </motion.div>
+
+          <motion.button
+            onClick={() => !isDragging && setIsOpen(!isOpen)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`relative flex items-center justify-center w-16 h-16 rounded-full border-[3px] shadow-2xl transition-colors z-50 overflow-hidden cursor-grab active:cursor-grabbing ${
+              isOpen
+                ? 'bg-gradient-to-br from-violet-500 to-purple-600 border-purple-400 shadow-purple-500/40'
+                : 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-300 shadow-orange-500/40'
+            }`}
+          >
           {/* Inner glow */}
           <div className="absolute inset-0 rounded-full bg-white/20 blur-md pointer-events-none" />
 
@@ -183,8 +244,9 @@ export default function TravelerHotbar() {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.button>
-      </div>
+          </motion.button>
+        </div>
+      </motion.div>
     </>
   );
 }

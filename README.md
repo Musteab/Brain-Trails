@@ -49,13 +49,16 @@
 | Module 🧩 | What it does 📋 | Status 🔖 |
 |--------|-------------|--------|
 | **Dashboard** 🏰 | RPG-styled home with quest log, leaderboard, activity feed, and daily progress rings | ✅ Live |
+| **Arcane Archive** 📚 | Subject-centric study hub — organize notes, flashcards, and quizzes by subject | ✅ Live |
 | **Focus Garden** 🌻 | Pomodoro timer with plant growth animation, session tracking, and XP/gold block rewards | ✅ Live |
 | **Spellbook** 📖 | Rich-text note editor (Tiptap) with slash commands, `.docx` import, auto-save | ✅ Live |
 | **Spell Cards** 🃏 | Flashcard decks with flip animation, shuffle, SM-2 spaced repetition | ✅ Live |
+| **Exam Cram Mode** 🔥 | Distraction-free study loop with streak tracking, XP multipliers, and timed sessions | ✅ Live |
 | **Trials** ⚔️ | Quiz engine with timed questions and XP rewards | ✅ Live |
 | **Battle Arena** 🐉 | Boss battles against AI using your studied material | ✅ Live |
 | **AI Familiar** 🧚 | Study assistant powered by Google Gemini — summarize, quiz, explain, parse syllabi | ✅ Live |
 | **Guild Hall** 🛡️ | Create/join study guilds, real-time chat, co-op boss raids, weekly leaderboard | 🧪 Beta |
+| **Co-op Ritual** 👥 | Send Mana Boosts to friends, invite to study together, real-time notifications | 🧪 Beta |
 | **Knowledge Map** 🗺️ | Visual node-map skill trees with progress tracking and boss nodes | 🧪 Beta |
 | **Cosmetics Shop** 🛍️ | Spend in-game gold on themes, avatar frames, titles, and backgrounds (4 rarity tiers) | ✅ Live |
 | **Achievements** 🏆 | 50+ unlockable badges across study, social, combat, exploration, and streak categories | ✅ Live |
@@ -64,6 +67,7 @@
 | **Weekly Report** 📜 | Analytics dashboard — focus time, XP, streak, daily activity chart | ✅ Live |
 | **Support Center** 🛠️ | Bug reports and feature requests with Discord integration | ✅ Live |
 | **Onboarding** 🎒 | Guided setup wizard — upload syllabus (AI-parsed) or manually add subjects/topics/exams | ✅ Live |
+| **Traveler Hotbar** 🧭 | Draggable floating navigation orb with quick access to all features | ✅ Live |
 | **Sun / Moon Theme** ☀️🌙| Full light/dark mode with animated sky backgrounds and localStorage persistence | ✅ Live |
 
 ---
@@ -132,6 +136,13 @@ Backend runs on [http://localhost:5000](http://localhost:5000).
 ```plaintext
 brain-trails/
 ├── app/                  # Next.js App Router pages
+│   ├── arcane-archive/   # Subject-centric study hub
+│   │   ├── [subjectId]/  # Per-subject routes
+│   │   │   ├── spellbook/    # Subject notes
+│   │   │   ├── flashcards/   # Subject flashcards
+│   │   │   ├── quiz/         # Subject quizzes
+│   │   │   └── exam-cram/    # Distraction-free study mode
+│   │   └── page.tsx      # Subject list
 │   ├── battle/           # Boss Battle (Arcane Arena)
 │   ├── focus/            # Focus Garden (Pomodoro + Cram Mode)
 │   ├── guild/            # Guild Hall (chat, raids, leaderboard)
@@ -139,6 +150,14 @@ brain-trails/
 │   └── notes/            # Spellbook (rich-text editor)
 ├── backend/              # Flask + Gemini AI server
 ├── components/           # Modular React components
+│   ├── dashboard/        # Dashboard widgets (memoized)
+│   ├── focus/            # Focus timer components
+│   ├── guild/            # Guild system components
+│   ├── layout/           # TravelerHotbar (draggable), TopBar
+│   ├── notes/            # SpellbookEditor, AIFamiliar
+│   ├── social/           # ManaBoostNotification, CoopRitualButton
+│   ├── study/            # ExamCramMode
+│   └── ui/               # ProfileHoverCard, reusable UI
 ├── constants/            # Game text configuration (RPG terminology)
 ├── context/              # AuthContext, ThemeContext
 ├── hooks/                # Custom hooks (e.g., useAchievements)

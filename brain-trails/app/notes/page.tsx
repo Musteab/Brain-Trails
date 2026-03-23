@@ -32,6 +32,19 @@ export default function NotesPage() {
   const rightEditorRef = useRef<SpellbookEditorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Refs to hold latest values for use in debounced callbacks (avoids stale closures)
+  const leftContentRef = useRef(leftContent);
+  const rightContentRef = useRef(rightContent);
+  const noteTitleRef = useRef(noteTitle);
+  const selectedNoteIdRef = useRef(selectedNoteId);
+  
+  // Keep refs in sync with state
+  useEffect(() => { leftContentRef.current = leftContent; }, [leftContent]);
+  useEffect(() => { rightContentRef.current = rightContent; }, [rightContent]);
+  useEffect(() => { noteTitleRef.current = noteTitle; }, [noteTitle]);
+  useEffect(() => { selectedNoteIdRef.current = selectedNoteId; }, [selectedNoteId]);
+  
   const { user } = useAuth();
   const { addToast } = useUIStore();
   const { theme } = useTheme();
@@ -106,7 +119,7 @@ export default function NotesPage() {
     fetchNote();
   }, [selectedNoteId]);
 
-  const saveToSupabase = async (noteId: string, leftHtml: string, rightHtml: string, currentTitle: string) => {
+  const saveToSupabase = useCallback(async (noteId: string, leftHtml: string, rightHtml: string, currentTitle: string) => {
     if (!noteId) return;
     setSaveStatus('saving');
     const payload = JSON.stringify({ left: leftHtml, right: rightHtml });
@@ -120,41 +133,40 @@ export default function NotesPage() {
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }
-  };
+  }, [addToast]);
+
+  // Debounced save that reads from refs to avoid stale closures
+  const scheduleSave = useCallback(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const noteId = selectedNoteIdRef.current;
+      if (noteId) {
+        saveToSupabase(
+          noteId,
+          leftContentRef.current.html,
+          rightContentRef.current.html,
+          noteTitleRef.current
+        );
+      }
+    }, 1000);
+  }, [saveToSupabase]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNoteTitle(e.target.value);
-    if (selectedNoteId) {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => {
-        saveToSupabase(selectedNoteId, leftContent.html, rightContent.html, e.target.value);
-      }, 1000);
-    }
+    scheduleSave();
   };
 
   // Debounced auto-save for left page
   const handleLeftContentChange = useCallback((html: string, text: string) => {
     setLeftContent({ html, text });
-    if (selectedNoteId) {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => {
-        saveToSupabase(selectedNoteId, html, rightContent.html, noteTitle);
-      }, 1000);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNoteId, rightContent.html, noteTitle]);
+    scheduleSave();
+  }, [scheduleSave]);
 
   // Debounced auto-save for right page
   const handleRightContentChange = useCallback((html: string, text: string) => {
     setRightContent({ html, text });
-    if (selectedNoteId) {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => {
-        saveToSupabase(selectedNoteId, leftContent.html, html, noteTitle);
-      }, 1000);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNoteId, leftContent.html, noteTitle]);
+    scheduleSave();
+  }, [scheduleSave]);
 
   const handleSelectNote = (noteId: string) => {
     // Save current note before switching

@@ -293,10 +293,10 @@ def parse_syllabus():
             raw_bytes = base64.b64decode(file_data)
 
             if file_type == "pdf":
-                # Extract text from PDF using PyPDF2, then send to Groq
+                # Extract text from PDF using pypdf, then send to Groq
                 import io
                 try:
-                    from PyPDF2 import PdfReader
+                    from pypdf import PdfReader
                     reader = PdfReader(io.BytesIO(raw_bytes))
                     pdf_text = "\n".join(page.extract_text() or "" for page in reader.pages)
                 except Exception as pdf_err:

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 import OwlCompanion from "../ui/OwlCompanion";
 import { useAuth } from "@/context/AuthContext";
@@ -7,8 +8,9 @@ import { useTheme } from "@/context/ThemeContext";
 
 /**
  * Centerpiece - Owl Mascot on stone pedestal with floating stats
+ * Memoized to prevent unnecessary re-renders from parent components
  */
-export default function StudyRoom() {
+function StudyRoom() {
   const { profile } = useAuth();
   const { theme } = useTheme();
   const isSun = theme === "sun";
@@ -130,3 +132,5 @@ export default function StudyRoom() {
     </div>
   );
 }
+
+export default memo(StudyRoom);

@@ -208,37 +208,22 @@ export default function FocusTimer({
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Dreamy Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-300 via-blue-200 to-slate-400 -z-10" />
+      {/* Mystical Dark Background with Twinkling Stars */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 -z-10" />
       
-      {/* Back button */}
-      {onBack && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          whileHover={{ x: -2 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onBack}
-          className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/50 backdrop-blur-sm hover:bg-white/70 text-slate-600 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Back</span>
-        </motion.button>
-      )}
-
-      {/* Floating particles/dots for ambiance */}
+      {/* Twinkling stars background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-5">
         {PARTICLE_POSITIONS.map((p, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 rounded-full bg-white/40"
+            className="absolute w-1 h-1 rounded-full bg-cyan-300/60"
             style={{
               left: p.left,
               top: p.top,
             }}
             animate={{
-              y: [0, -20, 0],
-              opacity: [0.3, 0.7, 0.3],
+              opacity: [0.2, 1, 0.2],
+              scale: [0.8, 1.2, 0.8],
             }}
             transition={{
               duration: p.duration,
@@ -248,70 +233,174 @@ export default function FocusTimer({
           />
         ))}
       </div>
+      
+      {/* Back button */}
+      {onBack && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          whileHover={{ x: -2 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onBack}
+          className="absolute top-6 left-6 z-20 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/60 backdrop-blur-sm hover:bg-slate-700/70 text-cyan-300 border border-cyan-500/20 transition-colors shadow-lg shadow-cyan-500/10"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium font-[family-name:var(--font-cinzel)]">Back</span>
+        </motion.button>
+      )}
 
       {/* Focus Subject Label */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-12"
+        className="mb-8"
       >
-        <div className="px-6 py-2.5 bg-white/70 backdrop-blur-md rounded-full shadow-lg border border-white/50">
-          <span className="text-slate-700 font-medium font-[family-name:var(--font-quicksand)]">
-            Focusing on: <span className="font-bold">{focusSubject}</span>
+        <div className="px-6 py-2.5 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 backdrop-blur-md rounded-full shadow-lg border border-cyan-500/30">
+          <span className="text-cyan-300 font-medium font-[family-name:var(--font-cinzel)]">
+            Focusing on: <span className="font-bold text-cyan-100">{focusSubject}</span>
           </span>
         </div>
       </motion.div>
 
-      {/* Main Timer Circle */}
-      <div className="relative flex items-center justify-center">
-        {/* SVG Progress Ring */}
+      {/* Crystal Orb Container */}
+      <div className="relative flex items-center justify-center w-[400px] h-[400px]">
+        {/* Outer Glow Rings (Pulsating) */}
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          animate={{
+            boxShadow: [
+              "0 0 60px 20px rgba(34, 211, 238, 0.3), 0 0 100px 40px rgba(59, 130, 246, 0.2)",
+              "0 0 80px 30px rgba(34, 211, 238, 0.4), 0 0 120px 50px rgba(59, 130, 246, 0.3)",
+              "0 0 60px 20px rgba(34, 211, 238, 0.3), 0 0 100px 40px rgba(59, 130, 246, 0.2)",
+            ],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Crystal Orb Sphere */}
+        <motion.div
+          className="absolute inset-8 rounded-full"
+          style={{
+            background: "radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.15), rgba(59, 130, 246, 0.05) 50%, rgba(30, 58, 138, 0.1))",
+            backdropFilter: "blur(20px)",
+            border: "2px solid rgba(34, 211, 238, 0.3)",
+            boxShadow: "inset 0 0 60px rgba(34, 211, 238, 0.2), inset 0 0 100px rgba(59, 130, 246, 0.1)",
+          }}
+          animate={{
+            scale: [1, 1.02, 1],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          {/* Highlight spot (top-left) for 3D effect */}
+          <div 
+            className="absolute top-8 left-12 w-24 h-24 rounded-full"
+            style={{
+              background: "radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent 70%)",
+              filter: "blur(15px)",
+            }}
+          />
+        </motion.div>
+
+        {/* Inner Energy Particles */}
+        <div className="absolute inset-16 rounded-full overflow-hidden">
+          {Array.from({ length: 20 }).map((_, i) => {
+            const angle = (i / 20) * Math.PI * 2;
+            const radius = 60 + Math.random() * 40;
+            return (
+              <motion.div
+                key={`particle-${i}`}
+                className="absolute w-2 h-2 rounded-full bg-cyan-400"
+                style={{
+                  left: "50%",
+                  top: "50%",
+                  filter: "blur(1px)",
+                }}
+                animate={{
+                  x: [
+                    Math.cos(angle) * radius,
+                    Math.cos(angle + Math.PI) * radius,
+                    Math.cos(angle) * radius,
+                  ],
+                  y: [
+                    Math.sin(angle) * radius,
+                    Math.sin(angle + Math.PI) * radius,
+                    Math.sin(angle) * radius,
+                  ],
+                  opacity: [0.3, 0.8, 0.3],
+                }}
+                transition={{
+                  duration: 6 + Math.random() * 4,
+                  repeat: Infinity,
+                  ease: "linear",
+                  delay: Math.random() * 3,
+                }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Progress Ring Inside Orb */}
         <svg
-          width="320"
-          height="320"
-          className="transform -rotate-90"
+          width="280"
+          height="280"
+          className="absolute transform -rotate-90 z-10"
         >
           {/* Background Track */}
           <circle
-            cx="160"
-            cy="160"
-            r={circleRadius}
+            cx="140"
+            cy="140"
+            r="110"
             fill="none"
-            stroke="rgba(255, 255, 255, 0.3)"
-            strokeWidth="4"
+            stroke="rgba(34, 211, 238, 0.1)"
+            strokeWidth="3"
           />
           
           {/* Progress Indicator */}
           <motion.circle
-            cx="160"
-            cy="160"
-            r={circleRadius}
+            cx="140"
+            cy="140"
+            r="110"
             fill="none"
-            stroke="rgba(255, 255, 255, 0.9)"
-            strokeWidth="4"
+            stroke="url(#progressGradient)"
+            strokeWidth="3"
             strokeLinecap="round"
-            strokeDasharray={circumference}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset }}
+            strokeDasharray={2 * Math.PI * 110}
+            initial={{ strokeDashoffset: 2 * Math.PI * 110 }}
+            animate={{ strokeDashoffset: 2 * Math.PI * 110 - (progressPercentage / 100) * 2 * Math.PI * 110 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
-
-          {/* Progress Dot at the end of the arc */}
-          <motion.circle
-            cx="160"
-            cy={160 - circleRadius}
-            r="6"
-            fill="#4ade80"
-            className="origin-center"
-            style={{
-              transform: `rotate(${(progressPercentage / 100) * 360}deg)`,
-              transformOrigin: "160px 160px",
-            }}
-          />
+          
+          <defs>
+            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#22d3ee" />
+              <stop offset="100%" stopColor="#3b82f6" />
+            </linearGradient>
+          </defs>
         </svg>
 
         {/* Center Content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {/* Growing Plant */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+          {/* Timer Display */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-7xl font-bold text-cyan-100 tracking-tight font-[family-name:var(--font-nunito)] mb-2"
+            style={{
+              textShadow: "0 0 20px rgba(34, 211, 238, 0.6), 0 0 40px rgba(34, 211, 238, 0.3)",
+            }}
+          >
+            {formatTime(timeLeft)}
+          </motion.div>
+
+          {/* Growing Plant with Glow */}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStage}
@@ -323,49 +412,50 @@ export default function FocusTimer({
                 stiffness: 300,
                 damping: 20,
               }}
-              className="text-4xl mb-2"
+              className="text-5xl mb-2"
+              style={{
+                filter: "drop-shadow(0 0 10px rgba(34, 211, 238, 0.5))",
+              }}
             >
               {plantStages[currentStage].emoji}
             </motion.div>
           </AnimatePresence>
 
-          {/* Timer Display */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-6xl font-bold text-white tracking-tight font-[family-name:var(--font-nunito)]"
-            style={{
-              textShadow: "0 2px 10px rgba(0,0,0,0.1)",
-            }}
-          >
-            {formatTime(timeLeft)}
-          </motion.div>
-
           {/* Stage Label */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-white/60 text-sm mt-2 font-[family-name:var(--font-quicksand)]"
+            className="text-cyan-300/80 text-sm font-[family-name:var(--font-cinzel)]"
           >
             {plantStages[currentStage].label}
+          </motion.p>
+
+          {/* Progress Percentage */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-cyan-400/60 text-xs mt-1 font-[family-name:var(--font-quicksand)]"
+          >
+            {Math.round(progressPercentage)}% Complete
           </motion.p>
         </div>
       </div>
 
-      {/* Control Bar */}
+      {/* Ornate Control Bar */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="mt-16"
+        className="mt-12"
       >
-        <div className="flex items-center gap-2 px-4 py-3 bg-white/70 backdrop-blur-xl rounded-full shadow-lg border border-white/50">
-          {/* Flag/Milestone Button */}
+        <div className="flex items-center gap-3 px-5 py-4 bg-slate-800/60 backdrop-blur-xl rounded-full shadow-lg border border-cyan-500/30">
+          {/* Reset Button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={resetTimer}
-            className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-white/80 transition-colors"
+            className="w-12 h-12 rounded-full bg-slate-700/60 flex items-center justify-center text-cyan-400 hover:text-cyan-300 hover:bg-slate-600/80 transition-colors border border-cyan-500/20"
+            title="Reset Timer"
           >
             <Flag className="w-5 h-5" />
           </motion.button>
@@ -375,21 +465,23 @@ export default function FocusTimer({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={toggleTimer}
-            className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 transition-colors"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all"
+            title={isActive ? "Pause" : "Start"}
           >
             {isActive ? (
-              <Pause className="w-6 h-6" fill="white" />
+              <Pause className="w-7 h-7" fill="white" />
             ) : (
-              <Play className="w-6 h-6 ml-1" fill="white" />
+              <Play className="w-7 h-7 ml-1" fill="white" />
             )}
           </motion.button>
 
-          {/* Fast Forward / Skip Button */}
+          {/* Skip Button */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={skipSession}
-            className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-white/80 transition-colors"
+            className="w-12 h-12 rounded-full bg-slate-700/60 flex items-center justify-center text-cyan-400 hover:text-cyan-300 hover:bg-slate-600/80 transition-colors border border-cyan-500/20"
+            title="Skip Session"
           >
             <FastForward className="w-5 h-5" />
           </motion.button>
@@ -401,18 +493,19 @@ export default function FocusTimer({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="flex items-center gap-2 mt-8"
+        className="flex items-center gap-3 mt-8"
       >
         {[...Array(totalSessions)].map((_, i) => (
-          <div
+          <motion.div
             key={i}
-            className={`w-3 h-3 rounded-full transition-colors ${
+            className={`w-3 h-3 rounded-full transition-all ${
               i < completedSessions
-                ? "bg-emerald-400"
+                ? "bg-cyan-400 shadow-lg shadow-cyan-400/50"
                 : i === completedSessions && isActive
-                ? "bg-emerald-400/60 animate-pulse"
-                : "bg-white/40"
+                ? "bg-cyan-400/60 animate-pulse shadow-md shadow-cyan-400/30"
+                : "bg-slate-700 border border-cyan-500/20"
             }`}
+            whileHover={{ scale: 1.2 }}
           />
         ))}
       </motion.div>
@@ -421,43 +514,66 @@ export default function FocusTimer({
       <AnimatePresence>
         {showReward && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-md z-50"
           >
             <motion.div
-              initial={{ y: 20 }}
-              animate={{ y: 0 }}
-              className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 text-center shadow-2xl max-w-sm"
+              initial={{ scale: 0.8, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-cyan-500/30 backdrop-blur-xl rounded-3xl p-8 text-center shadow-2xl max-w-md relative"
+              style={{
+                boxShadow: "0 0 60px rgba(34, 211, 238, 0.3), inset 0 0 60px rgba(34, 211, 238, 0.1)",
+              }}
             >
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-2xl font-bold text-slate-800 font-[family-name:var(--font-nunito)]">
-                Session Complete!
+              {/* Glow effect */}
+              <div 
+                className="absolute inset-0 rounded-3xl opacity-50 blur-xl"
+                style={{
+                  background: "radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.2), transparent 70%)",
+                }}
+              />
+
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="text-7xl mb-4 relative z-10"
+                style={{
+                  filter: "drop-shadow(0 0 20px rgba(34, 211, 238, 0.6))",
+                }}
+              >
+                ✨
+              </motion.div>
+
+              <h2 className="text-3xl font-bold text-cyan-100 font-[family-name:var(--font-cinzel)] mb-2 relative z-10">
+                Focus Complete!
               </h2>
-              <p className="text-slate-600 mt-2 font-[family-name:var(--font-quicksand)]">
-                Your {plantStages[currentStage].label} has fully grown!
+              <p className="text-cyan-300/80 mt-2 font-[family-name:var(--font-quicksand)] relative z-10">
+                Your {plantStages[currentStage].label} has fully matured!
               </p>
 
               {/* Rewards */}
-              <div className="flex items-center justify-center gap-4 mt-4 py-3 px-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="flex items-center justify-center gap-6 mt-6 py-4 px-6 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-xl border border-amber-500/30 relative z-10">
                 <div className="text-center">
-                  <div className="text-lg font-bold text-amber-600">+{defaultMinutes * 2}</div>
-                  <div className="text-xs text-amber-500">XP</div>
+                  <div className="text-2xl font-bold text-amber-400">+{defaultMinutes * 2}</div>
+                  <div className="text-xs text-amber-300/80 font-[family-name:var(--font-cinzel)]">XP</div>
                 </div>
-                <div className="w-px h-8 bg-amber-200" />
+                <div className="w-px h-10 bg-amber-500/30" />
                 <div className="text-center">
-                  <div className="text-lg font-bold text-amber-600">+{defaultMinutes}</div>
-                  <div className="text-xs text-amber-500">Gold</div>
+                  <div className="text-2xl font-bold text-amber-400">+{defaultMinutes}</div>
+                  <div className="text-xs text-amber-300/80 font-[family-name:var(--font-cinzel)]">Gold</div>
                 </div>
-                <div className="w-px h-8 bg-amber-200" />
+                <div className="w-px h-10 bg-amber-500/30" />
                 <div className="text-center">
-                  <div className="text-lg font-bold text-emerald-600">{completedSessions}/{totalSessions}</div>
-                  <div className="text-xs text-emerald-500">Sessions</div>
+                  <div className="text-2xl font-bold text-cyan-400">{completedSessions}/{totalSessions}</div>
+                  <div className="text-xs text-cyan-300/80 font-[family-name:var(--font-cinzel)]">Sessions</div>
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6 justify-center">
+              <div className="flex gap-3 mt-8 justify-center relative z-10">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -465,10 +581,20 @@ export default function FocusTimer({
                     setShowReward(false);
                     resetTimer();
                   }}
-                  className="px-6 py-3 bg-emerald-500 text-white font-bold rounded-full shadow-lg hover:bg-emerald-600 transition-colors"
+                  className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all font-[family-name:var(--font-cinzel)]"
                 >
-                  {completedSessions >= totalSessions ? "All Done! 🌟" : "Next Session"}
+                  {completedSessions >= totalSessions ? "Complete! ✨" : "Continue"}
                 </motion.button>
+                {onBack && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={onBack}
+                    className="px-8 py-3 bg-slate-700/60 border border-cyan-500/20 text-cyan-300 font-bold rounded-xl hover:bg-slate-600/70 transition-colors font-[family-name:var(--font-cinzel)]"
+                  >
+                    Exit
+                  </motion.button>
+                )}
               </div>
             </motion.div>
           </motion.div>

@@ -25,6 +25,8 @@ interface Deck {
   emoji: string;
   color: string;
   cards: Flashcard[];
+  subject_id?: string | null;
+  subject?: { name: string; emoji: string } | null;
 }
 
 function MasteryDots({ mastery }: { mastery: number }) {
@@ -200,25 +202,59 @@ export default function FlashcardsPage() {
     if (!user) return;
     
     const fetchDecks = async () => {
-      const { data, error } = await (supabase.from('decks') as any)
-        .select(`
-          id, name, emoji, color,
-          cards ( id, front, back, mastery, review_count )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+      // Try to fetch with subject relation, fallback if column doesn't exist
+      let decksData: Deck[] = [];
+      
+      try {
+        const { data, error } = await (supabase.from('decks') as any)
+          .select(`
+            id, name, emoji, color, subject_id,
+            cards ( id, front, back, mastery, review_count ),
+            subjects:subject_id ( name, emoji )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error("Error fetching decks:", error);
-      } else {
-        // Sort cards within decks by created_at or id so they have a stable order
-        const raw = (data ?? []) as unknown as Deck[];
-        const formattedDecks = raw.map(d => ({
+        if (error?.code === "42703" || error?.message?.includes("subject_id")) {
+          // Column doesn't exist, fetch without subject
+          const { data: fallbackData } = await (supabase.from('decks') as any)
+            .select(`
+              id, name, emoji, color,
+              cards ( id, front, back, mastery, review_count )
+            `)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: true });
+          
+          decksData = (fallbackData ?? []).map((d: Deck) => ({
+            ...d,
+            cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id)),
+            subject: null,
+          }));
+        } else {
+          decksData = (data ?? []).map((d: any) => ({
+            ...d,
+            cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id)),
+            subject: d.subjects || null,
+          }));
+        }
+      } catch {
+        // Fallback
+        const { data: fallbackData } = await (supabase.from('decks') as any)
+          .select(`
+            id, name, emoji, color,
+            cards ( id, front, back, mastery, review_count )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+        
+        decksData = (fallbackData ?? []).map((d: Deck) => ({
           ...d,
-          cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id))
+          cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id)),
+          subject: null,
         }));
-        setDecks(formattedDecks);
       }
+
+      setDecks(decksData);
       setIsLoading(false);
     };
 
@@ -560,6 +596,12 @@ export default function FlashcardsPage() {
                     <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white drop-shadow-sm"}`}>
                       {deck.name}
                     </h3>
+                    {deck.subject && (
+                      <p className={`text-xs mt-1 flex items-center gap-1 ${isSun ? "text-violet-600" : "text-violet-400"}`}>
+                        <span>{deck.subject.emoji}</span>
+                        <span>{deck.subject.name}</span>
+                      </p>
+                    )}
                     <p className={`text-sm mt-1 ${isSun ? "text-slate-500" : "text-slate-300"}`}>
                       {deck.cards.length} cards
                     </p>

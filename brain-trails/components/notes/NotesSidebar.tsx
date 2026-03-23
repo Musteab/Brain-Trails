@@ -20,6 +20,8 @@ export interface NoteItem {
   is_pinned?: boolean;
   tags?: string[];
   parent_folder_id?: string | null;
+  subject_id?: string | null;
+  subject?: { name: string; emoji: string } | null;
 }
 
 export interface FolderItem {
@@ -50,35 +52,59 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
     if (!user) return;
     
     const fetchNotes = async () => {
-      const { data, error } = await (supabase.from('notes') as any)
-        .select('id, title, folder, is_pinned, tags, parent_folder_id, updated_at')
-        .eq('user_id', user.id)
-        .order('is_pinned', { ascending: false })
-        .order('updated_at', { ascending: false });
+      // Try to fetch with subject relation, fallback if column doesn't exist
+      let notesData: NoteItem[] = [];
+      
+      try {
+        const { data, error } = await (supabase.from('notes') as any)
+          .select('id, title, folder, is_pinned, tags, parent_folder_id, updated_at, subject_id, subjects:subject_id(name, emoji)')
+          .eq('user_id', user.id)
+          .order('is_pinned', { ascending: false })
+          .order('updated_at', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching notes:", error);
-      } else if (data) {
-        setNotesList(data as unknown as NoteItem[]);
-        const grouped = data.reduce((acc, note) => {
-          const folderName = note.folder || 'root';
-          if (!acc[folderName]) acc[folderName] = [];
-          acc[folderName].push(note as unknown as NoteItem);
-          return acc;
-        }, {} as Record<string, NoteItem[]>);
-
-        const newFolders: FolderItem[] = Object.keys(grouped).map(name => ({
-          id: name,
-          title: name,
-          type: "folder",
-          children: grouped[name],
-          isExpanded: name === 'root',
-        }));
-        
-        newFolders.sort((a, b) => a.id === 'root' ? -1 : b.id === 'root' ? 1 : a.title.localeCompare(b.title));
-        
-        setFolders(newFolders);
+        if (error?.code === "42703" || error?.message?.includes("subject_id")) {
+          // Column doesn't exist, fetch without subject
+          const { data: fallbackData } = await (supabase.from('notes') as any)
+            .select('id, title, folder, is_pinned, tags, parent_folder_id, updated_at')
+            .eq('user_id', user.id)
+            .order('is_pinned', { ascending: false })
+            .order('updated_at', { ascending: false });
+          notesData = (fallbackData || []).map((n: NoteItem) => ({ ...n, subject: null }));
+        } else {
+          notesData = (data || []).map((n: any) => ({
+            ...n,
+            subject: n.subjects || null,
+          }));
+        }
+      } catch {
+        // Fallback
+        const { data: fallbackData } = await (supabase.from('notes') as any)
+          .select('id, title, folder, is_pinned, tags, parent_folder_id, updated_at')
+          .eq('user_id', user.id)
+          .order('is_pinned', { ascending: false })
+          .order('updated_at', { ascending: false });
+        notesData = (fallbackData || []).map((n: NoteItem) => ({ ...n, subject: null }));
       }
+
+      setNotesList(notesData);
+      const grouped = notesData.reduce((acc: Record<string, NoteItem[]>, note: NoteItem) => {
+        const folderName = note.folder || 'root';
+        if (!acc[folderName]) acc[folderName] = [];
+        acc[folderName].push(note);
+        return acc;
+      }, {});
+
+      const newFolders: FolderItem[] = Object.keys(grouped).map(name => ({
+        id: name,
+        title: name,
+        type: "folder",
+        children: grouped[name],
+        isExpanded: name === 'root',
+      }));
+      
+      newFolders.sort((a, b) => a.id === 'root' ? -1 : b.id === 'root' ? 1 : a.title.localeCompare(b.title));
+      
+      setFolders(newFolders);
       setIsLoading(false);
     };
 
@@ -210,7 +236,14 @@ export default function NotesSidebar({ onSelectNote, selectedNoteId, onCloseMobi
         }}
       >
         <FileText className={`w-4 h-4 flex-shrink-0 ${isSelected ? (isSun ? "text-emerald-600" : "text-emerald-400") : "text-slate-400"}`} />
-        <span className="text-sm truncate flex-1 font-[family-name:var(--font-quicksand)]">{note.title || "Untitled"}</span>
+        <div className="flex-1 min-w-0">
+          <span className="text-sm truncate block font-[family-name:var(--font-quicksand)]">{note.title || "Untitled"}</span>
+          {note.subject && (
+            <span className={`text-[10px] truncate block ${isSun ? "text-violet-600" : "text-violet-400"}`}>
+              {note.subject.emoji} {note.subject.name}
+            </span>
+          )}
+        </div>
         
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button

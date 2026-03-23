@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Quicksand } from "next/font/google";
+import { Nunito, Quicksand, Cinzel } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
@@ -23,6 +23,14 @@ const quicksand = Quicksand({
   variable: "--font-quicksand",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+// Cinzel - Medieval/fantasy font for wizard-themed pages
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
   display: "swap",
 });
 
@@ -75,7 +83,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${nunito.variable} ${quicksand.variable} antialiased`}
+        className={`${nunito.variable} ${quicksand.variable} ${cinzel.variable} antialiased`}
         suppressHydrationWarning
       >
         <AuthProvider>

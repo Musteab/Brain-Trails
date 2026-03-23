@@ -195,11 +195,11 @@ def ai_chat():
 # Syllabus Parsing Route
 # ============================================
 
-SYLLABUS_SYSTEM_PROMPT = """You are an expert academic syllabus parser for Brain Trails, a gamified study app.
+SYLLABUS_SYSTEM_PROMPT = """You are an expert academic syllabus parser for Brain Trails.
 
-Your job is to extract structured data from a syllabus. Return ONLY valid JSON with no markdown formatting, no code fences, and no extra text.
+Extract structured data from the syllabus. Return ONLY valid JSON with no markdown, code fences, or extra text.
 
-The JSON must follow this exact schema:
+Schema:
 {
   "semester": "Fall 2026",
   "subjects": [
@@ -208,49 +208,29 @@ The JSON must follow this exact schema:
       "code": "PHYS201",
       "emoji": "⚡",
       "color": "from-blue-500 to-cyan-600",
-      "description": "Introductory electromagnetism and optics",
+      "description": "Brief course description",
       "professor": "Dr. Smith",
       "credit_hours": 3,
-      "topics": [
-        { "name": "Coulomb's Law", "sort_order": 0 },
-        { "name": "Electric Fields", "sort_order": 1 }
-      ],
-      "exams": [
-        {
-          "name": "Midterm 1",
-          "exam_type": "exam",
-          "exam_date": "2026-10-15T09:00:00Z",
-          "weight_pct": 25,
-          "duration_minutes": 90,
-          "location": "Room 101"
-        }
-      ]
+      "topics": [{"name": "Topic Name", "sort_order": 0}],
+      "exams": [{"name": "Midterm", "exam_type": "exam", "exam_date": "2026-10-15T09:00:00Z", "weight_pct": 25, "duration_minutes": 90, "location": "Room 101"}]
     }
   ]
 }
 
 Rules:
-1. Pick an appropriate emoji for each subject (science=⚡🔬🧬, math=📐, history=🏛️, CS=💻, language=📖, art=🎨, etc.)
-2. Pick a Tailwind gradient color for each subject from these options:
-   - "from-violet-500 to-purple-600"
-   - "from-emerald-500 to-teal-600"
-   - "from-amber-500 to-orange-600"
-   - "from-blue-500 to-cyan-600"
-   - "from-rose-500 to-pink-600"
-   - "from-indigo-500 to-blue-600"
-   - "from-lime-500 to-green-600"
-   - "from-fuchsia-500 to-pink-600"
-3. Extract ALL topics/chapters mentioned. If a weekly schedule is given, each week's topic is a separate topic.
-4. For exam_type, use one of: "exam", "quiz", "assignment", "project", "presentation", "other"
-5. If a date year is not specified, assume the current or next academic year.
-6. If you cannot determine a field, use sensible defaults (empty string for text, 0 for numbers).
-7. If the content is not a syllabus or is unintelligible, return: {"semester": "", "subjects": []}
-8. Always return valid JSON. Never include markdown code fences or explanatory text."""
+1. Emoji: science=⚡🔬, math=📐, history=🏛️, CS=💻, language=📖, art=🎨
+2. Color: Pick from "from-violet-500 to-purple-600", "from-emerald-500 to-teal-600", "from-amber-500 to-orange-600", "from-blue-500 to-cyan-600", "from-rose-500 to-pink-600", "from-indigo-500 to-blue-600", "from-lime-500 to-green-600", "from-fuchsia-500 to-pink-600"
+3. Extract ALL topics/chapters. Weekly schedules = separate topics.
+4. exam_type: "exam", "quiz", "assignment", "project", "presentation", or "other"
+5. Assume current/next academic year if dates lack year.
+6. Use sensible defaults for missing fields.
+7. If not a syllabus, return: {"semester": "", "subjects": []}
+8. Return valid JSON only."""
 
 
 @app.route("/api/ai/parse-syllabus", methods=["POST"])
 def parse_syllabus():
-    """Parse a syllabus using Groq (text) or Gemini (files)."""
+    """Parse a syllabus using Groq (text) or Gemini (files) with optimized prompts."""
     try:
         data = request.get_json(silent=True)
         if not data:
@@ -271,13 +251,17 @@ def parse_syllabus():
 
         response_text = ""
 
-        # For text input, prefer Groq
+        # For text input, prefer Groq with optimized parameters
         if file_type == "text":
+            # Truncate large content more aggressively to reduce processing time
+            truncated_content = content[:6000] if len(content) > 6000 else content
+            
             messages = [
                 {"role": "system", "content": SYLLABUS_SYSTEM_PROMPT},
-                {"role": "user", "content": f"Parse this syllabus and return JSON:\n---\n{content[:8000]}\n---"},
+                {"role": "user", "content": f"Parse this syllabus:\n{truncated_content}"},
             ]
-            result, groq_err = groq_chat(messages, temperature=0.3, max_tokens=4000)
+            # Reduced temperature and max_tokens for faster, more focused responses
+            result, groq_err = groq_chat(messages, temperature=0.2, max_tokens=3000)
             if result:
                 response_text = result.strip()
             else:
@@ -286,7 +270,7 @@ def parse_syllabus():
                 gemini = get_gemini_model()
                 if not gemini:
                     return jsonify({"error": "No AI provider configured. Check Render environment variables."}), 500
-                prompt = SYLLABUS_SYSTEM_PROMPT + "\n\nHere is the syllabus content to parse:\n---\n" + content[:8000] + "\n---\n\nReturn the JSON now."
+                prompt = SYLLABUS_SYSTEM_PROMPT + "\n\nSyllabus:\n" + truncated_content
                 response = gemini.generate_content(prompt)
                 response_text = response.text.strip()
         else:
@@ -298,7 +282,12 @@ def parse_syllabus():
                 try:
                     from pypdf import PdfReader
                     reader = PdfReader(io.BytesIO(raw_bytes))
-                    pdf_text = "\n".join(page.extract_text() or "" for page in reader.pages)
+                    # Only extract first 10 pages to speed up processing
+                    pages_to_read = min(10, len(reader.pages))
+                    pdf_text = "\n".join(
+                        reader.pages[i].extract_text() or "" 
+                        for i in range(pages_to_read)
+                    )
                 except Exception as pdf_err:
                     logger.error(f"Syllabus Parsing: PDF extraction failed: {str(pdf_err)}")
                     return jsonify({"error": f"Failed to read PDF: {str(pdf_err)}"}), 400
@@ -306,11 +295,14 @@ def parse_syllabus():
                 if not pdf_text.strip():
                     return jsonify({"error": "Could not extract text from this PDF. Try pasting the text manually."}), 400
 
+                # Truncate PDF text more aggressively
+                truncated_pdf = pdf_text[:6000] if len(pdf_text) > 6000 else pdf_text
+                
                 messages = [
                     {"role": "system", "content": SYLLABUS_SYSTEM_PROMPT},
-                    {"role": "user", "content": f"Parse this syllabus and return JSON:\n---\n{pdf_text[:8000]}\n---"},
+                    {"role": "user", "content": f"Parse this syllabus:\n{truncated_pdf}"},
                 ]
-                result, groq_err = groq_chat(messages, temperature=0.3, max_tokens=4000)
+                result, groq_err = groq_chat(messages, temperature=0.2, max_tokens=3000)
                 if result:
                     response_text = result.strip()
                 else:
@@ -324,7 +316,7 @@ def parse_syllabus():
                 
                 try:
                     response = gemini.generate_content([
-                        SYLLABUS_SYSTEM_PROMPT + "\n\nParse the attached syllabus document and return the JSON.",
+                        SYLLABUS_SYSTEM_PROMPT + "\n\nParse this syllabus image:",
                         {"mime_type": "image/png", "data": raw_bytes},
                     ])
                     response_text = response.text.strip()
@@ -340,7 +332,7 @@ def parse_syllabus():
 
         return jsonify({
             "data": parsed,
-            "model": GROQ_MODEL if file_type == "text" else "gemini-2.0-flash",
+            "model": GROQ_MODEL if file_type in ("text", "pdf") else "gemini-2.0-flash",
         })
 
     except json.JSONDecodeError as e:
@@ -360,52 +352,24 @@ def parse_syllabus():
 # Quiz Generation Route
 # ============================================
 
-QUIZ_SYSTEM_PROMPT = """You are a quiz generator for Brain Trails, a gamified study app.
+QUIZ_SYSTEM_PROMPT = """Quiz generator for Brain Trails. Return ONLY valid JSON, no markdown or code fences.
 
-Generate quiz questions from the provided study content. Return ONLY valid JSON with no markdown formatting, no code fences, and no extra text.
-
-The JSON must follow this exact schema:
+Schema:
 {
   "questions": [
-    {
-      "type": "mcq",
-      "question": "What is...?",
-      "options": ["A", "B", "C", "D"],
-      "correct_answer": "A",
-      "explanation": "Because..."
-    },
-    {
-      "type": "true_false",
-      "question": "The sky is blue.",
-      "options": ["True", "False"],
-      "correct_answer": "True",
-      "explanation": "Because..."
-    },
-    {
-      "type": "fill_blank",
-      "question": "The powerhouse of the cell is the ___.",
-      "correct_answer": "mitochondria",
-      "explanation": "Because..."
-    },
-    {
-      "type": "short_answer",
-      "question": "Explain photosynthesis briefly.",
-      "correct_answer": "The process by which plants convert sunlight into energy.",
-      "explanation": "Key points to include..."
-    }
+    {"type": "mcq", "question": "...", "options": ["A", "B", "C", "D"], "correct_answer": "A", "explanation": "..."},
+    {"type": "true_false", "question": "...", "options": ["True", "False"], "correct_answer": "True", "explanation": "..."},
+    {"type": "fill_blank", "question": "... ___.", "correct_answer": "...", "explanation": "..."},
+    {"type": "short_answer", "question": "...", "correct_answer": "...", "explanation": "..."}
   ]
 }
 
 Rules:
-1. Generate exactly the requested number of questions.
-2. Match the requested difficulty level.
-3. Only use requested question types.
-4. MCQ must always have exactly 4 options.
-5. True/False must have options ["True", "False"].
-6. Fill-blank questions should use ___ for the blank.
-7. Always include a brief explanation for each answer.
-8. Questions should test understanding, not just memorization.
-9. Always return valid JSON. Never include markdown code fences."""
+1. Generate exact count requested
+2. MCQ = 4 options, True/False = ["True", "False"]
+3. Use ___ for blanks
+4. Include brief explanations
+5. Test understanding, not memorization"""
 
 
 @app.route("/api/ai/generate-quiz", methods=["POST"])
@@ -456,28 +420,20 @@ def generate_quiz():
 
             types_str = ", ".join(question_types)
             if content.strip():
-                user_prompt = (
-                    f"Generate {count} {difficulty} difficulty questions.\n"
-                    f"Use these question types: {types_str}\n\n"
-                    f"Study content:\n---\n{content[:6000]}\n---\n\n"
-                    "Return the JSON now."
-                )
+                # Truncate content to reduce processing time
+                truncated_content = content[:4000] if len(content) > 4000 else content
+                user_prompt = f"Generate {count} {difficulty} questions. Types: {types_str}\n\nContent:\n{truncated_content}"
             else:
-                user_prompt = (
-                    f"Generate {count} {difficulty} difficulty questions about '{subject}"
-                    + (f" - {topic}" if topic else "") + f"'.\n"
-                    f"Use these question types: {types_str}\n\n"
-                    "Return the JSON now."
-                )
+                user_prompt = f"Generate {count} {difficulty} questions about '{subject}" + (f" - {topic}" if topic else "") + f"'. Types: {types_str}"
 
         response_text = ""
 
-        # Try Groq (with key rotation)
+        # Try Groq (with key rotation) - reduced parameters for faster response
         messages = [
             {"role": "system", "content": QUIZ_SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
         ]
-        result, groq_err = groq_chat(messages, temperature=0.5, max_tokens=4000)
+        result, groq_err = groq_chat(messages, temperature=0.4, max_tokens=3000)
         if result:
             response_text = result.strip()
         else:

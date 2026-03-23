@@ -350,36 +350,66 @@ export default function SubjectFlashcardsPage() {
     );
   }
 
-  // Card Study View
+  // Card Study View - Magical Card Reading Stand
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8 pb-32">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <button
-          onClick={() => {
-            setSelectedDeck(null);
-            setCurrentIndex(0);
-            setIsFlipped(false);
-          }}
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${
-            isSun ? "hover:bg-white/50 text-slate-600" : "hover:bg-white/10 text-slate-400"
-          }`}
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Decks</span>
-        </button>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-8 pb-32 relative">
+      {/* Mystical Background Glow */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl ${
+          isSun ? "bg-amber-200/20" : "bg-purple-900/20"
+        }`} />
+      </div>
 
-        <h2 className={`text-xl font-bold flex items-center gap-2 ${isSun ? "text-slate-800" : "text-white"}`}>
-          <span>{selectedDeck.emoji}</span> {selectedDeck.name}
-        </h2>
+      {/* Header with ornate design */}
+      <div className="relative z-10 w-full max-w-3xl mb-8">
+        <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${
+          isSun 
+            ? "bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-amber-200" 
+            : "bg-gradient-to-r from-purple-950/40 via-violet-950/40 to-purple-950/40 border-purple-800/40"
+        }`}>
+          <button
+            onClick={() => {
+              setSelectedDeck(null);
+              setCurrentIndex(0);
+              setIsFlipped(false);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${
+              isSun 
+                ? "hover:bg-amber-100 text-amber-800" 
+                : "hover:bg-purple-900/50 text-purple-300"
+            }`}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span className="text-sm">Return to Collection</span>
+          </button>
 
-        <div className="flex gap-2">
-          <button onClick={handleShuffle} className={`p-2 rounded-xl ${isSun ? "hover:bg-white/50" : "hover:bg-white/10"}`}>
-            <Shuffle className="w-4 h-4" />
-          </button>
-          <button onClick={() => setShowNewCard(!showNewCard)} className={`p-2 rounded-xl ${isSun ? "hover:bg-white/50" : "hover:bg-white/10"}`}>
-            <Plus className="w-4 h-4" />
-          </button>
+          <h2 className={`text-xl font-bold flex items-center gap-3 font-[family-name:var(--font-cinzel)] ${
+            isSun ? "text-amber-900" : "text-purple-200"
+          }`}>
+            <span className="text-3xl">{selectedDeck.emoji}</span>
+            {selectedDeck.name}
+          </h2>
+
+          <div className="flex gap-2">
+            <button 
+              onClick={handleShuffle} 
+              className={`p-2.5 rounded-xl transition-all ${
+                isSun ? "hover:bg-amber-100 text-amber-700" : "hover:bg-purple-900/50 text-purple-400"
+              }`}
+              title="Shuffle cards"
+            >
+              <Shuffle className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setShowNewCard(!showNewCard)} 
+              className={`p-2.5 rounded-xl transition-all ${
+                isSun ? "hover:bg-amber-100 text-amber-700" : "hover:bg-purple-900/50 text-purple-400"
+              }`}
+              title="Add new card"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -387,132 +417,268 @@ export default function SubjectFlashcardsPage() {
       <AnimatePresence>
         {showNewCard && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className={`mb-6 p-4 rounded-2xl ${glassCard}`}
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className={`w-full max-w-3xl overflow-hidden rounded-2xl border-2 ${
+              isSun 
+                ? "bg-amber-50/80 border-amber-200" 
+                : "bg-purple-950/40 border-purple-800/40"
+            }`}
           >
-            <input
-              value={newFront}
-              onChange={(e) => setNewFront(e.target.value)}
-              placeholder="Front (question)..."
-              className={`w-full px-3 py-2 rounded-xl mb-2 outline-none ${
-                isSun ? "bg-white/60 text-slate-800" : "bg-white/10 text-white placeholder:text-slate-500"
-              }`}
-            />
-            <input
-              value={newBack}
-              onChange={(e) => setNewBack(e.target.value)}
-              placeholder="Back (answer)..."
-              className={`w-full px-3 py-2 rounded-xl mb-3 outline-none ${
-                isSun ? "bg-white/60 text-slate-800" : "bg-white/10 text-white placeholder:text-slate-500"
-              }`}
-            />
-            <button
-              onClick={handleAddCard}
-              disabled={!newFront.trim() || !newBack.trim()}
-              className="w-full py-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold disabled:opacity-40"
-            >
-              Add Card
-            </button>
+            <div className="p-6">
+              <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 font-[family-name:var(--font-cinzel)] ${
+                isSun ? "text-amber-800" : "text-purple-300"
+              }`}>
+                ✨ Inscribe New Card
+              </h3>
+              <input
+                value={newFront}
+                onChange={(e) => setNewFront(e.target.value)}
+                placeholder="Front (question)..."
+                className={`w-full px-4 py-3 rounded-xl mb-3 outline-none border-2 ${
+                  isSun 
+                    ? "bg-white border-amber-200 text-slate-800 focus:border-amber-400" 
+                    : "bg-purple-950/60 border-purple-800/40 text-white placeholder:text-purple-400/50 focus:border-purple-600"
+                }`}
+              />
+              <input
+                value={newBack}
+                onChange={(e) => setNewBack(e.target.value)}
+                placeholder="Back (answer)..."
+                className={`w-full px-4 py-3 rounded-xl mb-4 outline-none border-2 ${
+                  isSun 
+                    ? "bg-white border-amber-200 text-slate-800 focus:border-amber-400" 
+                    : "bg-purple-950/60 border-purple-800/40 text-white placeholder:text-purple-400/50 focus:border-purple-600"
+                }`}
+              />
+              <button
+                onClick={handleAddCard}
+                disabled={!newFront.trim() || !newBack.trim()}
+                className={`w-full py-3 rounded-xl font-bold transition-all ${
+                  isSun 
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600" 
+                    : "bg-gradient-to-r from-purple-600 to-violet-600 text-white hover:from-purple-700 hover:to-violet-700"
+                } disabled:opacity-40 disabled:cursor-not-allowed`}
+              >
+                Add Card
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Card Counter */}
-      {selectedDeck.cards.length > 0 && (
-        <p className={`text-center text-sm mb-4 ${isSun ? "text-slate-500" : "text-slate-400"}`}>
-          Card {currentIndex + 1} of {selectedDeck.cards.length}
-        </p>
-      )}
+      {/* Card Reading Stand */}
+      <div className="relative z-10 w-full max-w-3xl">
+        {selectedDeck.cards.length === 0 ? (
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className={`p-16 text-center rounded-3xl border-4 border-dashed ${
+              isSun ? "border-amber-300 bg-amber-50/50" : "border-purple-800/50 bg-purple-950/20"
+            }`}
+          >
+            <Brain className={`w-24 h-24 mx-auto mb-6 ${isSun ? "text-amber-300" : "text-purple-600/50"}`} />
+            <h3 className={`text-2xl font-bold mb-3 font-[family-name:var(--font-cinzel)] ${
+              isSun ? "text-amber-800" : "text-purple-300"
+            }`}>
+              Empty Deck
+            </h3>
+            <p className={isSun ? "text-amber-700/70" : "text-purple-400/60"}>
+              Add cards using the + button above to begin your studies
+            </p>
+          </motion.div>
+        ) : currentCard && (
+          <>
+            {/* Card Counter */}
+            <p className={`text-center text-sm mb-6 font-[family-name:var(--font-cinzel)] ${
+              isSun ? "text-amber-600" : "text-purple-400"
+            }`}>
+              Card {currentIndex + 1} of {selectedDeck.cards.length}
+            </p>
 
-      {/* Flashcard */}
-      {selectedDeck.cards.length === 0 ? (
-        <div className={`mt-20 p-12 text-center rounded-3xl border-2 border-dashed ${isSun ? "border-slate-300" : "border-white/20"}`}>
-          <Brain className={`w-16 h-16 mx-auto mb-4 ${isSun ? "text-slate-300" : "text-slate-600"}`} />
-          <h3 className={`text-xl font-bold mb-2 ${isSun ? "text-slate-600" : "text-slate-400"}`}>Empty deck</h3>
-          <p className={isSun ? "text-slate-500" : "text-slate-500"}>Add cards using the + button above.</p>
-        </div>
-      ) : currentCard && (
-        <motion.div
-          key={currentCard.id + (isFlipped ? "-back" : "-front")}
-          onClick={() => {
-            playSound("cardFlip");
-            setIsFlipped(!isFlipped);
-          }}
-          className="cursor-pointer"
-          whileHover={{ scale: 1.01 }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={isFlipped ? "back" : "front"}
-              initial={{ rotateY: isFlipped ? -90 : 90, opacity: 0 }}
-              animate={{ rotateY: 0, opacity: 1 }}
-              exit={{ rotateY: isFlipped ? 90 : -90, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`min-h-[320px] p-8 rounded-3xl flex flex-col items-center justify-center text-center ${glassCard} ${
-                isFlipped ? "border-emerald-500/30" : ""
-              }`}
-            >
-              <div className={`text-xs font-bold uppercase tracking-wider mb-6 ${isFlipped ? "text-emerald-500" : (isSun ? "text-slate-400" : "text-slate-500")}`}>
-                {isFlipped ? "Answer" : "Question"}
-              </div>
-              <p className={`text-2xl font-medium leading-relaxed ${isSun ? "text-slate-800" : "text-white"}`}>
-                {isFlipped ? currentCard.back : currentCard.front}
-              </p>
-              <p className={`text-xs mt-8 ${isSun ? "text-slate-400" : "text-slate-500"}`}>
-                {isFlipped ? "Grade your knowledge below" : "Click to reveal answer"}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-      )}
+            {/* Ornate Card Stand Base */}
+            <div className="relative">
+              {/* Stand Pedestal */}
+              <div className={`absolute left-1/2 -translate-x-1/2 bottom-0 w-32 h-12 rounded-b-3xl ${
+                isSun 
+                  ? "bg-gradient-to-b from-amber-800 to-amber-900" 
+                  : "bg-gradient-to-b from-purple-950 to-black"
+              }`} style={{
+                boxShadow: isSun 
+                  ? "0 10px 30px rgba(139, 92, 46, 0.4), inset 0 -2px 6px rgba(0,0,0,0.3)"
+                  : "0 10px 30px rgba(88, 28, 135, 0.6), inset 0 -2px 6px rgba(0,0,0,0.5)"
+              }} />
+              
+              {/* Magical Glow Effect */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.02, 1],
+                  opacity: [0.3, 0.5, 0.3],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className={`absolute inset-0 rounded-3xl blur-2xl ${
+                  isFlipped 
+                    ? (isSun ? "bg-emerald-300/40" : "bg-emerald-600/30")
+                    : (isSun ? "bg-amber-300/40" : "bg-purple-600/30")
+                }`}
+              />
 
-      {/* Navigation & Grading */}
+              {/* The Card Itself */}
+              <motion.div
+                key={currentCard.id + (isFlipped ? "-back" : "-front")}
+                onClick={() => {
+                  playSound("cardFlip");
+                  setIsFlipped(!isFlipped);
+                }}
+                className="cursor-pointer relative"
+                whileHover={{ y: -10, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={isFlipped ? "back" : "front"}
+                    initial={{ rotateY: isFlipped ? -180 : 180, opacity: 0 }}
+                    animate={{ rotateY: 0, opacity: 1 }}
+                    exit={{ rotateY: isFlipped ? 180 : -180, opacity: 0 }}
+                    transition={{ duration: 0.5, type: "spring" }}
+                    className={`min-h-[400px] p-10 rounded-3xl flex flex-col items-center justify-center text-center border-4 relative overflow-hidden ${
+                      isFlipped 
+                        ? (isSun 
+                            ? "bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100 border-emerald-400" 
+                            : "bg-gradient-to-br from-emerald-950 via-teal-950 to-emerald-900 border-emerald-600/50")
+                        : (isSun 
+                            ? "bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 border-amber-400" 
+                            : "bg-gradient-to-br from-purple-950 via-violet-950 to-purple-900 border-purple-600/50")
+                    }`}
+                    style={{
+                      boxShadow: isFlipped 
+                        ? (isSun 
+                            ? "0 20px 60px rgba(16, 185, 129, 0.3), inset 0 2px 20px rgba(255,255,255,0.4)" 
+                            : "0 20px 60px rgba(16, 185, 129, 0.5), inset 0 2px 20px rgba(16, 185, 129, 0.1)")
+                        : (isSun 
+                            ? "0 20px 60px rgba(245, 158, 11, 0.3), inset 0 2px 20px rgba(255,255,255,0.4)" 
+                            : "0 20px 60px rgba(147, 51, 234, 0.5), inset 0 2px 20px rgba(147, 51, 234, 0.1)")
+                    }}
+                  >
+                    {/* Decorative corners */}
+                    <div className="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 rounded-tl-2xl opacity-30" 
+                      style={{ borderColor: isFlipped ? (isSun ? "#10b981" : "#34d399") : (isSun ? "#f59e0b" : "#a855f7") }} 
+                    />
+                    <div className="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 rounded-tr-2xl opacity-30" 
+                      style={{ borderColor: isFlipped ? (isSun ? "#10b981" : "#34d399") : (isSun ? "#f59e0b" : "#a855f7") }} 
+                    />
+                    <div className="absolute bottom-4 left-4 w-8 h-8 border-b-4 border-l-4 rounded-bl-2xl opacity-30" 
+                      style={{ borderColor: isFlipped ? (isSun ? "#10b981" : "#34d399") : (isSun ? "#f59e0b" : "#a855f7") }} 
+                    />
+                    <div className="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 rounded-br-2xl opacity-30" 
+                      style={{ borderColor: isFlipped ? (isSun ? "#10b981" : "#34d399") : (isSun ? "#f59e0b" : "#a855f7") }} 
+                    />
+
+                    {/* Card label */}
+                    <div className={`text-xs font-bold uppercase tracking-widest mb-8 px-4 py-2 rounded-full ${
+                      isFlipped 
+                        ? (isSun ? "bg-emerald-200 text-emerald-800" : "bg-emerald-900/50 text-emerald-300")
+                        : (isSun ? "bg-amber-200 text-amber-800" : "bg-purple-900/50 text-purple-300")
+                    }`}>
+                      {isFlipped ? "✦ Answer ✦" : "✧ Question ✧"}
+                    </div>
+
+                    {/* Card content */}
+                    <p className={`text-2xl font-bold leading-relaxed max-w-lg font-[family-name:var(--font-nunito)] ${
+                      isFlipped 
+                        ? (isSun ? "text-emerald-900" : "text-emerald-100")
+                        : (isSun ? "text-amber-900" : "text-purple-100")
+                    }`}>
+                      {isFlipped ? currentCard.back : currentCard.front}
+                    </p>
+
+                    {/* Instruction hint */}
+                    <p className={`text-xs mt-10 italic ${
+                      isFlipped 
+                        ? (isSun ? "text-emerald-600/70" : "text-emerald-400/60")
+                        : (isSun ? "text-amber-600/70" : "text-purple-400/60")
+                    }`}>
+                      {isFlipped ? "Grade your knowledge below" : "Click to reveal answer"}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+              </motion.div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Navigation & Grading Controls */}
       {selectedDeck.cards.length > 0 && (
-        <div className="mt-8">
+        <div className="relative z-10 w-full max-w-3xl mt-10">
           <AnimatePresence mode="wait">
             {!isFlipped ? (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="flex items-center justify-center gap-8"
               >
-                <button onClick={handlePrev} className={`w-14 h-14 rounded-full flex items-center justify-center ${glassCard}`}>
-                  <ChevronLeft className="w-6 h-6" />
+                <button 
+                  onClick={handlePrev} 
+                  className={`w-16 h-16 rounded-full flex items-center justify-center transition-all border-2 ${
+                    isSun 
+                      ? "bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-800" 
+                      : "bg-purple-950/50 border-purple-700/50 hover:bg-purple-900/50 text-purple-300"
+                  }`}
+                >
+                  <ChevronLeft className="w-7 h-7" />
                 </button>
+                
                 <button
                   onClick={() => setIsFlipped(true)}
-                  className="px-8 py-4 rounded-2xl flex items-center gap-3 font-bold bg-gradient-to-r from-violet-500 to-purple-600 text-white"
+                  className={`px-10 py-5 rounded-2xl flex items-center gap-3 font-bold text-lg transition-all ${
+                    isSun 
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-amber-500/30" 
+                      : "bg-gradient-to-r from-purple-600 to-violet-600 text-white hover:from-purple-700 hover:to-violet-700 shadow-lg shadow-purple-600/50"
+                  }`}
                 >
-                  <RotateCcw className="w-5 h-5" />
+                  <RotateCcw className="w-6 h-6" />
                   Reveal Answer
                 </button>
-                <button onClick={handleNext} className={`w-14 h-14 rounded-full flex items-center justify-center ${glassCard}`}>
-                  <ChevronRight className="w-6 h-6" />
+                
+                <button 
+                  onClick={handleNext} 
+                  className={`w-16 h-16 rounded-full flex items-center justify-center transition-all border-2 ${
+                    isSun 
+                      ? "bg-amber-100 border-amber-300 hover:bg-amber-200 text-amber-800" 
+                      : "bg-purple-950/50 border-purple-700/50 hover:bg-purple-900/50 text-purple-300"
+                  }`}
+                >
+                  <ChevronRight className="w-7 h-7" />
                 </button>
               </motion.div>
             ) : (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="grid grid-cols-4 gap-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="grid grid-cols-4 gap-4"
               >
                 {[
-                  { q: 0, label: "Again", color: "bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400" },
-                  { q: 1, label: "Hard", color: "bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400" },
-                  { q: 2, label: "Good", color: "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400" },
-                  { q: 3, label: "Easy", color: "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400" },
+                  { q: 0, label: "Again", color: isSun ? "bg-red-100 text-red-700 hover:bg-red-200" : "bg-red-500/20 text-red-400 hover:bg-red-500/30", icon: "❌" },
+                  { q: 1, label: "Hard", color: isSun ? "bg-orange-100 text-orange-700 hover:bg-orange-200" : "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30", icon: "⚠️" },
+                  { q: 2, label: "Good", color: isSun ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30", icon: "✓" },
+                  { q: 3, label: "Easy", color: isSun ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30", icon: "✓✓" },
                 ].map((btn) => (
                   <button
                     key={btn.q}
                     onClick={() => handleGradeCard(btn.q)}
-                    className={`flex flex-col items-center justify-center py-3 rounded-xl transition-colors ${btn.color}`}
+                    className={`flex flex-col items-center justify-center py-5 rounded-xl transition-all font-bold border-2 border-transparent hover:border-current ${btn.color}`}
                   >
+                    <span className="text-2xl mb-2">{btn.icon}</span>
                     <BrainCircuit className="w-5 h-5 mb-1" />
-                    <span className="font-bold text-sm">{btn.label}</span>
+                    <span className="text-sm">{btn.label}</span>
                   </button>
                 ))}
               </motion.div>

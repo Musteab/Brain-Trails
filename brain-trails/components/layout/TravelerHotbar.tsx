@@ -10,10 +10,10 @@ type NavItem = {
   emoji: string;
 };
 
-// All 11 navigation items
+// All navigation items - Knowledge now points to Arcane Archive
 const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Dashboard', emoji: '🏕️' },
-  { href: '/knowledge', label: 'Knowledge Map', emoji: '🗺️' },
+  { href: '/arcane-archive', label: 'Knowledge', emoji: '🗺️' },
   { href: '/notes', label: 'Spellbook', emoji: '📖' },
   { href: '/flashcards', label: 'Deck', emoji: '🃏' },
   { href: '/focus', label: 'Focus', emoji: '⏳' },
@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/guild', label: 'Guilds', emoji: '🛡️' },
   { href: '/achievements', label: 'Trophies', emoji: '🏆' },
   { href: '/shop', label: 'Merchant', emoji: '💰' },
-  { href: '/about', label: 'Archive', emoji: '📚' },
+  { href: '/about', label: 'About', emoji: '📚' },
   { href: '/report', label: 'Reports', emoji: '📜' },
   { href: '/settings', label: 'Settings', emoji: '⚙️' },
 ];

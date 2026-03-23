@@ -213,10 +213,12 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-red-500 to-purple-600">
-        <div className="text-center text-white">
-          <Flame className="w-16 h-16 mx-auto mb-4 animate-pulse" />
-          <p className="text-xl font-bold">Preparing Trial of Fire...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-red-950 to-slate-900">
+        <div className="text-center text-orange-300">
+          <Flame className="w-16 h-16 mx-auto mb-4 animate-pulse text-orange-400" />
+          <p className="text-xl font-bold font-[family-name:var(--font-cinzel)]">
+            Preparing Trial of Fire...
+          </p>
         </div>
       </div>
     );
@@ -225,20 +227,20 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
   // No flashcards
   if (flashcards.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-red-500 to-purple-600 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 p-6">
         <div className={`max-w-md text-center p-8 rounded-3xl ${
-          isSun ? "bg-white/90" : "bg-slate-900/90"
-        } backdrop-blur-xl`}>
-          <BookOpen className={`w-16 h-16 mx-auto mb-4 ${isSun ? "text-slate-400" : "text-slate-500"}`} />
-          <h2 className={`text-2xl font-bold mb-2 ${isSun ? "text-slate-800" : "text-white"}`}>
+          isSun ? "bg-slate-800/90" : "bg-slate-900/90"
+        } backdrop-blur-xl border border-orange-500/30`}>
+          <BookOpen className="w-16 h-16 mx-auto mb-4 text-orange-400/60" />
+          <h2 className="text-2xl font-bold mb-2 text-orange-100 font-[family-name:var(--font-cinzel)]">
             No Flashcards Found
           </h2>
-          <p className={`mb-6 ${isSun ? "text-slate-600" : "text-slate-400"}`}>
+          <p className="mb-6 text-orange-300/80 font-[family-name:var(--font-quicksand)]">
             Create some flashcards for {subjectName} first, then return for your Trial of Fire!
           </p>
           <button
             onClick={onExit}
-            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl"
+            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl shadow-lg shadow-orange-500/30 font-[family-name:var(--font-cinzel)]"
           >
             Go Back
           </button>
@@ -254,82 +256,136 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
       : 0;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-red-500 to-purple-600 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 p-6 relative overflow-hidden">
+        {/* Flame particles background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {Array.from({ length: 40 }).map((_, i) => (
+            <motion.div
+              key={`completion-flame-${i}`}
+              className="absolute w-1 h-1 rounded-full bg-orange-400/60"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                opacity: [0.2, 1, 0.2],
+                scale: [0.8, 2, 0.8],
+                y: [0, -30, 0],
+              }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className={`max-w-lg w-full p-8 rounded-3xl text-center ${
-            isSun ? "bg-white/95" : "bg-slate-900/95"
-          } backdrop-blur-xl shadow-2xl`}
+          className="max-w-lg w-full p-8 rounded-3xl text-center bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-orange-500/40 backdrop-blur-xl shadow-2xl relative z-10"
+          style={{
+            boxShadow: "0 0 60px rgba(249, 115, 22, 0.3), inset 0 0 60px rgba(249, 115, 22, 0.1)",
+          }}
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
-            <Trophy className="w-10 h-10 text-white" />
-          </div>
+          {/* Victory fire orb */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center relative"
+          >
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              animate={{
+                boxShadow: [
+                  "0 0 30px 10px rgba(249, 115, 22, 0.4)",
+                  "0 0 40px 15px rgba(249, 115, 22, 0.5)",
+                  "0 0 30px 10px rgba(249, 115, 22, 0.4)",
+                ],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+              }}
+            />
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "radial-gradient(circle, rgba(249, 115, 22, 0.3), rgba(239, 68, 68, 0.15))",
+                backdropFilter: "blur(10px)",
+                border: "2px solid rgba(249, 115, 22, 0.5)",
+              }}
+            >
+              <Trophy className="w-10 h-10 text-orange-300 absolute inset-0 m-auto" />
+            </div>
+          </motion.div>
 
-          <h2 className={`text-3xl font-black mb-2 ${isSun ? "text-slate-800" : "text-white"}`}>
+          <h2 className="text-3xl font-black mb-2 text-orange-100 font-[family-name:var(--font-cinzel)]">
             Trial Complete!
           </h2>
-          <p className={`mb-6 ${isSun ? "text-slate-600" : "text-slate-400"}`}>
+          <p className="mb-6 text-orange-300/80 font-[family-name:var(--font-quicksand)]">
             You survived the Trial of Fire for {subjectName}
           </p>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className={`p-4 rounded-2xl ${isSun ? "bg-slate-100" : "bg-white/10"}`}>
-              <Target className={`w-6 h-6 mx-auto mb-2 ${isSun ? "text-emerald-500" : "text-emerald-400"}`} />
-              <div className={`text-2xl font-black ${isSun ? "text-emerald-600" : "text-emerald-400"}`}>
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 border border-emerald-500/30">
+              <Target className="w-6 h-6 mx-auto mb-2 text-emerald-400" />
+              <div className="text-2xl font-black text-emerald-400">
                 {accuracy}%
               </div>
-              <div className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Accuracy</div>
+              <div className="text-xs text-emerald-300/80 font-[family-name:var(--font-cinzel)]">Accuracy</div>
             </div>
-            <div className={`p-4 rounded-2xl ${isSun ? "bg-slate-100" : "bg-white/10"}`}>
-              <Flame className={`w-6 h-6 mx-auto mb-2 ${isSun ? "text-orange-500" : "text-orange-400"}`} />
-              <div className={`text-2xl font-black ${isSun ? "text-orange-600" : "text-orange-400"}`}>
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/30">
+              <Flame className="w-6 h-6 mx-auto mb-2 text-orange-400" />
+              <div className="text-2xl font-black text-orange-400">
                 {stats.bestStreak}
               </div>
-              <div className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Best Streak</div>
+              <div className="text-xs text-orange-300/80 font-[family-name:var(--font-cinzel)]">Best Streak</div>
             </div>
-            <div className={`p-4 rounded-2xl ${isSun ? "bg-slate-100" : "bg-white/10"}`}>
-              <Brain className={`w-6 h-6 mx-auto mb-2 ${isSun ? "text-purple-500" : "text-purple-400"}`} />
-              <div className={`text-2xl font-black ${isSun ? "text-purple-600" : "text-purple-400"}`}>
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/30">
+              <Brain className="w-6 h-6 mx-auto mb-2 text-purple-400" />
+              <div className="text-2xl font-black text-purple-400">
                 {stats.cardsReviewed}
               </div>
-              <div className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Cards Reviewed</div>
+              <div className="text-xs text-purple-300/80 font-[family-name:var(--font-cinzel)]">Cards Reviewed</div>
             </div>
-            <div className={`p-4 rounded-2xl ${isSun ? "bg-slate-100" : "bg-white/10"}`}>
-              <Timer className={`w-6 h-6 mx-auto mb-2 ${isSun ? "text-blue-500" : "text-blue-400"}`} />
-              <div className={`text-2xl font-black ${isSun ? "text-blue-600" : "text-blue-400"}`}>
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30">
+              <Timer className="w-6 h-6 mx-auto mb-2 text-blue-400" />
+              <div className="text-2xl font-black text-blue-400">
                 {formatTime(sessionTime)}
               </div>
-              <div className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Time</div>
+              <div className="text-xs text-blue-300/80 font-[family-name:var(--font-cinzel)]">Time</div>
             </div>
           </div>
 
           {/* Rewards */}
-          <div className={`flex items-center justify-center gap-6 mb-8 py-4 px-6 rounded-xl ${
-            isSun ? "bg-amber-50 border border-amber-200" : "bg-amber-500/10 border border-amber-500/20"
-          }`}>
+          <div className="flex items-center justify-center gap-6 mb-8 py-4 px-6 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30">
             <div className="text-center">
-              <div className={`text-xl font-black ${isSun ? "text-amber-600" : "text-amber-400"}`}>
+              <div className="text-xl font-black text-amber-400">
                 +{Math.floor(sessionTime / 60) * 5 + stats.bestStreak * 2 + (accuracy >= 80 ? 50 : accuracy >= 60 ? 25 : 0)}
               </div>
-              <div className={`text-xs ${isSun ? "text-amber-500" : "text-amber-500"}`}>XP Earned</div>
+              <div className="text-xs text-amber-300/80 font-[family-name:var(--font-cinzel)]">XP Earned</div>
             </div>
-            <div className={`w-px h-8 ${isSun ? "bg-amber-200" : "bg-amber-500/30"}`} />
+            <div className="w-px h-10 bg-amber-500/30" />
             <div className="text-center">
-              <div className={`text-xl font-black ${isSun ? "text-amber-600" : "text-amber-400"}`}>
+              <div className="text-xl font-black text-amber-400">
                 +{Math.floor((Math.floor(sessionTime / 60) * 5 + stats.bestStreak * 2) / 3)}
               </div>
-              <div className={`text-xs ${isSun ? "text-amber-500" : "text-amber-500"}`}>Gold</div>
+              <div className="text-xs text-amber-300/80 font-[family-name:var(--font-cinzel)]">Gold</div>
             </div>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onExit}
-            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-lg hover:shadow-lg transition-all"
+            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-lg hover:shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all font-[family-name:var(--font-cinzel)]"
           >
             Exit Trial
-          </button>
+          </motion.button>
         </motion.div>
       </div>
     );
@@ -339,83 +395,149 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
 
   // Main cram interface
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500 via-red-500 to-purple-600 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 flex flex-col relative overflow-hidden">
+      {/* Flickering flame particles background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 30 }).map((_, i) => (
+          <motion.div
+            key={`flame-${i}`}
+            className="absolute w-1 h-1 rounded-full bg-orange-400/60"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0.2, 1, 0.2],
+              scale: [0.8, 1.5, 0.8],
+              y: [0, -20, 0],
+            }}
+            transition={{
+              duration: 2 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4">
-        <button
+      <header className="flex items-center justify-between px-6 py-4 relative z-10">
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          whileHover={{ x: -2 }}
+          whileTap={{ scale: 0.95 }}
           onClick={onExit}
-          className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-slate-800/60 backdrop-blur-sm text-orange-300 rounded-xl hover:bg-slate-700/70 transition-colors border border-orange-500/20 shadow-lg shadow-orange-500/10"
         >
           <ArrowLeft className="w-4 h-4" />
-          Exit
-        </button>
+          <span className="font-medium font-[family-name:var(--font-cinzel)]">Exit</span>
+        </motion.button>
 
         <div className="flex items-center gap-4">
-          {/* Streak indicator */}
+          {/* Streak indicator with flame */}
           {stats.streakCount > 0 && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-400/30 backdrop-blur-sm text-white rounded-xl"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm text-orange-300 rounded-xl border border-orange-500/30"
             >
-              <Flame className="w-5 h-5 text-orange-300" />
-              <span className="font-bold">{stats.streakCount}x Streak</span>
+              <Flame className="w-5 h-5 text-orange-400 animate-pulse" />
+              <span className="font-bold font-[family-name:var(--font-cinzel)]">{stats.streakCount}x Streak</span>
             </motion.div>
           )}
 
-          {/* Timer */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-xl">
+          {/* Timer display */}
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-800/60 backdrop-blur-sm text-orange-300 rounded-xl border border-orange-500/20">
             <Timer className="w-5 h-5" />
             <span className="font-mono font-bold">{formatTime(sessionTime)}</span>
-            <span className="text-white/60">/ {formatTime(targetTime)}</span>
+            <span className="text-orange-400/60">/ {formatTime(targetTime)}</span>
           </div>
         </div>
       </header>
 
-      {/* Progress bar */}
-      <div className="px-6">
-        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+      {/* Progress bar with fire gradient */}
+      <div className="px-6 relative z-10">
+        <div className="h-2 bg-slate-800/60 rounded-full overflow-hidden border border-orange-500/20">
           <motion.div
-            className="h-full bg-white rounded-full"
+            className="h-full bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
+            style={{
+              boxShadow: "0 0 10px rgba(249, 115, 22, 0.6)",
+            }}
           />
         </div>
       </div>
 
       {/* Main content */}
-      <main className="flex-1 flex items-center justify-center p-6">
+      <main className="flex-1 flex items-center justify-center p-6 relative z-10">
         {!isActive ? (
-          // Start screen
+          // Start screen with fire crystal
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Flame className="w-12 h-12 text-white" />
+            {/* Mini Fire Orb */}
+            <div className="relative w-32 h-32 mx-auto mb-6">
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                animate={{
+                  boxShadow: [
+                    "0 0 40px 10px rgba(249, 115, 22, 0.4), 0 0 60px 20px rgba(239, 68, 68, 0.3)",
+                    "0 0 60px 20px rgba(249, 115, 22, 0.5), 0 0 80px 30px rgba(239, 68, 68, 0.4)",
+                    "0 0 40px 10px rgba(249, 115, 22, 0.4), 0 0 60px 20px rgba(239, 68, 68, 0.3)",
+                  ],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: "radial-gradient(circle at 35% 35%, rgba(249, 115, 22, 0.3), rgba(239, 68, 68, 0.15) 50%, rgba(127, 29, 29, 0.2))",
+                  backdropFilter: "blur(15px)",
+                  border: "2px solid rgba(249, 115, 22, 0.4)",
+                  boxShadow: "inset 0 0 40px rgba(249, 115, 22, 0.3)",
+                }}
+              >
+                <Flame className="w-16 h-16 text-orange-400 absolute inset-0 m-auto animate-pulse" />
+              </div>
             </div>
-            <h1 className="text-4xl font-black text-white mb-2">Trial of Fire</h1>
-            <p className="text-white/80 mb-8 text-lg">{subjectName}</p>
+
+            <h1 className="text-5xl font-black text-orange-100 mb-2 font-[family-name:var(--font-cinzel)]">
+              Trial of Fire
+            </h1>
+            <p className="text-orange-300/80 mb-10 text-lg font-[family-name:var(--font-quicksand)]">
+              {subjectName}
+            </p>
 
             {/* Time selector */}
             <div className="flex items-center justify-center gap-3 mb-8">
               {[5, 10, 15, 25].map((mins) => (
-                <button
+                <motion.button
                   key={mins}
                   onClick={() => setTargetTime(mins * 60)}
-                  className={`px-4 py-2 rounded-xl font-bold transition-all ${
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-5 py-3 rounded-xl font-bold transition-all border font-[family-name:var(--font-cinzel)] ${
                     targetTime === mins * 60
-                      ? "bg-white text-red-500"
-                      : "bg-white/20 text-white hover:bg-white/30"
+                      ? "bg-gradient-to-r from-orange-500 to-red-500 text-white border-orange-400 shadow-lg shadow-orange-500/30"
+                      : "bg-slate-800/60 text-orange-300 border-orange-500/20 hover:bg-slate-700/70"
                   }`}
                 >
                   {mins} min
-                </button>
+                </motion.button>
               ))}
             </div>
 
-            <p className="text-white/60 mb-6">{flashcards.length} flashcards ready</p>
+            <p className="text-orange-400/60 mb-8 font-[family-name:var(--font-quicksand)]">
+              {flashcards.length} flashcards ready
+            </p>
 
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -424,71 +546,159 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
                 setIsActive(true);
                 playSound("timerStart");
               }}
-              className="px-10 py-5 bg-white text-red-500 font-black text-xl rounded-2xl shadow-2xl hover:shadow-white/20 transition-all flex items-center gap-3 mx-auto"
+              className="px-10 py-5 bg-gradient-to-r from-orange-500 to-red-500 text-white font-black text-xl rounded-2xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all flex items-center gap-3 mx-auto font-[family-name:var(--font-cinzel)]"
             >
               <Play className="w-6 h-6" fill="currentColor" />
               Begin Trial
             </motion.button>
           </motion.div>
         ) : (
-          // Flashcard review
-          <div className="w-full max-w-xl">
+          // Flashcard review with Fire Crystal Orb
+          <div className="w-full max-w-2xl">
             {/* Card counter */}
             <div className="text-center mb-6">
-              <span className="text-white/80 text-sm">
+              <span className="text-orange-300/80 text-sm font-[family-name:var(--font-cinzel)]">
                 Card {currentIndex + 1} of {flashcards.length}
               </span>
             </div>
 
-            {/* Flashcard */}
-            <motion.div
-              key={currentCard.id}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="perspective-1000"
-            >
+            {/* Fire Crystal Orb containing flashcard */}
+            <div className="relative w-full h-[500px] flex items-center justify-center">
+              {/* Outer Glow Rings (Pulsating Fire) */}
               <motion.div
-                onClick={() => setIsFlipped(!isFlipped)}
-                className={`relative w-full aspect-[3/2] cursor-pointer ${
-                  isSun ? "bg-white" : "bg-slate-900"
-                } rounded-3xl shadow-2xl p-8 flex items-center justify-center`}
-                animate={{ rotateY: isFlipped ? 180 : 0 }}
-                transition={{ duration: 0.4 }}
-                style={{ transformStyle: "preserve-3d" }}
-              >
-                {/* Front */}
-                <div
-                  className={`absolute inset-0 flex items-center justify-center p-8 backface-hidden ${
-                    isFlipped ? "invisible" : ""
-                  }`}
-                >
-                  <div className="text-center">
-                    <Sparkles className={`w-8 h-8 mx-auto mb-4 ${isSun ? "text-purple-400" : "text-purple-500"}`} />
-                    <p className={`text-2xl font-bold ${isSun ? "text-slate-800" : "text-white"}`}>
-                      {currentCard.front}
-                    </p>
-                    <p className={`text-sm mt-4 ${isSun ? "text-slate-400" : "text-slate-500"}`}>
-                      Tap to reveal answer
-                    </p>
-                  </div>
-                </div>
+                className="absolute inset-0 rounded-full"
+                animate={{
+                  boxShadow: [
+                    "0 0 80px 30px rgba(249, 115, 22, 0.3), 0 0 120px 50px rgba(239, 68, 68, 0.2)",
+                    "0 0 100px 40px rgba(249, 115, 22, 0.4), 0 0 150px 60px rgba(239, 68, 68, 0.3)",
+                    "0 0 80px 30px rgba(249, 115, 22, 0.3), 0 0 120px 50px rgba(239, 68, 68, 0.2)",
+                  ],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
 
-                {/* Back */}
-                <div
-                  className={`absolute inset-0 flex items-center justify-center p-8 backface-hidden ${
-                    !isFlipped ? "invisible" : ""
-                  }`}
-                  style={{ transform: "rotateY(180deg)" }}
-                >
-                  <div className="text-center">
-                    <Brain className={`w-8 h-8 mx-auto mb-4 ${isSun ? "text-emerald-400" : "text-emerald-500"}`} />
-                    <p className={`text-xl ${isSun ? "text-slate-700" : "text-slate-200"}`}>
-                      {currentCard.back}
-                    </p>
-                  </div>
-                </div>
+              {/* Fire Crystal Orb Sphere */}
+              <motion.div
+                className="absolute inset-12 rounded-full"
+                style={{
+                  background: "radial-gradient(circle at 30% 30%, rgba(249, 115, 22, 0.2), rgba(239, 68, 68, 0.08) 50%, rgba(127, 29, 29, 0.15))",
+                  backdropFilter: "blur(25px)",
+                  border: "2px solid rgba(249, 115, 22, 0.4)",
+                  boxShadow: "inset 0 0 80px rgba(249, 115, 22, 0.3), inset 0 0 120px rgba(239, 68, 68, 0.15)",
+                }}
+                animate={{
+                  scale: [1, 1.03, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                {/* Highlight spot for 3D effect */}
+                <div 
+                  className="absolute top-12 left-16 w-32 h-32 rounded-full"
+                  style={{
+                    background: "radial-gradient(circle, rgba(255, 200, 150, 0.4), transparent 70%)",
+                    filter: "blur(20px)",
+                  }}
+                />
               </motion.div>
-            </motion.div>
+
+              {/* Inner Fire Particles */}
+              <div className="absolute inset-20 rounded-full overflow-hidden">
+                {Array.from({ length: 15 }).map((_, i) => {
+                  const angle = (i / 15) * Math.PI * 2;
+                  const radius = 70 + Math.random() * 50;
+                  return (
+                    <motion.div
+                      key={`orb-particle-${i}`}
+                      className="absolute w-2 h-2 rounded-full bg-orange-400"
+                      style={{
+                        left: "50%",
+                        top: "50%",
+                        filter: "blur(1.5px)",
+                      }}
+                      animate={{
+                        x: [
+                          Math.cos(angle) * radius,
+                          Math.cos(angle + Math.PI) * radius,
+                          Math.cos(angle) * radius,
+                        ],
+                        y: [
+                          Math.sin(angle) * radius,
+                          Math.sin(angle + Math.PI) * radius,
+                          Math.sin(angle) * radius,
+                        ],
+                        opacity: [0.4, 0.9, 0.4],
+                      }}
+                      transition={{
+                        duration: 5 + Math.random() * 3,
+                        repeat: Infinity,
+                        ease: "linear",
+                        delay: Math.random() * 2,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Flashcard Content in Center */}
+              <motion.div
+                key={currentCard.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative z-20 w-[350px] h-[280px] cursor-pointer"
+                onClick={() => setIsFlipped(!isFlipped)}
+              >
+                <motion.div
+                  className={`w-full h-full rounded-2xl shadow-2xl ${
+                    isSun ? "bg-slate-800/90" : "bg-slate-900/90"
+                  } backdrop-blur-md border-2 ${
+                    isFlipped ? "border-emerald-500/50" : "border-orange-500/50"
+                  } p-8 flex items-center justify-center`}
+                  animate={{ rotateY: isFlipped ? 180 : 0 }}
+                  transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  {/* Front */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center p-8 backface-hidden ${
+                      isFlipped ? "invisible" : ""
+                    }`}
+                  >
+                    <div className="text-center">
+                      <Sparkles className="w-10 h-10 mx-auto mb-4 text-orange-400" />
+                      <p className="text-2xl font-bold text-orange-100 font-[family-name:var(--font-quicksand)]">
+                        {currentCard.front}
+                      </p>
+                      <p className="text-sm mt-6 text-orange-300/60 font-[family-name:var(--font-cinzel)]">
+                        Tap to reveal answer
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Back */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center p-8 backface-hidden ${
+                      !isFlipped ? "invisible" : ""
+                    }`}
+                    style={{ transform: "rotateY(180deg)" }}
+                  >
+                    <div className="text-center">
+                      <Brain className="w-10 h-10 mx-auto mb-4 text-emerald-400" />
+                      <p className="text-xl text-emerald-100 font-[family-name:var(--font-quicksand)]">
+                        {currentCard.back}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </div>
 
             {/* Answer buttons (shown when flipped) */}
             <AnimatePresence>
@@ -497,13 +707,13 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center justify-center gap-4 mt-8"
+                  className="flex items-center justify-center gap-5 mt-8"
                 >
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleAnswer(false)}
-                    className="flex items-center gap-2 px-8 py-4 bg-red-500/20 border-2 border-red-400 text-red-300 font-bold rounded-2xl hover:bg-red-500/30 transition-colors"
+                    className="flex items-center gap-2 px-8 py-4 bg-red-500/20 border-2 border-red-400 text-red-300 font-bold rounded-2xl hover:bg-red-500/30 transition-colors shadow-lg shadow-red-500/20 font-[family-name:var(--font-cinzel)]"
                   >
                     <XCircle className="w-6 h-6" />
                     Wrong
@@ -512,7 +722,7 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleAnswer(true)}
-                    className="flex items-center gap-2 px-8 py-4 bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-bold rounded-2xl hover:bg-emerald-500/30 transition-colors"
+                    className="flex items-center gap-2 px-8 py-4 bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-bold rounded-2xl hover:bg-emerald-500/30 transition-colors shadow-lg shadow-emerald-500/20 font-[family-name:var(--font-cinzel)]"
                   >
                     <CheckCircle2 className="w-6 h-6" />
                     Correct
@@ -522,22 +732,28 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
             </AnimatePresence>
 
             {/* Controls */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <button
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsActive(!isActive)}
-                className="p-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-colors"
+                className="p-3 bg-slate-800/60 text-orange-300 rounded-xl hover:bg-slate-700/70 transition-colors border border-orange-500/20"
+                title={isActive ? "Pause" : "Resume"}
               >
                 {isActive ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setIsFlipped(false);
                   setCurrentIndex((prev) => (prev + 1) % flashcards.length);
                 }}
-                className="p-3 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-colors"
+                className="p-3 bg-slate-800/60 text-orange-300 rounded-xl hover:bg-slate-700/70 transition-colors border border-orange-500/20"
+                title="Skip Card"
               >
                 <SkipForward className="w-5 h-5" />
-              </button>
+              </motion.button>
             </div>
           </div>
         )}
@@ -545,8 +761,8 @@ export default function ExamCramMode({ subjectId, subjectName, onExit }: ExamCra
 
       {/* Stats footer */}
       {isActive && (
-        <footer className="px-6 py-4">
-          <div className="flex items-center justify-center gap-6 text-white/80 text-sm">
+        <footer className="px-6 py-4 relative z-10">
+          <div className="flex items-center justify-center gap-8 text-orange-300/80 text-sm font-[family-name:var(--font-cinzel)]">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               {stats.correctAnswers} correct

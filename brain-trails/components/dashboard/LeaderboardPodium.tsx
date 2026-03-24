@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useTheme } from "@/context/ThemeContext";
-import { User, Trophy } from "lucide-react";
+import { User, Trophy, ChevronRight, Flame, Crown } from "lucide-react";
+import Link from "next/link";
 
 interface GuildMember {
   id: string;
@@ -90,11 +91,29 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
       style={{ boxShadow: glassInner }}
     >
       {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <Trophy className={`w-4 h-4 ${isSun ? "text-amber-500" : "text-amber-400"}`} />
-        <h3 className={`text-sm font-bold ${isSun ? "text-slate-800" : "text-white"}`}>
-          Realm Leaders
-        </h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+              boxShadow: "0 2px 8px rgba(251, 191, 36, 0.3)",
+            }}
+          >
+            <Trophy className="w-4 h-4 text-white" />
+          </div>
+          <h3 className={`text-sm font-bold ${isSun ? "text-slate-800" : "text-white"}`}>
+            Realm Leaders
+          </h3>
+        </div>
+        <Link 
+          href="/achievements"
+          className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+            isSun ? "text-amber-600 hover:text-amber-700" : "text-amber-400 hover:text-amber-300"
+          }`}
+        >
+          View All <ChevronRight className="w-3 h-3" />
+        </Link>
       </div>
 
       {/* Streamlined Leaderboard - no extra borders */}
@@ -114,14 +133,33 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
               initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.08 }}
-              className={`flex items-center gap-2.5 p-2.5 rounded-2xl transition-colors ${
+              className={`relative flex items-center gap-2.5 p-2.5 rounded-2xl transition-all ${
                 member.isCurrentUser 
-                  ? "bg-indigo-500/10" 
+                  ? "bg-indigo-500/10 ring-1 ring-indigo-500/30" 
                   : "hover:bg-white/[0.04]"
               }`}
+              style={{
+                boxShadow: idx === 0 
+                  ? "0 0 20px rgba(251, 191, 36, 0.15)" 
+                  : idx === 1 
+                  ? "0 0 15px rgba(148, 163, 184, 0.1)" 
+                  : undefined,
+              }}
             >
-              {/* Rank medal */}
-              <span className="text-base w-5 text-center">{RANK_ICONS[idx] || `#${member.rank}`}</span>
+              {/* Rank medal with enhanced styling */}
+              <div 
+                className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
+                  idx === 0 
+                    ? "bg-gradient-to-br from-yellow-400 to-amber-500 text-white shadow-lg shadow-amber-500/30" 
+                    : idx === 1 
+                    ? "bg-gradient-to-br from-slate-300 to-slate-400 text-slate-700 shadow-lg shadow-slate-400/20"
+                    : idx === 2
+                    ? "bg-gradient-to-br from-amber-600 to-orange-700 text-white shadow-lg shadow-orange-600/20"
+                    : isSun ? "bg-slate-100 text-slate-500" : "bg-white/10 text-slate-400"
+                }`}
+              >
+                {idx === 0 ? <Crown className="w-3.5 h-3.5" /> : `#${member.rank}`}
+              </div>
 
               {/* Avatar */}
               <div className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center shrink-0 ${
@@ -139,10 +177,26 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
                 <p className={`text-xs font-bold truncate ${isSun ? 'text-slate-700' : 'text-white'}`}>
                   {member.name}
                 </p>
-                <p className={`text-[10px] font-semibold ${isSun ? 'text-purple-600' : 'text-purple-400'}`}>
-                  {member.points.toLocaleString()} XP
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className={`text-[10px] font-semibold ${isSun ? 'text-purple-600' : 'text-purple-400'}`}>
+                    {member.points.toLocaleString()} XP
+                  </p>
+                  {member.level && member.level >= 10 && (
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                      isSun ? "bg-amber-100 text-amber-600" : "bg-amber-500/20 text-amber-400"
+                    }`}>
+                      Lv.{member.level}
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Streak indicator for top players */}
+              {idx < 3 && (
+                <div className={`flex items-center gap-0.5 ${isSun ? "text-orange-500" : "text-orange-400"}`}>
+                  <Flame className="w-3 h-3" />
+                </div>
+              )}
             </motion.div>
           ))
         )}

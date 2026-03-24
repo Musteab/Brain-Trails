@@ -3,17 +3,20 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCardStyles } from "@/hooks/useCardStyles";
+import { ManaBoostBurst } from "@/components/effects/ManaBoostParticles";
 
 interface XPPopupItem {
   id: number;
   xp: number;
   gold: number;
+  showParticles: boolean;
 }
 
 let popupCounter = 0;
 
 /**
  * Animated floating "+X XP" / "+X Gold" notification.
+ * Now includes ManaBoostParticles burst effect for significant XP gains!
  *
  * Usage:
  *   const { showXPPopup } = useXPPopup();
@@ -45,12 +48,14 @@ export default function XPPopup() {
   useEffect(() => {
     const handler: PopupListener = (xp, gold) => {
       const id = ++popupCounter;
-      setPopups((prev) => [...prev, { id, xp, gold }]);
+      // Show particles for significant XP gains (25+)
+      const showParticles = xp >= 25;
+      setPopups((prev) => [...prev, { id, xp, gold, showParticles }]);
 
       // Auto-remove after animation
       setTimeout(() => {
         setPopups((prev) => prev.filter((p) => p.id !== id));
-      }, 2000);
+      }, 2500);
     };
 
     listeners.add(handler);
@@ -73,14 +78,25 @@ export default function XPPopup() {
               stiffness: 300,
               damping: 20,
             }}
-            className="flex flex-col items-end gap-0.5"
+            className="relative flex flex-col items-end gap-0.5"
           >
+            {/* Particle burst for significant XP gains */}
+            {popup.showParticles && (
+              <div className="absolute inset-0 -inset-x-8 -inset-y-4 pointer-events-none">
+                <ManaBoostBurst 
+                  variant={popup.gold > 0 ? "gold" : "mana"} 
+                  count={20} 
+                  origin={{ x: 80, y: 50 }} 
+                />
+              </div>
+            )}
+            
             {popup.xp > 0 && (
               <motion.div
                 initial={{ x: 10 }}
                 animate={{ x: 0 }}
                 className={`
-                  px-4 py-2 rounded-2xl font-bold text-sm font-[family-name:var(--font-nunito)]
+                  relative px-4 py-2 rounded-2xl font-bold text-sm font-[family-name:var(--font-nunito)]
                   backdrop-blur-md shadow-lg
                   ${isSun
                     ? "bg-purple-500/90 text-white shadow-purple-200/50"

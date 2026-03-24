@@ -15,7 +15,7 @@ import {
   Trophy,
   Crown,
 } from "lucide-react";
-import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
+import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import GuildCreate from "@/components/guild/GuildCreate";
 import GuildChat from "@/components/guild/GuildChat";
 import GuildLeaderboard from "@/components/guild/GuildLeaderboard";
@@ -197,22 +197,35 @@ export default function GuildPage() {
   // ===== Loading =====
   if (loading) {
     return (
-      <WizardsDeskLayout showPlaque={false}>
-        <main className="relative min-h-screen">
-          <div className="relative z-10 flex items-center justify-center min-h-screen">
-            <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        </main>
-      </WizardsDeskLayout>
+      <main className="relative min-h-screen">
+        <div
+          className={`fixed inset-0 ${
+            isSun
+              ? "bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50"
+              : "bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
+          }`}
+        />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+        <TravelerHotbar />
+      </main>
     );
   }
 
   // ===== GUILD DASHBOARD (User has a guild) =====
   if (myGuild) {
     return (
-      <WizardsDeskLayout showPlaque={false}>
-        <main className="relative min-h-screen">
-          <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 pb-32">
+      <main className="relative min-h-screen">
+        <div
+          className={`fixed inset-0 ${
+            isSun
+              ? "bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50"
+              : "bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
+          }`}
+        />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 pb-32">
           {/* Guild Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -385,16 +398,24 @@ export default function GuildPage() {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        <TravelerHotbar />
       </main>
-      </WizardsDeskLayout>
     );
   }
 
   // ===== GUILD HALL (No guild - browse & create) =====
   return (
-    <WizardsDeskLayout showPlaque={false}>
-      <main className="relative min-h-screen">
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 pb-32">
+    <main className="relative min-h-screen">
+      <div
+        className={`fixed inset-0 ${
+          isSun
+            ? "bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50"
+            : "bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
+        }`}
+      />
+
+      <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 pb-32">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -531,7 +552,8 @@ export default function GuildPage() {
         onClose={() => setShowCreateModal(false)}
         onCreated={() => fetchData()}
       />
-      </main>
-    </WizardsDeskLayout>
+
+      <TravelerHotbar />
+    </main>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import MemberHoverCard from "@/components/ui/MemberHoverCard";
 
 interface Friend {
   id: string;
@@ -44,6 +45,7 @@ export default function RealmCommunicator() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+  const [hoveredFriend, setHoveredFriend] = useState<Friend | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -228,6 +230,8 @@ export default function RealmCommunicator() {
                       : "bg-white/5 hover:bg-white/10"
                   }`}
                   onClick={() => setSelectedFriend(friend)}
+                  onMouseEnter={() => setHoveredFriend(friend)}
+                  onMouseLeave={() => setHoveredFriend(null)}
                 >
                   {/* Avatar with online indicator */}
                   <div className="relative">
@@ -311,6 +315,14 @@ export default function RealmCommunicator() {
                       </motion.button>
                     </div>
                   )}
+                  
+                  {/* Member Hover Card */}
+                  <MemberHoverCard 
+                    userId={friend.id}
+                    isOpen={hoveredFriend?.id === friend.id}
+                    onClose={() => setHoveredFriend(null)}
+                    position="right"
+                  />
                 </motion.div>
               ))
             )}

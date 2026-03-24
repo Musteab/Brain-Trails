@@ -3,7 +3,7 @@
 import { useState } from "react";
 import BossSelect from "@/components/battle/BossSelect";
 import BossBattle from "@/components/battle/BossBattle";
-import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
+import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import type { Boss } from "@/lib/bosses";
 
 interface ActiveBattle {
@@ -33,14 +33,13 @@ export default function BattlePage() {
   }
 
   return (
-    <WizardsDeskLayout showPlaque={false}>
-      <main className="relative min-h-screen">
-        <BossSelect
-          onStartBattle={(boss, deckId, deckName) =>
-            setActiveBattle({ boss, deckId, deckName })
-          }
-        />
-      </main>
-    </WizardsDeskLayout>
+    <main className="relative min-h-screen">
+      <BossSelect
+        onStartBattle={(boss, deckId, deckName) =>
+          setActiveBattle({ boss, deckId, deckName })
+        }
+      />
+      <TravelerHotbar />
+    </main>
   );
 }

@@ -12,22 +12,17 @@ import BackgroundLayer from "../layout/BackgroundLayer";
 import AmbientPlayer from "../ui/AmbientPlayer";
 import { useTheme } from "@/context/ThemeContext";
 
-interface DashboardProps {
-  /** Skip rendering BackgroundLayer (for use inside WizardsDesk) */
-  noBackground?: boolean;
-}
-
 /**
  * Dashboard - Glassmorphism Layout
  * Centerpiece owl, left study profile, right community hub, bottom adventures
  */
-export default function Dashboard({ noBackground = false }: DashboardProps) {
+export default function Dashboard() {
   const { theme } = useTheme();
   const isSun = theme === "sun";
 
   return (
     <div className={`min-h-screen relative overflow-hidden bg-transparent ${isSun ? "text-slate-800" : "text-white"}`}>
-      {!noBackground && <BackgroundLayer />}
+      <BackgroundLayer />
       <DashboardTour />
 
       <div className="relative min-h-screen flex flex-col z-10 pt-3 pb-24 px-4 sm:px-6 lg:px-10 max-w-[1440px] mx-auto">

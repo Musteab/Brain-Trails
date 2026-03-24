@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
+import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import Dashboard from "@/components/dashboard/Dashboard";
 import { useAuth } from "@/context/AuthContext";
 
@@ -19,8 +19,12 @@ export default function Home() {
   }, [profile, isLoading, router]);
 
   return (
-    <WizardsDeskLayout showPlaque={true} responsiveNav={true}>
-      <Dashboard noBackground={true} />
-    </WizardsDeskLayout>
+    <div className="min-h-screen bg-transparent">
+      {/* Dashboard Content */}
+      <Dashboard />
+
+      {/* Floating Hotbar */}
+      <TravelerHotbar />
+    </div>
   );
 }

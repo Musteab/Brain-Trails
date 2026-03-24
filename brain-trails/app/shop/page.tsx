@@ -25,7 +25,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useUIStore } from "@/stores";
 import { supabase } from "@/lib/supabase";
-import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
+import BackgroundLayer from "@/components/layout/BackgroundLayer";
+import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import type { Cosmetic, UserCosmetic } from "@/lib/database.types";
 
 // ── Tab config ───────────────────────────────────────────
@@ -571,7 +572,7 @@ export default function ShopPage() {
   // ── Loading state ──────────────────────────────────────
   if (authLoading || isLoading) {
     return (
-      <WizardsDeskLayout showPlaque={false}>
+      <>
         <div className="min-h-screen flex items-center justify-center">
           <motion.div
             animate={{ scale: [1, 1.2, 1], rotate: [0, 10, 0, -10, 0] }}
@@ -581,12 +582,14 @@ export default function ShopPage() {
             🛍️
           </motion.div>
         </div>
-      </WizardsDeskLayout>
+        <TravelerHotbar />
+      </>
     );
   }
 
   return (
-    <WizardsDeskLayout showPlaque={false}>
+    <>
+      <BackgroundLayer />
       <div className="min-h-screen pb-28 pt-6 px-4">
         <div className="max-w-5xl mx-auto">
           {/* ─── MERCHANT BANNER ─── */}
@@ -862,6 +865,8 @@ export default function ShopPage() {
           />
         )}
       </AnimatePresence>
-    </WizardsDeskLayout>
+
+      <TravelerHotbar />
+    </>
   );
 }

@@ -65,7 +65,25 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
         .from("avatars")
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        // If bucket doesn't exist or upload fails, convert to base64 as fallback
+        console.warn("Storage upload failed, using base64 fallback:", uploadError.message);
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64String = e.target?.result as string;
+          setEmblemUrl(base64String);
+          setEmblem(""); // Clear emoji when using image
+          addToast("Emblem uploaded! ✨", "success");
+          setUploading(false);
+        };
+        reader.onerror = () => {
+          addToast("Failed to process image", "error");
+          setUploading(false);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
 
       // Get public URL
       const { data } = supabase.storage
@@ -77,7 +95,7 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
       addToast("Emblem uploaded successfully!", "success");
     } catch (error) {
       console.error("Upload error:", error);
-      addToast("Failed to upload emblem", "error");
+      addToast("Failed to upload emblem. Please try again.", "error");
     } finally {
       setUploading(false);
     }

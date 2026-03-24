@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, ChevronLeft, ChevronRight, Plus, Shuffle, Brain, BrainCircuit, Zap, Trash2 } from "lucide-react";
-import TravelerHotbar from "@/components/layout/TravelerHotbar";
+import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { useGameStore } from "@/stores";
@@ -416,27 +416,20 @@ export default function FlashcardsPage() {
   // ===== Deck Selection View =====
   if (!selectedDeck) {
     return (
-      <main className="relative min-h-screen">
-        <div
-          className={`fixed inset-0 ${
-            isSun
-              ? "bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50"
-              : "bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
-          }`}
-        />
-
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-12 pb-32">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-10 flex justify-between items-end"
-          >
-            <div>
-              <h1 className={`text-4xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-                🃏 {gameText.study.flashcards}
-              </h1>
-              <p className={`mt-2 ${isSun ? "text-slate-600" : "text-slate-400"} font-[family-name:var(--font-quicksand)]`}>
-                Choose a deck to study, or create a new one.
+      <WizardsDeskLayout showPlaque={false}>
+        <main className="relative min-h-screen">
+          <div className="relative z-10 max-w-4xl mx-auto px-6 py-12 pb-32">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-10 flex justify-between items-end"
+            >
+              <div>
+                <h1 className={`text-4xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
+                  🃏 {gameText.study.flashcards}
+                </h1>
+                <p className={`mt-2 ${isSun ? "text-slate-600" : "text-slate-400"} font-[family-name:var(--font-quicksand)]`}>
+                  Choose a deck to study, or create a new one.
               </p>
             </div>
             
@@ -631,25 +624,17 @@ export default function FlashcardsPage() {
               ))}
             </div>
           )}
-        </div>
-
-        <TravelerHotbar />
-      </main>
+          </div>
+        </main>
+      </WizardsDeskLayout>
     );
   }
 
   // ===== Card Study View =====
   return (
-    <main className="relative min-h-screen">
-      <div
-        className={`fixed inset-0 ${
-          isSun
-            ? "bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50"
-            : "bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900"
-        }`}
-      />
-
-      <div className="relative z-10 max-w-2xl mx-auto px-6 py-8 pb-32 flex flex-col items-center">
+    <WizardsDeskLayout showPlaque={false}>
+      <main className="relative min-h-screen">
+        <div className="relative z-10 max-w-2xl mx-auto px-6 py-8 pb-32 flex flex-col items-center">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -883,8 +868,7 @@ export default function FlashcardsPage() {
           </div>
         )}
       </div>
-
-      <TravelerHotbar />
     </main>
+  </WizardsDeskLayout>
   );
 }

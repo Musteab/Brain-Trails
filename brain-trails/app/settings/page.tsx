@@ -33,8 +33,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { getMuted, toggleMute } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
 import { useGameStore } from "@/stores";
-import TravelerHotbar from "@/components/layout/TravelerHotbar";
-import BackgroundLayer from "@/components/layout/BackgroundLayer";
+import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
 
 // ── Extracted sub-components (stable references across re-renders) ──
 
@@ -378,20 +377,18 @@ export default function SettingsPage() {
 
   if (authLoading || settingsLoading) {
     return (
-      <>
+      <WizardsDeskLayout showPlaque={false}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-4xl animate-bounce">🦉</div>
         </div>
-        <TravelerHotbar />
-      </>
+      </WizardsDeskLayout>
     );
   }
 
   // ── Render ────────────────────────────────────────────
 
   return (
-    <>
-      <BackgroundLayer />
+    <WizardsDeskLayout showPlaque={false}>
       <div className="min-h-screen pb-24 pt-8 px-4">
         <div className="max-w-lg mx-auto">
           {/* Header */}
@@ -950,7 +947,6 @@ export default function SettingsPage() {
           </p>
         </div>
       </div>
-      <TravelerHotbar />
-    </>
+    </WizardsDeskLayout>
   );
 }

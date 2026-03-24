@@ -8,7 +8,7 @@ import SpellbookEditor, { type SpellbookEditorRef } from "@/components/notes/Spe
 import AIFamiliar from "@/components/notes/AIFamiliar";
 import NotesSidebar from "@/components/notes/NotesSidebar";
 import StuckOwl from "@/components/notes/StuckOwl";
-import TravelerHotbar from "@/components/layout/TravelerHotbar";
+import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
 import { supabase } from "@/lib/supabase";
 import { htmlToMarkdown } from "@/lib/htmlToMarkdown";
 import { useAuth } from "@/context/AuthContext";
@@ -248,9 +248,8 @@ export default function NotesPage() {
   };
 
   return (
+    <WizardsDeskLayout showPlaque={false}>
     <main className="relative min-h-screen flex">
-      <div className={`fixed inset-0 ${isSun ? "bg-gradient-to-br from-teal-50 via-emerald-50 to-amber-50" : "bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950"}`} />
-      <div className={`fixed inset-0 opacity-30 pointer-events-none ${isSun ? "" : "opacity-10"}`} style={{ backgroundImage: `radial-gradient(circle at 2px 2px, ${isSun ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.05)"} 1px, transparent 0)`, backgroundSize: "32px 32px" }} />
 
       <input ref={fileInputRef} type="file" accept=".docx" onChange={handleFileUpload} className="hidden" />
 
@@ -455,7 +454,7 @@ export default function NotesPage() {
 
       <AIFamiliar noteContent={leftContent.text + "\n" + rightContent.text} isOpen={isAIOpen} onToggle={() => setIsAIOpen(!isAIOpen)} />
       <StuckOwl onOpenAI={() => setIsAIOpen(true)} idleTimeoutMs={45000} />
-      <TravelerHotbar />
     </main>
+    </WizardsDeskLayout>
   );
 }

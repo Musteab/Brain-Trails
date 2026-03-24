@@ -462,6 +462,15 @@ h1, h2, h3, h4, h5, h6 {
   100% { background-position: 0% 50%; }
 }
 
+@keyframes shimmer-slow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-shimmer-slow {
+  animation: shimmer-slow 3s ease-in-out infinite;
+}
+
 .animated-gradient-border {
   position: relative;
   z-index: 0;

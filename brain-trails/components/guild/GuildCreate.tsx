@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Shield, Sparkles } from "lucide-react";
+import { X, Shield, Sparkles, Upload, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useUIStore } from "@/stores";
 import { useCardStyles } from "@/hooks/useCardStyles";
+import Image from "next/image";
 
 interface GuildCreateProps {
   open: boolean;
@@ -22,7 +23,65 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [emblem, setEmblem] = useState("🛡️");
+  const [emblemUrl, setEmblemUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [showEmblemPicker, setShowEmblemPicker] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Expanded emblem options
+  const emblemOptions = [
+    "🛡️", "⚔️", "🏰", "👑", "🔱", "⚡", "🔥", "❄️",
+    "🌟", "✨", "💎", "🏆", "📚", "🎯", "🦅", "🦁",
+    "🐉", "🦉", "🐺", "🦊", "🌙", "☀️", "🌊", "🌲",
+    "🗡️", "🏹", "🪓", "🔨", "🧙", "🧝", "🧛", "🧚"
+  ];
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      addToast("Please upload an image file", "error");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      addToast("Image must be less than 2MB", "error");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Upload to supabase storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `guild-emblem-${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `guild-emblems/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      setEmblemUrl(data.publicUrl);
+      setEmblem(""); // Clear emoji when using image
+      addToast("Emblem uploaded successfully!", "success");
+    } catch (error) {
+      console.error("Upload error:", error);
+      addToast("Failed to upload emblem", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +95,7 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
         .insert({
           name: name.trim(),
           description: description.trim(),
-          emblem: emblem.trim() || "🛡️",
+          emblem: emblemUrl || emblem.trim() || "🛡️",
           leader_id: user.id,
           max_members: 30,
           member_count: 1,
@@ -80,6 +139,7 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
       setName("");
       setDescription("");
       setEmblem("🛡️");
+      setEmblemUrl(null);
       onCreated();
       onClose();
     } catch {
@@ -145,26 +205,140 @@ export default function GuildCreate({ open, onClose, onCreated }: GuildCreatePro
                 <label className={`block text-sm font-bold mb-2 ${muted} font-[family-name:var(--font-nunito)]`}>
                   Guild Emblem
                 </label>
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border-2 ${
-                      isSun ? "bg-white/50 border-emerald-500/20" : "bg-white/5 border-emerald-400/20"
-                    }`}
-                  >
-                    {emblem || "🛡️"}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4">
+                    {/* Emblem Preview */}
+                    <div
+                      className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border-2 cursor-pointer transition-all overflow-hidden ${
+                        isSun ? "bg-white/50 border-emerald-500/20 hover:border-emerald-500/40" : "bg-white/5 border-emerald-400/20 hover:border-emerald-400/40"
+                      }`}
+                      onClick={() => setShowEmblemPicker(!showEmblemPicker)}
+                    >
+                      {emblemUrl ? (
+                        <Image 
+                          src={emblemUrl} 
+                          alt="Guild emblem" 
+                          width={64} 
+                          height={64}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        emblem || "🛡️"
+                      )}
+                    </div>
+                    
+                    {/* Input and Upload */}
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="text"
+                        value={emblem}
+                        onChange={(e) => {
+                          setEmblem(e.target.value);
+                          setEmblemUrl(null); // Clear image when typing
+                        }}
+                        placeholder="Enter an emoji or upload an image"
+                        maxLength={4}
+                        disabled={!!emblemUrl}
+                        className={`w-full px-4 py-3 rounded-xl outline-none text-lg font-[family-name:var(--font-quicksand)] ${
+                          isSun
+                            ? "bg-slate-50 border-2 border-slate-200 text-slate-800 focus:border-purple-400 disabled:opacity-50"
+                            : "bg-white/10 border-2 border-white/10 text-white placeholder:text-slate-500 focus:border-purple-400/50 disabled:opacity-50"
+                        } transition-colors`}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowEmblemPicker(!showEmblemPicker)}
+                          className={`text-xs font-medium ${isSun ? "text-purple-600 hover:text-purple-700" : "text-purple-400 hover:text-purple-300"} transition-colors`}
+                        >
+                          {showEmblemPicker ? "Hide Picker" : "Pick Emoji"}
+                        </button>
+                        <span className={`text-xs ${muted}`}>•</span>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploading}
+                          className={`text-xs font-medium flex items-center gap-1 ${isSun ? "text-emerald-600 hover:text-emerald-700" : "text-emerald-400 hover:text-emerald-300"} transition-colors disabled:opacity-50`}
+                        >
+                          {uploading ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3 h-3" />
+                              Upload Image
+                            </>
+                          )}
+                        </button>
+                        {emblemUrl && (
+                          <>
+                            <span className={`text-xs ${muted}`}>•</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEmblemUrl(null);
+                                setEmblem("🛡️");
+                              }}
+                              className={`text-xs font-medium ${isSun ? "text-red-600 hover:text-red-700" : "text-red-400 hover:text-red-300"} transition-colors`}
+                            >
+                              Clear Image
+                            </button>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    value={emblem}
-                    onChange={(e) => setEmblem(e.target.value)}
-                    placeholder="Enter an emoji"
-                    maxLength={4}
-                    className={`flex-1 px-4 py-3 rounded-xl outline-none text-lg font-[family-name:var(--font-quicksand)] ${
-                      isSun
-                        ? "bg-slate-50 border-2 border-slate-200 text-slate-800 focus:border-purple-400"
-                        : "bg-white/10 border-2 border-white/10 text-white placeholder:text-slate-500 focus:border-purple-400/50"
-                    } transition-colors`}
-                  />
+                  
+                  {/* Emblem Picker Grid */}
+                  <AnimatePresence>
+                    {showEmblemPicker && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className={`grid grid-cols-8 gap-2 p-4 rounded-xl ${
+                          isSun ? "bg-slate-50" : "bg-white/5"
+                        }`}>
+                          {emblemOptions.map((emoji) => (
+                            <motion.button
+                              key={emoji}
+                              type="button"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => {
+                                setEmblem(emoji);
+                                setEmblemUrl(null);
+                                setShowEmblemPicker(false);
+                              }}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center text-2xl transition-all ${
+                                emblem === emoji && !emblemUrl
+                                  ? isSun 
+                                    ? "bg-purple-200 ring-2 ring-purple-400"
+                                    : "bg-purple-500/30 ring-2 ring-purple-400"
+                                  : isSun
+                                  ? "bg-white hover:bg-purple-50"
+                                  : "bg-white/5 hover:bg-white/10"
+                              }`}
+                            >
+                              {emoji}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 

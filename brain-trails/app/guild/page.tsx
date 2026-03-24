@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   Shield,
   Users,
@@ -41,6 +42,50 @@ interface GuildRow {
 }
 
 type TabId = "overview" | "chat" | "raids";
+
+// Helper to get grand role name
+function getRoleDisplayName(role: "leader" | "officer" | "member"): string {
+  const roleNames = {
+    leader: "Guild Master",
+    officer: "Elder",
+    member: "Member"
+  };
+  return roleNames[role] || "Member";
+}
+
+// Helper to get role color
+function getRoleColor(role: "leader" | "officer" | "member", isSun: boolean): string {
+  if (role === "leader") return "text-amber-500";
+  if (role === "officer") return isSun ? "text-blue-600" : "text-blue-400";
+  return isSun ? "text-slate-600" : "text-slate-400";
+}
+
+// Helper to render guild emblem (emoji or image)
+function GuildEmblem({ emblem, size = "md", className = "" }: { emblem: string; size?: "sm" | "md" | "lg"; className?: string }) {
+  const isUrl = emblem.startsWith("http");
+  const sizeClasses = {
+    sm: "w-12 h-12 text-2xl",
+    md: "w-16 h-16 text-3xl",
+    lg: "w-20 h-20 text-4xl"
+  };
+  
+  return (
+    <div className={`${sizeClasses[size]} rounded-2xl flex items-center justify-center overflow-hidden ${className}`}>
+      {isUrl ? (
+        <Image 
+          src={emblem} 
+          alt="Guild emblem" 
+          width={size === "sm" ? 48 : size === "md" ? 64 : 80}
+          height={size === "sm" ? 48 : size === "md" ? 64 : 80}
+          className="w-full h-full object-cover"
+          unoptimized
+        />
+      ) : (
+        emblem
+      )}
+    </div>
+  );
+}
 
 export default function GuildPage() {
   const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
@@ -234,15 +279,15 @@ export default function GuildPage() {
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
-                <div
-                  className={`w-16 h-16 rounded-3xl flex items-center justify-center text-3xl border-3 shadow-lg ${
+                <GuildEmblem 
+                  emblem={myGuild.emblem}
+                  size="md"
+                  className={`border-3 shadow-lg ${
                     isSun
                       ? "bg-white/70 border-emerald-500/30 shadow-emerald-200/30"
                       : "bg-white/5 border-emerald-400/30 shadow-emerald-500/10"
                   }`}
-                >
-                  {myGuild.emblem}
-                </div>
+                />
                 <div>
                   <h1
                     className={`text-3xl font-bold font-[family-name:var(--font-nunito)] ${
@@ -335,7 +380,7 @@ export default function GuildPage() {
                     <div className="space-y-3">
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
                         <span className={`text-sm ${muted} font-[family-name:var(--font-quicksand)]`}>Emblem</span>
-                        <span className="text-2xl">{myGuild.emblem}</span>
+                        <GuildEmblem emblem={myGuild.emblem} size="sm" />
                       </div>
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
                         <span className={`text-sm ${muted} font-[family-name:var(--font-quicksand)]`}>Members</span>
@@ -351,17 +396,11 @@ export default function GuildPage() {
                       </div>
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
                         <span className={`text-sm ${muted} font-[family-name:var(--font-quicksand)]`}>Your Role</span>
-                        <span className={`text-sm font-bold flex items-center gap-1 font-[family-name:var(--font-nunito)] ${
-                          myRole === "leader"
-                            ? "text-amber-500"
-                            : myRole === "officer"
-                            ? "text-blue-500"
-                            : muted
-                        }`}>
+                        <span className={`text-sm font-bold flex items-center gap-1 font-[family-name:var(--font-nunito)] ${getRoleColor(myRole, isSun)}`}>
                           {myRole === "leader" && <Crown className="w-3.5 h-3.5" />}
                           {myRole === "officer" && <Swords className="w-3.5 h-3.5" />}
                           {myRole === "member" && <Shield className="w-3.5 h-3.5" />}
-                          {myRole.charAt(0).toUpperCase() + myRole.slice(1)}
+                          {getRoleDisplayName(myRole)}
                         </span>
                       </div>
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
@@ -477,15 +516,15 @@ export default function GuildPage() {
                 >
                   {/* Guild emblem & name */}
                   <div className="flex items-center gap-3 mb-3">
-                    <div
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border-2 ${
+                    <GuildEmblem 
+                      emblem={guild.emblem}
+                      size="sm"
+                      className={`border-2 ${
                         isSun
                           ? "bg-white/50 border-emerald-500/20"
                           : "bg-white/5 border-emerald-400/20"
                       }`}
-                    >
-                      {guild.emblem}
-                    </div>
+                    />
                     <div className="flex-1 min-w-0">
                       <h3
                         className={`text-lg font-bold truncate font-[family-name:var(--font-nunito)] ${

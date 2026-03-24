@@ -33,13 +33,13 @@ const ROLE_CONFIG: Record<string, { color: string; bg: string; icon: typeof Shie
     color: "text-amber-500",
     bg: "bg-amber-500/10 border-amber-500/30",
     icon: Crown,
-    label: "Leader",
+    label: "Guild Master",
   },
   officer: {
     color: "text-blue-500",
     bg: "bg-blue-500/10 border-blue-500/30",
     icon: Swords,
-    label: "Officer",
+    label: "Elder",
   },
   member: {
     color: "text-slate-400",
@@ -129,7 +129,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
         prev.map((m) => (m.id === member.id ? { ...m, role: newRole } : m))
       );
       addToast(
-        `${member.profiles.display_name || "Member"} ${newRole === "officer" ? "promoted to Officer" : "demoted to Member"}.`,
+        `${member.profiles.display_name || "Member"} ${newRole === "officer" ? "promoted to Elder" : "demoted to Member"}.`,
         "success"
       );
     }
@@ -313,7 +313,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
                             {member.role === "member" ? (
                               <>
                                 <ArrowUp className="w-4 h-4 text-blue-500" />
-                                Promote to Officer
+                                Promote to Elder
                               </>
                             ) : (
                               <>

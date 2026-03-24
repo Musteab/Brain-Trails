@@ -380,6 +380,39 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
               </div>
             </div>
 
+            {/* ― Badges ― */}
+            {(() => {
+              const badges: string[] = [];
+              if (profile.streak_days >= 30) badges.push("🔥 Dedicated");
+              else if (profile.streak_days >= 7) badges.push("🔥 On Fire");
+              if (profile.level >= 25) badges.push("🎓 Master");
+              else if (profile.level >= 10) badges.push("📚 Scholar");
+              if (profile.role === "dev") badges.push("⚡ Creator");
+              else if (profile.role === "beta_tester") badges.push("⭐ Pioneer");
+              
+              return badges.length > 0 ? (
+                <div className="px-5 mb-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {badges.slice(0, 4).map((badge, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                          isSun
+                            ? "bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50 text-violet-700"
+                            : "bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-400/30 text-violet-300"
+                        }`}
+                      >
+                        {badge}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
             {/* ― Stats Grid ― */}
             <div className="grid grid-cols-3 gap-2 px-5 mb-2">
               <motion.div 

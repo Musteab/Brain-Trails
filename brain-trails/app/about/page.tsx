@@ -9,7 +9,7 @@ import {
   Sword, Scroll, Flame, Crown
 } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
-import TravelerHotbar from "@/components/layout/TravelerHotbar";
+import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
 
 /* ─── Arcane Symbols ─── */
 const RUNES = ["ᚱ", "ᛊ", "ᚹ", "ᛗ", "ᚲ", "ᚨ", "ᛚ", "ᛞ", "ᚠ", "ᛉ", "ᚷ", "ᛃ", "✧", "❂", "✶", "✦", "✵", "⚝", "۞", "✪"];
@@ -69,6 +69,7 @@ export default function AboutPage() {
   const accentPurple = "text-purple-400";
 
   return (
+    <WizardsDeskLayout showPlaque={false}>
     <div className="fixed inset-0 overflow-hidden">
       {/* ─── FULL SCREEN DARK BACKGROUND ─── */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#070512] via-[#100620] to-[#250540]" />
@@ -391,7 +392,7 @@ export default function AboutPage() {
         </div>
       </motion.div>
 
-      <TravelerHotbar />
     </div>
+    </WizardsDeskLayout>
   );
 }

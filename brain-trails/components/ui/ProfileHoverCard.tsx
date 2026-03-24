@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useAdmin } from "@/hooks/useAdmin";
-import { Settings, LogOut, Shield, Star, User as UserIcon, Search, UserPlus, Coins, Flame, Zap, Camera, Loader2, Users } from "lucide-react";
+import { Settings, LogOut, Shield, Star, User as UserIcon, Search, UserPlus, Coins, Flame, Zap, Camera, Loader2, Users, BookOpen, Sparkles } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +18,12 @@ interface ProfileHoverCardProps {
   onLogout: () => void;
 }
 
+interface ActiveSubject {
+  name: string;
+  color: string;
+  lastStudied: string;
+}
+
 /** Picks the right frame class based on role / shop cosmetic */
 function getFrameClass(role?: string | null, avatarFrame?: string | null) {
   if (avatarFrame && avatarFrame !== 'default') return avatarFrame;
@@ -25,6 +31,82 @@ function getFrameClass(role?: string | null, avatarFrame?: string | null) {
   if (role === "admin") return "frame-admin";
   if (role === "beta_tester") return "frame-beta";
   return "";
+}
+
+/** Glassmorphic particle effect for profile card */
+function GlassParticles({ count = 12 }: { count?: number }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
+      {Array.from({ length: count }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 rounded-full bg-gradient-to-r from-purple-400/40 to-cyan-400/40"
+          initial={{
+            x: Math.random() * 320,
+            y: Math.random() * 500,
+            scale: Math.random() * 0.5 + 0.5,
+            opacity: 0,
+          }}
+          animate={{
+            y: [null, Math.random() * -200 - 50],
+            opacity: [0, 0.8, 0],
+            scale: [0.5, 1, 0.5],
+          }}
+          transition={{
+            duration: Math.random() * 4 + 3,
+            repeat: Infinity,
+            delay: Math.random() * 2,
+            ease: "easeOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Streak fire animation */
+function StreakFlame({ intensity }: { intensity: number }) {
+  const flameCount = Math.min(Math.floor(intensity / 7) + 1, 5);
+  
+  return (
+    <div className="relative flex items-center justify-center">
+      {Array.from({ length: flameCount }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute"
+          animate={{
+            y: [0, -3, 0],
+            scale: [1, 1.1, 1],
+            opacity: [0.8, 1, 0.8],
+          }}
+          transition={{
+            duration: 0.5 + i * 0.1,
+            repeat: Infinity,
+            delay: i * 0.1,
+          }}
+          style={{
+            left: `${50 + (i - flameCount / 2) * 3}%`,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <Flame 
+            className={`w-4 h-4 ${
+              intensity >= 30 ? "text-orange-400" : 
+              intensity >= 14 ? "text-orange-500" : 
+              "text-orange-600"
+            }`}
+            style={{
+              filter: intensity >= 30 
+                ? "drop-shadow(0 0 6px rgba(251, 146, 60, 0.8))" 
+                : intensity >= 14 
+                ? "drop-shadow(0 0 4px rgba(249, 115, 22, 0.6))"
+                : "drop-shadow(0 0 2px rgba(234, 88, 12, 0.4))",
+            }}
+          />
+        </motion.div>
+      ))}
+    </div>
+  );
 }
 
 export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileHoverCardProps) {
@@ -38,7 +120,47 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [activeSubject, setActiveSubject] = useState<ActiveSubject | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Fetch the most recently studied subject/folder
+  const fetchActiveSubject = useCallback(async () => {
+    if (!user) return;
+    try {
+      // Get most recently updated folder
+      const { data } = await (supabase.from("folders") as any)
+        .select("name, color, updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      
+      if (data && data.length > 0) {
+        const folder = data[0];
+        const lastStudied = new Date(folder.updated_at);
+        const now = new Date();
+        const diffHours = Math.floor((now.getTime() - lastStudied.getTime()) / (1000 * 60 * 60));
+        
+        let timeAgo = "";
+        if (diffHours < 1) timeAgo = "Just now";
+        else if (diffHours < 24) timeAgo = `${diffHours}h ago`;
+        else timeAgo = `${Math.floor(diffHours / 24)}d ago`;
+        
+        setActiveSubject({
+          name: folder.name,
+          color: folder.color || "#a855f7",
+          lastStudied: timeAgo,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch active subject:", err);
+    }
+  }, [user]);
+  
+  useEffect(() => {
+    if (isOpen && user) {
+      fetchActiveSubject();
+    }
+  }, [isOpen, user, fetchActiveSubject]);
 
   if (!profile) return null;
 
@@ -131,16 +253,35 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 10, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
           className={`absolute top-full right-0 mt-2 w-80 rounded-2xl border shadow-2xl overflow-hidden z-50 ${
             isSun
-              ? "bg-white/95 border-slate-200 text-slate-800 backdrop-blur-xl"
-              : "bg-slate-900/95 border-slate-700/50 text-white backdrop-blur-xl"
+              ? "bg-gradient-to-br from-white/90 via-white/85 to-amber-50/80 border-white/60 text-slate-800"
+              : "bg-gradient-to-br from-slate-900/90 via-slate-800/85 to-purple-950/80 border-slate-600/30 text-white"
           }`}
+          style={{
+            backdropFilter: "blur(20px) saturate(180%)",
+            WebkitBackdropFilter: "blur(20px) saturate(180%)",
+            boxShadow: isSun 
+              ? "0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255,255,255,0.5) inset, 0 0 80px -20px rgba(168, 85, 247, 0.15)"
+              : "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 0 80px -20px rgba(139, 92, 246, 0.3)",
+          }}
           onMouseLeave={onClose}
         >
+          {/* Glassmorphic particles */}
+          <GlassParticles count={15} />
+          
+          {/* Gradient overlay for depth */}
+          <div className={`absolute inset-0 pointer-events-none ${
+            isSun 
+              ? "bg-gradient-to-t from-amber-100/20 via-transparent to-white/30"
+              : "bg-gradient-to-t from-purple-900/20 via-transparent to-slate-700/20"
+          }`} />
+          
           {/* Dev gradient overlay */}
-          {isDev && <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 opacity-20 animate-gradient-x pointer-events-none" />}
+          {isDev && (
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-600/30 via-purple-600/30 to-indigo-600/30 animate-gradient-x pointer-events-none" />
+          )}
           
           <div className="flex flex-col gap-3 relative z-10">
             {/* ― Header / Avatar with upload ― */}
@@ -240,29 +381,131 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
             </div>
 
             {/* ― Stats Grid ― */}
-            <div className="grid grid-cols-3 gap-2 px-5 mb-4">
-              <div className={`p-2.5 rounded-xl text-center ${isSun ? "bg-slate-50" : "bg-white/5"}`}>
+            <div className="grid grid-cols-3 gap-2 px-5 mb-2">
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -2 }}
+                className={`p-2.5 rounded-xl text-center relative overflow-hidden ${
+                  isSun ? "bg-amber-50/80 border border-amber-200/50" : "bg-amber-500/10 border border-amber-500/20"
+                }`}
+                style={{
+                  boxShadow: isSun 
+                    ? "0 4px 12px -2px rgba(251, 191, 36, 0.15), inset 0 1px 0 rgba(255,255,255,0.5)"
+                    : "0 4px 12px -2px rgba(251, 191, 36, 0.2), inset 0 1px 0 rgba(255,255,255,0.05)",
+                }}
+              >
                 <Coins className={`w-4 h-4 mx-auto mb-1 ${isSun ? "text-amber-500" : "text-amber-400"}`} />
                 <div className={`text-sm font-bold ${isSun ? "text-amber-600" : "text-amber-400"}`}>
                   {profile.gold.toLocaleString()}
                 </div>
                 <div className={`text-[9px] font-bold uppercase ${muted}`}>Gold</div>
-              </div>
-              <div className={`p-2.5 rounded-xl text-center ${isSun ? "bg-slate-50" : "bg-white/5"}`}>
-                <Flame className={`w-4 h-4 mx-auto mb-1 ${isSun ? "text-orange-500" : "text-orange-400"}`} />
-                <div className={`text-sm font-bold ${isSun ? "text-orange-600" : "text-orange-400"}`}>
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-200/20 to-transparent -translate-x-full animate-shimmer-slow pointer-events-none" />
+              </motion.div>
+              
+              {/* Enhanced Streak with flames */}
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -2 }}
+                className={`p-2.5 rounded-xl text-center relative overflow-hidden ${
+                  isSun ? "bg-orange-50/80 border border-orange-200/50" : "bg-orange-500/10 border border-orange-500/20"
+                }`}
+                style={{
+                  boxShadow: (profile.streak_days || 0) >= 7
+                    ? isSun 
+                      ? "0 4px 12px -2px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255,255,255,0.5)"
+                      : "0 4px 12px -2px rgba(249, 115, 22, 0.35), 0 0 20px -5px rgba(249, 115, 22, 0.3), inset 0 1px 0 rgba(255,255,255,0.05)"
+                    : isSun 
+                      ? "0 4px 12px -2px rgba(249, 115, 22, 0.15), inset 0 1px 0 rgba(255,255,255,0.5)"
+                      : "0 4px 12px -2px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255,255,255,0.05)",
+                }}
+              >
+                <div className="h-4 mb-1">
+                  <StreakFlame intensity={profile.streak_days || 0} />
+                </div>
+                <div className={`text-sm font-bold ${
+                  (profile.streak_days || 0) >= 30 ? "text-orange-400" :
+                  (profile.streak_days || 0) >= 14 ? "text-orange-500" :
+                  isSun ? "text-orange-600" : "text-orange-400"
+                }`}>
                   {profile.streak_days || 0}
                 </div>
                 <div className={`text-[9px] font-bold uppercase ${muted}`}>Streak</div>
-              </div>
-              <div className={`p-2.5 rounded-xl text-center ${isSun ? "bg-slate-50" : "bg-white/5"}`}>
+                {/* Fire glow for high streaks */}
+                {(profile.streak_days || 0) >= 7 && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-orange-500/10 to-transparent pointer-events-none" />
+                )}
+              </motion.div>
+              
+              <motion.div 
+                whileHover={{ scale: 1.05, y: -2 }}
+                className={`p-2.5 rounded-xl text-center relative overflow-hidden ${
+                  isSun ? "bg-purple-50/80 border border-purple-200/50" : "bg-purple-500/10 border border-purple-500/20"
+                }`}
+                style={{
+                  boxShadow: isSun 
+                    ? "0 4px 12px -2px rgba(168, 85, 247, 0.15), inset 0 1px 0 rgba(255,255,255,0.5)"
+                    : "0 4px 12px -2px rgba(168, 85, 247, 0.2), inset 0 1px 0 rgba(255,255,255,0.05)",
+                }}
+              >
                 <Star className={`w-4 h-4 mx-auto mb-1 ${isSun ? "text-purple-500" : "text-purple-400"}`} />
                 <div className={`text-sm font-bold ${isSun ? "text-purple-600" : "text-purple-400"}`}>
                   {Math.floor(profile.xp)}
                 </div>
                 <div className={`text-[9px] font-bold uppercase ${muted}`}>XP</div>
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-200/20 to-transparent -translate-x-full animate-shimmer-slow pointer-events-none" />
+              </motion.div>
             </div>
+            
+            {/* ― Active Subject / Currently Studying ― */}
+            {activeSubject && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mx-5 mb-3"
+              >
+                <div className={`p-3 rounded-xl border relative overflow-hidden ${
+                  isSun 
+                    ? "bg-gradient-to-r from-white/60 to-slate-50/60 border-slate-200/50" 
+                    : "bg-gradient-to-r from-white/5 to-slate-800/30 border-white/10"
+                }`}
+                style={{
+                  boxShadow: `0 0 20px -5px ${activeSubject.color}40`,
+                }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ 
+                        backgroundColor: `${activeSubject.color}20`,
+                        border: `2px solid ${activeSubject.color}50`,
+                      }}
+                    >
+                      <BookOpen className="w-4 h-4" style={{ color: activeSubject.color }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className={`w-3 h-3 ${isSun ? "text-purple-500" : "text-purple-400"}`} />
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${muted}`}>
+                          Currently Studying
+                        </span>
+                      </div>
+                      <p className="text-sm font-bold truncate" style={{ color: activeSubject.color }}>
+                        {activeSubject.name}
+                      </p>
+                    </div>
+                    <span className={`text-[10px] ${muted} shrink-0`}>
+                      {activeSubject.lastStudied}
+                    </span>
+                  </div>
+                  {/* Subtle glow */}
+                  <div 
+                    className="absolute inset-0 opacity-10 pointer-events-none"
+                    style={{
+                      background: `radial-gradient(ellipse at center, ${activeSubject.color}, transparent 70%)`,
+                    }}
+                  />
+                </div>
+              </motion.div>
+            )}
 
             {/* ― Friend Search ― */}
             <div className="px-5 mb-3">

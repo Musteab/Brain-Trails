@@ -18,7 +18,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useAchievements } from "@/hooks/useAchievements";
-import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
+import BackgroundLayer from "@/components/layout/BackgroundLayer";
+import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import type { Achievement } from "@/lib/database.types";
 
 // ── Rarity colors ────────────────────────────────────────
@@ -203,16 +204,18 @@ export default function AchievementsPage() {
   // Loading state
   if (authLoading || isLoading) {
     return (
-      <WizardsDeskLayout showPlaque={false}>
+      <>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-4xl animate-bounce">🏆</div>
         </div>
-      </WizardsDeskLayout>
+        <TravelerHotbar />
+      </>
     );
   }
 
   return (
-    <WizardsDeskLayout showPlaque={false}>
+    <>
+      <BackgroundLayer />
       <div className="min-h-screen pb-28 pt-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -377,6 +380,7 @@ export default function AchievementsPage() {
           </AnimatePresence>
         </div>
       </div>
-    </WizardsDeskLayout>
+      <TravelerHotbar />
+    </>
   );
 }

@@ -8,7 +8,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useGameStore } from "@/stores";
 import { supabase } from "@/lib/supabase";
-import WizardsDeskLayout from "@/components/layout/WizardsDeskLayout";
+import TravelerHotbar from "@/components/layout/TravelerHotbar";
+import BackgroundLayer from "@/components/layout/BackgroundLayer";
 import QuizCreator from "@/components/quiz/QuizCreator";
 import QuizPlayer, { type QuizQuestion } from "@/components/quiz/QuizPlayer";
 import QuizResults from "@/components/quiz/QuizResults";
@@ -143,7 +144,8 @@ export default function QuizPage() {
   }, [questions, user, awardXp, awardGold, logActivity]);
 
   return (
-    <WizardsDeskLayout showPlaque={false}>
+    <>
+      <BackgroundLayer />
       <div className="min-h-screen pb-24 pt-8 px-4">
         <div className="max-w-lg mx-auto">
           {/* Header */}
@@ -299,6 +301,7 @@ export default function QuizPage() {
           )}
         </div>
       </div>
-    </WizardsDeskLayout>
+      <TravelerHotbar />
+    </>
   );
 }

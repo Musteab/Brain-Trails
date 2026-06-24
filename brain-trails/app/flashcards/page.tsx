@@ -6,7 +6,7 @@ import { RotateCcw, ChevronLeft, ChevronRight, Plus, Shuffle, Brain, BrainCircui
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
-import { useGameStore } from "@/stores";
+import { useGameStore, useUIStore } from "@/stores";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
 import { gameText } from "@/constants/gameText";
@@ -15,8 +15,50 @@ interface Flashcard {
   id: string;
   front: string;
   back: string;
-  mastery: number; // 0-100
+  mastery: number; // 0-100 (visual progress only)
   review_count: number;
+  // SM-2 scheduling
+  ease_factor: number;
+  srs_interval: number; // days until due
+  repetitions: number;
+  next_review: string; // ISO timestamp
+}
+
+/**
+ * SM-2 spaced-repetition update. Maps the 4 grade buttons
+ * (0 Again, 1 Hard, 2 Good, 3 Easy) to SM-2 quality scores and returns the
+ * new scheduling fields. See https://super-memory.com/english/ol/sm2.htm
+ */
+function applySM2(card: Flashcard, button: number) {
+  const quality = [1, 3, 4, 5][button] ?? 4; // Again, Hard, Good, Easy
+  let ef = card.ease_factor ?? 2.5;
+  let interval = card.srs_interval ?? 0;
+  let reps = card.repetitions ?? 0;
+
+  if (quality < 3) {
+    // Lapse — relearn from the start, see it again tomorrow.
+    reps = 0;
+    interval = 1;
+  } else {
+    if (reps === 0) interval = 1;
+    else if (reps === 1) interval = 6;
+    else interval = Math.round(interval * ef);
+    reps += 1;
+  }
+
+  ef = ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  if (ef < 1.3) ef = 1.3;
+
+  const next = new Date();
+  next.setDate(next.getDate() + interval);
+
+  return { ease_factor: ef, srs_interval: interval, repetitions: reps, next_review: next.toISOString() };
+}
+
+/** True if a card is due for review now (or has never been scheduled). */
+function isDue(card: Flashcard): boolean {
+  if (!card.next_review) return true;
+  return new Date(card.next_review).getTime() <= Date.now();
 }
 
 interface Deck {
@@ -55,7 +97,8 @@ const COLORS = [
 export default function FlashcardsPage() {
   const { theme } = useTheme();
   const { user, profile, refreshProfile } = useAuth();
-  const { awardXp, logActivity } = useGameStore();
+  const { awardXp, logActivity, reportQuestProgress } = useGameStore();
+  const addToast = useUIStore((s) => s.addToast);
   const playSound = useSoundEffects();
   const isSun = theme === "sun";
   
@@ -208,7 +251,7 @@ export default function FlashcardsPage() {
         .from('decks')
         .select(`
           id, name, emoji, color,
-          cards ( id, front, back, mastery, review_count )
+          cards ( id, front, back, mastery, review_count, ease_factor, srs_interval, repetitions, next_review )
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: true });
@@ -216,11 +259,16 @@ export default function FlashcardsPage() {
       if (error) {
         console.error("Error fetching decks:", error);
       } else {
-        // Sort cards within decks by created_at or id so they have a stable order
+        // Order cards "due first" (most overdue → soonest) so studying surfaces
+        // what SM-2 says needs review; tie-break on id for stability.
         const raw = (data ?? []) as unknown as Deck[];
         const formattedDecks = raw.map(d => ({
           ...d,
-          cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => a.id.localeCompare(b.id))
+          cards: (d.cards || []).sort((a: Flashcard, b: Flashcard) => {
+            const ta = a.next_review ? new Date(a.next_review).getTime() : 0;
+            const tb = b.next_review ? new Date(b.next_review).getTime() : 0;
+            return ta !== tb ? ta - tb : a.id.localeCompare(b.id);
+          })
         }));
         setDecks(formattedDecks);
       }
@@ -274,6 +322,7 @@ export default function FlashcardsPage() {
       .single();
 
     if (!error && data) {
+      const isFirstDeck = decks.length === 0;
       const created: Deck = {
         id: data.id,
         name: data.name,
@@ -284,6 +333,15 @@ export default function FlashcardsPage() {
       setDecks([...decks, created]);
       setNewDeckName("");
       setShowNewDeck(false);
+
+      // Deliver the "create your first deck and earn 50 XP" promise.
+      if (isFirstDeck) {
+        await awardXp(user.id, 50);
+        await logActivity(user.id, "flashcard", 50, { type: "first_deck_created", deck_name: created.name });
+        refreshProfile();
+        playSound("success");
+        addToast("First deck created! +50 XP 🎴", "success");
+      }
     }
   };
 
@@ -341,24 +399,35 @@ export default function FlashcardsPage() {
     else if (quality === 2) newMastery = Math.min(100, newMastery + 20);
     else if (quality === 3) newMastery = Math.min(100, newMastery + 40);
 
-    const updatedCard = { 
-      ...currentCard, 
+    // Reschedule the card with SM-2 based on the grade.
+    const sm2 = applySM2(currentCard, quality);
+
+    const updatedCard = {
+      ...currentCard,
       mastery: newMastery,
-      review_count: currentCard.review_count + 1
+      review_count: currentCard.review_count + 1,
+      ...sm2,
     };
 
     // Update locally immediately for responsiveness
     const updatedCards = [...selectedDeck.cards];
     updatedCards[currentIndex] = updatedCard;
     const updatedDeck = { ...selectedDeck, cards: updatedCards };
-    
+
     setSelectedDeck(updatedDeck);
     setDecks(prev => prev.map(d => d.id === updatedDeck.id ? updatedDeck : d));
 
     // Update in background
     await supabase
       .from('cards')
-      .update({ mastery: newMastery, review_count: updatedCard.review_count })
+      .update({
+        mastery: newMastery,
+        review_count: updatedCard.review_count,
+        ease_factor: sm2.ease_factor,
+        srs_interval: sm2.srs_interval,
+        repetitions: sm2.repetitions,
+        next_review: sm2.next_review,
+      })
       .eq('id', currentCard.id);
 
     // Also award some DB XP for studying
@@ -371,6 +440,9 @@ export default function FlashcardsPage() {
         deck_name: selectedDeck.name,
         card_id: currentCard.id,
       });
+
+      // Advance flashcard quests (counted per card reviewed)
+      await reportQuestProgress(user.id, "flashcard", 1);
 
       refreshProfile();
     }
@@ -570,6 +642,12 @@ export default function FlashcardsPage() {
                     </h3>
                     <p className={`text-sm mt-1 ${isSun ? "text-slate-500" : "text-slate-300"}`}>
                       {deck.cards.length} cards
+                      {(() => {
+                        const due = deck.cards.filter(isDue).length;
+                        return due > 0 ? (
+                          <span className="ml-2 text-emerald-500 font-semibold">· {due} due</span>
+                        ) : null;
+                      })()}
                     </p>
                     {/* Mastery bar */}
                     {deck.cards.length > 0 && (

@@ -217,6 +217,9 @@ export interface Database {
           mastery: number;
           next_review: string;
           review_count: number;
+          ease_factor: number;
+          srs_interval: number;
+          repetitions: number;
           created_at: string;
         };
         Insert: {
@@ -227,6 +230,9 @@ export interface Database {
           mastery?: number;
           next_review?: string;
           review_count?: number;
+          ease_factor?: number;
+          srs_interval?: number;
+          repetitions?: number;
           created_at?: string;
         };
         Update: {
@@ -235,6 +241,9 @@ export interface Database {
           mastery?: number;
           next_review?: string;
           review_count?: number;
+          ease_factor?: number;
+          srs_interval?: number;
+          repetitions?: number;
         };
         Relationships: [
           {

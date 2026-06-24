@@ -105,6 +105,9 @@ export default function BossBattle({ boss, deckId, deckName, onExit }: BossBattl
           boss_id: boss.id,
           deck_name: deckName,
         });
+        // Advance boss-slaying quests
+        await useGameStore.getState().reportQuestProgress(user.id, "boss", 1);
+        window.dispatchEvent(new CustomEvent("check-achievements"));
       }
     },
     [user, boss, deckId, deckName]

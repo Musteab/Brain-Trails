@@ -25,6 +25,16 @@ interface GameStoreState extends GameStats {
     xpEarned: number,
     metadata?: Record<string, Json>
   ) => Promise<void>;
+  /**
+   * Report progress toward active quests of a given type. Increments matching
+   * (non-expired, incomplete) quests and, when one is completed, awards its
+   * xp_reward + gold_reward exactly once. Notifies the quest UI to refresh.
+   */
+  reportQuestProgress: (
+    userId: string,
+    questType: "focus" | "flashcard" | "quiz" | "writing" | "boss",
+    amount: number
+  ) => Promise<void>;
   /** Subscribe to real-time changes for stats */
   subscribeToStats: (userId: string) => () => void;
   /** Reset store (on logout) */
@@ -127,6 +137,59 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       xp_earned: xpEarned,
       metadata: metadata ?? {},
     });
+  },
+
+  reportQuestProgress: async (userId, questType, amount) => {
+    if (amount <= 0) return;
+
+    // Fetch active, incomplete quests of this type.
+    const { data: quests, error } = await supabase
+      .from("daily_quests")
+      .select("id, current_value, target_value, xp_reward, gold_reward, title")
+      .eq("user_id", userId)
+      .eq("quest_type", questType)
+      .eq("is_completed", false)
+      .gte("expires_at", new Date().toISOString());
+
+    if (error || !quests || quests.length === 0) return;
+
+    let anyChange = false;
+
+    for (const quest of quests) {
+      const newValue = Math.min(quest.current_value + amount, quest.target_value);
+      if (newValue === quest.current_value) continue; // no progress (already capped)
+
+      const completed = newValue >= quest.target_value;
+
+      // Conditional update guarded on is_completed=false makes the reward
+      // payout idempotent: only the call that flips it to complete gets a row back.
+      const { data: updated } = await supabase
+        .from("daily_quests")
+        .update({ current_value: newValue, is_completed: completed })
+        .eq("id", quest.id)
+        .eq("is_completed", false)
+        .select("id, is_completed")
+        .maybeSingle();
+
+      if (!updated) continue;
+      anyChange = true;
+
+      if (updated.is_completed) {
+        // Pay out the quest reward exactly once.
+        if (quest.xp_reward > 0) await get().awardXp(userId, quest.xp_reward);
+        if (quest.gold_reward > 0) await get().awardGold(userId, quest.gold_reward);
+        await get().logActivity(userId, "quest", quest.xp_reward, {
+          quest_id: quest.id,
+          quest_title: quest.title,
+          gold_earned: quest.gold_reward,
+        });
+      }
+    }
+
+    // Tell any mounted QuestLog to refetch.
+    if (anyChange && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("quests-updated"));
+    }
   },
 
   subscribeToStats: (userId: string) => {

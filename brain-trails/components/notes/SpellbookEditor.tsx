@@ -68,10 +68,15 @@ const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
     const [slashMenuPosition, setSlashMenuPosition] = useState({ top: 0, left: 0 });
     const [slashFilterText, setSlashFilterText] = useState("");
     const editorContainerRef = useRef<HTMLDivElement>(null);
-    const { awardXp } = useGameStore();
+    const { awardXp, reportQuestProgress } = useGameStore();
     const { user } = useAuth();
     const { addToast } = useUIStore();
     const prevCheckedCount = useRef(0);
+    // Writing-quest tracking: baseline = word count we've already credited.
+    // We only report *net new* words past the baseline (debounced), so loading
+    // an existing note or delete-retyping can't farm progress.
+    const writingBaselineRef = useRef<number | null>(null);
+    const writingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const editor = useEditor({
       extensions: [
@@ -136,6 +141,19 @@ const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
             }
           }
           prevCheckedCount.current = checkedCount;
+
+          // Advance the writing quest by net-new words (debounced).
+          if (user) {
+            if (writingTimerRef.current) clearTimeout(writingTimerRef.current);
+            writingTimerRef.current = setTimeout(() => {
+              const words = editor.storage.characterCount.words();
+              const base = writingBaselineRef.current ?? words;
+              if (words > base) {
+                reportQuestProgress(user.id, "writing", words - base);
+                writingBaselineRef.current = words; // advance so we don't double-count
+              }
+            }, 4000);
+          }
         }
 
         if (onContentChange) {
@@ -187,15 +205,28 @@ const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
           setSlashMenuOpen(false);
         }
       };
-      
+
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }, [slashMenuOpen]);
+
+    // Seed the writing-quest baseline to the loaded content's word count so the
+    // initial/existing text isn't counted as "written this session".
+    useEffect(() => {
+      if (editor) {
+        writingBaselineRef.current = editor.storage.characterCount.words();
+      }
+      return () => {
+        if (writingTimerRef.current) clearTimeout(writingTimerRef.current);
+      };
+    }, [editor]);
 
     const insertContent = useCallback(
       (html: string) => {
         if (editor) {
           editor.commands.setContent(html);
+          // Programmatic content (note switch / AI insert) isn't user writing.
+          writingBaselineRef.current = editor.storage.characterCount.words();
         }
       },
       [editor]

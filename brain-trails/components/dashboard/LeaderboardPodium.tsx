@@ -16,16 +16,16 @@ interface GuildMember {
   points: number;
   isCurrentUser: boolean;
   title?: string | null;
-  title_border?: string | null;
+  avatar_frame?: string | null;
   level?: number | null;
   role?: string | null;
 }
 
-function getFrameClass(role?: string | null, titleBorder?: string | null) {
+function getFrameClass(role?: string | null, avatarFrame?: string | null) {
+  if (avatarFrame && avatarFrame !== "default") return avatarFrame;
   if (role === "dev") return "frame-dev";
   if (role === "admin") return "frame-admin";
   if (role === "beta_tester") return "frame-beta";
-  if (titleBorder) return "frame-shop";
   return "";
 }
 
@@ -69,7 +69,7 @@ const LeaderboardItem = ({ member, isSun }: { member: GuildMember; isSun: boolea
         </div>
 
         {/* Avatar */}
-        <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0 ${isSun ? 'bg-slate-200 text-slate-500' : 'bg-slate-800 text-slate-300'} ${getFrameClass(member.role, member.title_border)}`}>
+        <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center shrink-0 ${isSun ? 'bg-slate-200 text-slate-500' : 'bg-slate-800 text-slate-300'} ${getFrameClass(member.role, member.avatar_frame)}`}>
           {member.avatar ? (
             <Image src={member.avatar} alt={member.name} width={40} height={40} unoptimized className="w-full h-full object-cover" />
           ) : (
@@ -115,7 +115,7 @@ const LeaderboardItem = ({ member, isSun }: { member: GuildMember; isSun: boolea
               {/* Large Avatar */}
               <div className={`w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center shrink-0 shadow-md ${
                 isSun ? 'bg-slate-100' : 'bg-slate-800'
-              } ${getFrameClass(member.role, member.title_border)}`}>
+              } ${getFrameClass(member.role, member.avatar_frame)}`}>
                 {member.avatar ? (
                   <Image src={member.avatar} alt={member.name} width={56} height={56} unoptimized className="w-full h-full object-cover" />
                 ) : (
@@ -180,7 +180,7 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
     const fetchLeaderboard = async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar_url, xp, title, title_border, level, role')
+        .select('id, display_name, avatar_url, xp, title, avatar_frame, level, role')
         .order('xp', { ascending: false })
         .limit(3);
 
@@ -198,7 +198,7 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
         points: profile.xp || 0,
         isCurrentUser: user ? profile.id === user.id : false,
         title: profile.title,
-        title_border: profile.title_border,
+        avatar_frame: profile.avatar_frame,
         level: profile.level,
         role: profile.role,
       }));

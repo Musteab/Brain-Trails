@@ -19,9 +19,13 @@ export interface Quest {
   expires_at: string;
 }
 
+// NOTE on units: `focus` quests are always measured in MINUTES, every other
+// quest_type is measured in a simple COUNT (cards reviewed, quizzes passed,
+// words written, bosses defeated). Keeping one unit per quest_type lets
+// reportQuestProgress increment unambiguously.
 const DAILY_QUEST_TEMPLATES = [
   { quest_type: "focus", title: "Campfire Session", description: "Study for 25 minutes in Mana Garden", target_value: 25, xp_reward: 50, gold_reward: 15 },
-  { quest_type: "focus", title: "Deep Focus", description: "Complete 2 focus sessions", target_value: 2, xp_reward: 75, gold_reward: 20 },
+  { quest_type: "focus", title: "Power Hour", description: "Log 50 minutes of focused study", target_value: 50, xp_reward: 75, gold_reward: 20 },
   { quest_type: "flashcard", title: "Card Sharpener", description: "Review 15 spell cards", target_value: 15, xp_reward: 40, gold_reward: 10 },
   { quest_type: "flashcard", title: "Deck Master", description: "Review 30 spell cards", target_value: 30, xp_reward: 80, gold_reward: 25 },
   { quest_type: "quiz", title: "Trial by Fire", description: "Complete a quiz with 70%+ score", target_value: 1, xp_reward: 60, gold_reward: 20 },
@@ -67,32 +71,6 @@ export function useQuests() {
   const [isLoading, setIsLoading] = useState(true);
   const fetchedRef = useRef(false);
 
-  const generateQuests = useCallback(async () => {
-    if (!user) return;
-
-    const dailyPicks = pickRandom(DAILY_QUEST_TEMPLATES, 3);
-    const weeklyPick = pickRandom(WEEKLY_TEMPLATES, 1);
-    const monthlyPick = pickRandom(MONTHLY_TEMPLATES, 1);
-
-    const newQuests = [
-      ...dailyPicks.map(t => ({ ...t, period: "daily" as const, user_id: user.id, expires_at: getExpiry("daily") })),
-      ...weeklyPick.map(t => ({ ...t, period: "weekly" as const, user_id: user.id, expires_at: getExpiry("weekly") })),
-      ...monthlyPick.map(t => ({ ...t, period: "monthly" as const, user_id: user.id, expires_at: getExpiry("monthly") })),
-    ];
-
-    const { data, error } = await supabase
-      .from("daily_quests")
-      .insert(newQuests)
-      .select("*");
-
-    if (error) {
-      console.error("[useQuests] generation failed:", error);
-    } else if (data) {
-      setQuests(data as unknown as Quest[]);
-    }
-    setIsLoading(false);
-  }, [user]);
-
   const fetchQuests = useCallback(async () => {
     if (!user) return;
 
@@ -109,43 +87,58 @@ export function useQuests() {
       return;
     }
 
-    if (data && data.length > 0) {
-      setQuests(data as unknown as Quest[]);
-      setIsLoading(false);
-      return;
+    const active = (data ?? []) as unknown as Quest[];
+
+    // Regenerate each period independently so an active weekly/monthly quest
+    // doesn't block the daily refresh (the original bug).
+    const hasPeriod = (p: Quest["period"]) => active.some(q => q.period === p);
+    const toGenerate: Array<Record<string, unknown>> = [];
+
+    if (!hasPeriod("daily")) {
+      toGenerate.push(...pickRandom(DAILY_QUEST_TEMPLATES, 3).map(t => ({
+        ...t, period: "daily" as const, user_id: user.id, expires_at: getExpiry("daily"),
+      })));
+    }
+    if (!hasPeriod("weekly")) {
+      toGenerate.push(...pickRandom(WEEKLY_TEMPLATES, 1).map(t => ({
+        ...t, period: "weekly" as const, user_id: user.id, expires_at: getExpiry("weekly"),
+      })));
+    }
+    if (!hasPeriod("monthly")) {
+      toGenerate.push(...pickRandom(MONTHLY_TEMPLATES, 1).map(t => ({
+        ...t, period: "monthly" as const, user_id: user.id, expires_at: getExpiry("monthly"),
+      })));
     }
 
-    // No active quests — generate new ones
-    await generateQuests();
-  }, [user, generateQuests]);
-
-  const updateProgress = useCallback(async (questId: string, increment: number) => {
-    const quest = quests.find(q => q.id === questId);
-    if (!quest || quest.is_completed) return;
-
-    const newValue = Math.min(quest.current_value + increment, quest.target_value);
-    const completed = newValue >= quest.target_value;
-
-    const { error } = await supabase
-      .from("daily_quests")
-      .update({ current_value: newValue, is_completed: completed })
-      .eq("id", questId);
-
-    if (!error) {
-      setQuests(prev => prev.map(q =>
-        q.id === questId ? { ...q, current_value: newValue, is_completed: completed } : q
-      ));
+    if (toGenerate.length > 0) {
+      const { data: inserted, error: genErr } = await supabase
+        .from("daily_quests")
+        .insert(toGenerate as never)
+        .select("*");
+      if (genErr) {
+        console.error("[useQuests] generation failed:", genErr);
+      } else if (inserted) {
+        active.push(...(inserted as unknown as Quest[]));
+      }
     }
 
-    return completed;
-  }, [quests]);
+    setQuests(active);
+    setIsLoading(false);
+  }, [user]);
 
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: fetch and set state on mount
-    fetchQuests();
+    if (!fetchedRef.current) {
+      fetchedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: fetch and set state on mount
+      fetchQuests();
+    }
+
+    // Refetch when any study action reports quest progress (fired by the
+    // game store's reportQuestProgress).
+    const onUpdated = () => { fetchQuests(); };
+    window.addEventListener("quests-updated", onUpdated);
+    return () => window.removeEventListener("quests-updated", onUpdated);
   }, [fetchQuests]);
 
-  return { quests, isLoading, updateProgress, refreshQuests: fetchQuests };
+  return { quests, isLoading, refreshQuests: fetchQuests };
 }

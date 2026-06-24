@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Coins, Zap, RotateCcw, ChevronDown, ChevronUp, CheckCircle2, XCircle, Share2 } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import TrialResultCard from "@/components/ui/TrialResultCard";
+import { isAnswerCorrect, resolveCorrectOption } from "@/lib/quizScoring";
 import type { QuizQuestion } from "./QuizPlayer";
 
 interface QuizResultsProps {
@@ -130,7 +131,7 @@ export default function QuizResults({
           >
             {questions.map((q, i) => {
               const userAnswer = answers[i] || "";
-              const correct = userAnswer.toLowerCase().trim() === q.correct_answer.toLowerCase().trim();
+              const correct = isAnswerCorrect(userAnswer, q);
               return (
                 <div key={i} className={`${card} p-4`}>
                   <div className="flex items-start gap-3">
@@ -147,7 +148,7 @@ export default function QuizResults({
                         Your answer: {userAnswer || "(no answer)"}
                       </p>
                       {!correct && (
-                        <p className={`text-xs text-emerald-500 mt-0.5`}>Correct: {q.correct_answer}</p>
+                        <p className={`text-xs text-emerald-500 mt-0.5`}>Correct: {resolveCorrectOption(q)}</p>
                       )}
                       <p className={`text-xs ${muted} mt-1`}>{q.explanation}</p>
                     </div>

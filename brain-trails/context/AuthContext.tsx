@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const statsUnsubRef = useRef<(() => void) | null>(null);
+  const subscribedUserIdRef = useRef<string | null>(null);
 
   const fetchProfile = async (userId: string, retries = 1): Promise<void> => {
     const { data, error } = await supabase
@@ -131,16 +132,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (sessionUser) {
         // Fetch profile on login
         await fetchProfile(sessionUser.id);
-        
-        // Subscribe to real-time stat updates
-        const unsubscribe = useGameStore.getState().subscribeToStats(sessionUser.id);
-        statsUnsubRef.current = unsubscribe;
+
+        // Subscribe to real-time stat updates — but only once per user.
+        // onAuthStateChange (token refresh, etc.) and the visibilitychange
+        // handler both re-enter here; without this guard each re-entry leaked
+        // a new realtime channel (the old unsub ref was overwritten, not called).
+        if (subscribedUserIdRef.current !== sessionUser.id) {
+          statsUnsubRef.current?.();
+          statsUnsubRef.current = useGameStore.getState().subscribeToStats(sessionUser.id);
+          subscribedUserIdRef.current = sessionUser.id;
+        }
       } else {
         setProfile(null);
         setIsLoading(false);
         // Cleanup subscription on logout
         statsUnsubRef.current?.();
         statsUnsubRef.current = null;
+        subscribedUserIdRef.current = null;
       }
     };
 

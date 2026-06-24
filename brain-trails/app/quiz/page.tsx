@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ScrollText, Plus, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ export default function QuizPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { card, isSun, title: titleStyle, muted } = useCardStyles();
-  const { awardXp, awardGold, logActivity } = useGameStore();
+  const { awardXp, awardGold, logActivity, reportQuestProgress } = useGameStore();
 
   const [state, setState] = useState<QuizState>("hub");
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -32,6 +32,8 @@ export default function QuizPage() {
   const [timePerQuestion, setTimePerQuestion] = useState(30);
   const [xpEarned, setXpEarned] = useState(0);
   const [goldEarned, setGoldEarned] = useState(0);
+  const [subjectName, setSubjectName] = useState("");
+  const autoRan = useRef(false);
   const [pastQuizzes, setPastQuizzes] = useState<Array<{
     id: string;
     title: string;
@@ -60,6 +62,42 @@ export default function QuizPage() {
         created_at: d.completed_at,
       })));
     }
+  }, [user]);
+
+  // Subject-aware trial: /quiz?subject=ID auto-generates a trial scoped to the
+  // subject and drops the player straight in (the Codex "Start" button uses this).
+  useEffect(() => {
+    if (autoRan.current || !user) return;
+    const sid = new URLSearchParams(window.location.search).get("subject");
+    if (!sid) return;
+    autoRan.current = true;
+
+    (async () => {
+      const { data: subj } = await supabase.from("subjects").select("name").eq("id", sid).maybeSingle();
+      const name = (subj as { name?: string } | null)?.name || "Trial";
+      setSubjectName(name);
+      setState("creating");
+      setIsGenerating(true);
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/ai/generate-quiz`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subject: name, num_questions: 8, difficulty: "medium", question_types: ["mcq"], type: "quiz" }),
+        });
+        const data = await res.json();
+        if (data.questions && data.questions.length > 0) {
+          setQuestions(data.questions);
+          setTimePerQuestion(30);
+          setState("playing");
+        } else {
+          setState("hub");
+        }
+      } catch {
+        setState("hub");
+      } finally {
+        setIsGenerating(false);
+      }
+    })();
   }, [user]);
 
   const handleGenerate = useCallback(async (settings: {
@@ -114,6 +152,13 @@ export default function QuizPage() {
         total: questions.length,
       });
 
+      // Advance quiz quests — only counts as a "completed quiz" at 70%+ (matches the quest text)
+      if (pct >= 0.7) {
+        await reportQuestProgress(user.id, "quiz", 1);
+      }
+
+      window.dispatchEvent(new CustomEvent("check-achievements"));
+
       // Save quiz and attempt to Supabase
       try {
         const { data: quizData } = await supabase
@@ -143,7 +188,7 @@ export default function QuizPage() {
     }
 
     setState("results");
-  }, [questions, user, awardXp, awardGold, logActivity]);
+  }, [questions, user, awardXp, awardGold, logActivity, reportQuestProgress]);
 
   return (
     <>
@@ -288,6 +333,7 @@ export default function QuizPage() {
               score={score}
               xpEarned={xpEarned}
               goldEarned={goldEarned}
+              subjectName={subjectName}
               onTryAgain={() => {
                 setAnswers([]);
                 setScore(0);

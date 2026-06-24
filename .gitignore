@@ -1,0 +1,7 @@
+# Stray frontend scaffold — only contains node_modules, should never be tracked.
+brain-trails-frontend/
+
+# Safety nets (the app lives in brain-trails/ which has its own .gitignore)
+**/node_modules/
+**/.next/
+**/.env.local

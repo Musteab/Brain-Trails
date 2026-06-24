@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, Flag, FastForward, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useGameStore, useUIStore } from "@/stores";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { useAdmin } from "@/hooks/useAdmin";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -114,16 +115,26 @@ export default function FocusTimer({
   onBack
 }: FocusTimerProps) {
   const { user, profile, refreshProfile } = useAuth();
-  const { awardXp, awardGold, logActivity } = useGameStore();
+  const { awardXp, awardGold, logActivity, reportQuestProgress } = useGameStore();
   const addToast = useUIStore((s) => s.addToast);
   const playSound = useSoundEffects();
-  
+  const { isAdmin } = useAdmin();
+
   const totalSessions = 4;
   const totalTime = defaultMinutes * 60;
   const [timeLeft, setTimeLeft] = useState(totalTime);
   const [isActive, setIsActive] = useState(false);
   const [completedSessions, setCompletedSessions] = useState(0);
   const [showReward, setShowReward] = useState(false);
+  // Wall-clock deadline (epoch ms) the running timer counts down to. Driving
+  // the countdown from a timestamp (instead of decrementing every tick) keeps
+  // it accurate even when the browser throttles timers in a background tab.
+  const deadlineRef = useRef<number | null>(null);
+  // Anti-cheese: accumulate *real* active study time (excluding pauses). Rewards
+  // are only granted if the user genuinely spent ~the full duration, so the
+  // dev skip button (or any jump-to-end) can't farm XP/gold/streak.
+  const activeMsRef = useRef(0);
+  const activeStartRef = useRef<number | null>(null);
 
   // Calculate progress percentage (0 to 100)
   const progressPercentage = ((totalTime - timeLeft) / totalTime) * 100;
@@ -136,8 +147,15 @@ export default function FocusTimer({
   const circumference = 2 * Math.PI * circleRadius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
 
-  const saveSessionData = useCallback(async () => {
+  const saveSessionData = useCallback(async (legit: boolean) => {
     if (!user || !profile) return;
+
+    // Session wasn't actually studied (skipped / jumped) — no rewards.
+    if (!legit) {
+      addToast("Session ended early — no rewards earned.", "info");
+      return;
+    }
+
     const gainedXp = defaultMinutes * 2;
     const gainedGold = defaultMinutes;
 
@@ -163,49 +181,89 @@ export default function FocusTimer({
     // 4. Update daily streak
     await updateStreak(user.id);
 
+    // 5. Advance focus quests (measured in minutes) — pays out rewards on completion
+    await reportQuestProgress(user.id, "focus", defaultMinutes);
+
     addToast(`Session complete! +${gainedXp} XP, +${gainedGold} Gold`, "success");
     refreshProfile();
-  }, [user, profile, defaultMinutes, focusSubject, awardXp, awardGold, logActivity, addToast, refreshProfile]);
+    // Re-evaluate achievements now that stats changed (focus_sessions, hours, streak)
+    window.dispatchEvent(new CustomEvent("check-achievements"));
+  }, [user, profile, defaultMinutes, focusSubject, awardXp, awardGold, logActivity, reportQuestProgress, addToast, refreshProfile]);
 
-  // Timer countdown logic
+  // Timer countdown logic — recompute remaining time from the wall clock so a
+  // throttled/frozen background tab can't desync the timer. Whenever a tick
+  // (or a tab refocus) fires, we snap to the true remaining time.
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    if (!isActive) return;
 
-    if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: timer completion triggers state transitions
-      setIsActive(false);
-      setCompletedSessions((prev) => Math.min(prev + 1, totalSessions));
-      setShowReward(true);
-      playSound("timerEnd");
-      saveSessionData();
-    }
+    const tick = () => {
+      // null deadline means completion has already been handled — ignore stray ticks.
+      if (deadlineRef.current == null) return;
+      const remaining = Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000));
+      setTimeLeft(remaining);
+
+      if (remaining === 0) {
+        deadlineRef.current = null;
+        setIsActive(false);
+        // Finalize real active study time (this run + any earlier runs).
+        const totalActiveMs =
+          activeMsRef.current + (activeStartRef.current ? Date.now() - activeStartRef.current : 0);
+        activeStartRef.current = null;
+        const legit = totalActiveMs >= totalTime * 1000 * 0.9; // allow 10% jitter
+        setCompletedSessions((prev) => Math.min(prev + 1, totalSessions));
+        setShowReward(true);
+        playSound("timerEnd");
+        saveSessionData(legit);
+      }
+    };
+
+    const interval = setInterval(tick, 250);
+    // A backgrounded timer may finish while throttled — re-check the moment the tab is visible again.
+    const onVisible = () => { if (document.visibilityState === "visible") tick(); };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
-      if (interval) clearInterval(interval);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [isActive, timeLeft, playSound, saveSessionData, totalSessions]);
+  }, [isActive, playSound, saveSessionData, totalSessions, totalTime]);
 
   // Control handlers
   const toggleTimer = useCallback(() => {
     setIsActive((prev) => {
-      if (!prev) playSound("timerStart");
-      return !prev;
+      const next = !prev;
+      if (next) {
+        // Starting/resuming — anchor the deadline + begin counting active time.
+        deadlineRef.current = Date.now() + timeLeft * 1000;
+        activeStartRef.current = Date.now();
+        playSound("timerStart");
+      } else if (deadlineRef.current != null) {
+        // Pausing — freeze remaining time, bank the active time, drop the deadline.
+        setTimeLeft(Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000)));
+        if (activeStartRef.current) {
+          activeMsRef.current += Date.now() - activeStartRef.current;
+          activeStartRef.current = null;
+        }
+        deadlineRef.current = null;
+      }
+      return next;
     });
-  }, [playSound]);
+  }, [timeLeft, playSound]);
 
   const resetTimer = useCallback(() => {
     setIsActive(false);
+    deadlineRef.current = null;
+    activeStartRef.current = null;
+    activeMsRef.current = 0;
     setTimeLeft(totalTime);
   }, [totalTime]);
 
+  // Admin-only dev tool: jump to completion to test the UI. Because no real
+  // active time is accrued, the completion path treats it as "not legit" and
+  // grants no rewards — it can't be used to farm XP.
   const skipSession = useCallback(() => {
-    // Skip to end (for testing)
-    setTimeLeft(0);
-    setIsActive(false);
+    deadlineRef.current = Date.now();
+    setIsActive(true);
   }, []);
 
   return (
@@ -386,15 +444,19 @@ export default function FocusTimer({
             )}
           </motion.button>
 
-          {/* Fast Forward / Skip Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={skipSession}
-            className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-white/80 transition-colors"
-          >
-            <FastForward className="w-5 h-5" />
-          </motion.button>
+          {/* Fast Forward / Skip Button — admin-only testing tool (removed for
+              players; it previously let anyone skip to full XP/gold instantly). */}
+          {isAdmin && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={skipSession}
+              title="Admin: skip to completion"
+              className="w-12 h-12 rounded-full bg-white/60 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-white/80 transition-colors"
+            >
+              <FastForward className="w-5 h-5" />
+            </motion.button>
+          )}
         </div>
       </motion.div>
 

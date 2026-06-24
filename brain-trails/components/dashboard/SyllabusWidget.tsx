@@ -156,14 +156,14 @@ export default function SyllabusWidget() {
                 {isCompleting ? "..." : "Start New Plan"}
               </button>
               <button
-                onClick={() => router.push("/knowledge")}
+                onClick={() => router.push("/codex")}
                 className={`flex-1 py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                  isSun 
-                    ? "bg-white/80 text-slate-700 border border-slate-200 hover:bg-white" 
+                  isSun
+                    ? "bg-white/80 text-slate-700 border border-slate-200 hover:bg-white"
                     : "bg-white/10 text-white/80 border border-white/10 hover:bg-white/20"
                 }`}
               >
-                View Current Plan
+                Open Codex
               </button>
             </div>
           </div>

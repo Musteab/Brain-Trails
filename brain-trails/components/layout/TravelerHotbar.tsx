@@ -1,30 +1,35 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import {
+  X, Menu, LayoutGrid, Compass, NotebookPen, Layers, Timer,
+  GraduationCap, Trophy, Store, LineChart, Library, Settings,
+  type LucideIcon,
+} from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 
 type NavItem = {
   href: string;
   label: string;
-  emoji: string;
+  icon: LucideIcon;
 };
 
-// All 11 navigation items
+// Focused navigation — the notebook → test → flex loop.
+// (Knowledge Map, Battle, and Guild were removed to consolidate the study loop.)
 const NAV_ITEMS: NavItem[] = [
-  { href: '/', label: 'Dashboard', emoji: '🏕️' },
-  { href: '/knowledge', label: 'Knowledge Map', emoji: '🗺️' },
-  { href: '/notes', label: 'Spellbook', emoji: '📖' },
-  { href: '/flashcards', label: 'Deck', emoji: '🃏' },
-  { href: '/focus', label: 'Focus', emoji: '⏳' },
-  { href: '/quiz', label: 'Trials', emoji: '📝' },
-  { href: '/battle', label: 'Battle', emoji: '⚔️' },
-  { href: '/guild', label: 'Guilds', emoji: '🛡️' },
-  { href: '/achievements', label: 'Trophies', emoji: '🏆' },
-  { href: '/shop', label: 'Merchant', emoji: '💰' },
-  { href: '/about', label: 'Archive', emoji: '📚' },
-  { href: '/report', label: 'Reports', emoji: '📜' },
-  { href: '/settings', label: 'Settings', emoji: '⚙️' },
+  { href: '/', label: 'Home', icon: LayoutGrid },
+  { href: '/codex', label: 'Codex', icon: Compass },
+  { href: '/notes', label: 'Notebook', icon: NotebookPen },
+  { href: '/flashcards', label: 'Decks', icon: Layers },
+  { href: '/focus', label: 'Focus', icon: Timer },
+  { href: '/quiz', label: 'Trials', icon: GraduationCap },
+  { href: '/achievements', label: 'Trophies', icon: Trophy },
+  { href: '/report', label: 'Reports', icon: LineChart },
+  { href: '/shop', label: 'Merchant', icon: Store },
+  { href: '/about', label: 'Archive', icon: Library },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function TravelerHotbar() {
@@ -35,7 +40,6 @@ export default function TravelerHotbar() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  // Close when clicking outside or hitting Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsOpen(false);
@@ -44,63 +48,36 @@ export default function TravelerHotbar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // Find the active item for the collapsed orb
-  const activeItem = NAV_ITEMS.find((item) => item.href === pathname) || {
-    href: '',
-    label: 'Explore',
-    emoji: '🧭',
-  };
-
-  // NavItem component
   const renderItem = (item: NavItem) => {
     const isActive = pathname === item.href;
+    const Icon = item.icon;
     return (
-      <motion.button
+      <button
         key={item.href}
         onClick={() => {
           setIsOpen(false);
           router.push(item.href);
         }}
-        whileHover={{ scale: 1.05, y: -2 }}
-        whileTap={{ scale: 0.95 }}
-        className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-colors ${
+        className={`group relative flex flex-col items-center justify-center gap-1.5 px-3 py-3 rounded-xl transition-colors ${
           isActive
             ? isSun
-              ? 'bg-amber-100 border-amber-300 shadow-inner'
-              : 'bg-amber-900/40 border-amber-500/50 shadow-[inset_0_0_15px_rgba(245,158,11,0.2)]'
+              ? 'bg-slate-900 text-white'
+              : 'bg-white text-slate-900'
             : isSun
-            ? 'bg-white/60 border-transparent hover:bg-white hover:border-slate-200'
-            : 'bg-slate-800/60 border-transparent hover:bg-slate-700 hover:border-slate-600'
+            ? 'text-slate-600 hover:bg-slate-900/5'
+            : 'text-slate-300 hover:bg-white/5'
         }`}
       >
-        <span className="text-2xl mb-1 drop-shadow-sm">{item.emoji}</span>
-        <span
-          className={`text-[10px] font-bold tracking-tight text-center leading-tight ${
-            isActive
-              ? isSun
-                ? 'text-amber-800'
-                : 'text-amber-200'
-              : isSun
-              ? 'text-slate-600'
-              : 'text-slate-300'
-          }`}
-        >
+        <Icon className="w-[18px] h-[18px]" strokeWidth={1.75} />
+        <span className="text-[10px] font-medium tracking-tight leading-none">
           {item.label}
         </span>
-        {isActive && (
-          <motion.div
-            layoutId="active-nav-glow"
-            className="absolute inset-0 rounded-2xl shadow-[0_0_15px_rgba(245,158,11,0.4)] pointer-events-none"
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          />
-        )}
-      </motion.button>
+      </button>
     );
   };
 
   return (
     <>
-      {/* Backdrop overlay when open */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -108,79 +85,55 @@ export default function TravelerHotbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[2px]"
           />
         )}
       </AnimatePresence>
 
-      {/* Floating UI Container */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        
-        {/* Expanded Grid Menu */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20, transformOrigin: 'bottom right' }}
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              className={`mb-4 p-4 rounded-[28px] border-[3px] shadow-2xl max-w-[320px] sm:max-w-[400px] ${
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+              style={{ transformOrigin: 'bottom right' }}
+              className={`mb-3 p-2.5 rounded-2xl border shadow-xl w-[300px] ${
                 isSun
-                  ? 'bg-white/80 backdrop-blur-xl border-slate-200 shadow-slate-300/50'
-                  : 'bg-slate-900/90 backdrop-blur-xl border-slate-700 shadow-black/50'
+                  ? 'bg-white border-slate-200 shadow-slate-300/40'
+                  : 'bg-slate-900 border-slate-700/70 shadow-black/40'
               }`}
             >
-              <div className="mb-3 px-2 flex justify-between items-center">
-                <h3
-                  className={`text-sm font-bold font-[family-name:var(--font-nunito)] ${
-                    isSun ? 'text-slate-500' : 'text-slate-400'
-                  }`}
-                >
-                  Travel Menu
-                </h3>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <p className={`px-2 pt-1 pb-2 text-[11px] font-medium uppercase tracking-[0.18em] ${isSun ? 'text-slate-400' : 'text-slate-500'}`}>
+                Navigate
+              </p>
+              <div className="grid grid-cols-4 gap-1">
                 {NAV_ITEMS.map(renderItem)}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* The Orb (Toggle Button) */}
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`relative flex items-center justify-center w-16 h-16 rounded-full border-[3px] shadow-2xl transition-colors z-50 overflow-hidden ${
-            isOpen
-              ? 'bg-gradient-to-br from-violet-500 to-purple-600 border-purple-400 shadow-purple-500/40'
-              : 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-300 shadow-orange-500/40'
+          whileTap={{ scale: 0.94 }}
+          aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+          className={`relative flex items-center justify-center w-14 h-14 rounded-2xl border shadow-lg transition-colors ${
+            isSun
+              ? 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800'
+              : 'bg-white border-slate-200 text-slate-900 hover:bg-slate-100'
           }`}
         >
-          {/* Inner glow */}
-          <div className="absolute inset-0 rounded-full bg-white/20 blur-md pointer-events-none" />
-
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             {isOpen ? (
-              <motion.div
-                key="close"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                className="text-white drop-shadow-md"
-              >
-                <X className="w-8 h-8" strokeWidth={2.5} />
-              </motion.div>
+              <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
+                <X className="w-6 h-6" strokeWidth={2} />
+              </motion.span>
             ) : (
-              <motion.div
-                key="open"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                className="flex items-center justify-center text-3xl drop-shadow-md"
-              >
-                {activeItem.emoji}
-              </motion.div>
+              <motion.span key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
+                <Menu className="w-6 h-6" strokeWidth={2} />
+              </motion.span>
             )}
           </AnimatePresence>
         </motion.button>
@@ -188,4 +141,3 @@ export default function TravelerHotbar() {
     </>
   );
 }
-

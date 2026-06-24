@@ -36,6 +36,13 @@ export async function proxy(request: NextRequest) {
     console.error("Middleware: getUser error:", authError.message);
   }
 
+  // Retired routes — these features were cut to consolidate the study loop.
+  // Redirect any lingering links/bookmarks to the dashboard.
+  const RETIRED = ["/battle", "/guild", "/knowledge"];
+  if (RETIRED.some((p) => request.nextUrl.pathname.startsWith(p))) {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
   const isAuthPage =
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname === "/register" ||

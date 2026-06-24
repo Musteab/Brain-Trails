@@ -51,7 +51,7 @@ interface OnboardingData {
   subjects: OnboardingSubject[];
 }
 
-type Step = "welcome" | "syllabus" | "manual" | "review" | "done";
+type Step = "quickadd" | "syllabus" | "manual" | "review" | "done";
 
 // ============================================
 // Constants (outside component — no render-time randomness)
@@ -107,7 +107,10 @@ export default function OnboardingPage() {
   const { isSun, card, title, subtitle, muted, accent } = useCardStyles();
 
   // Step state
-  const [step, setStep] = useState<Step>("welcome");
+  const [step, setStep] = useState<Step>("quickadd");
+
+  // Quick-add: the fast path — just type subject names, AI scaffolds the rest.
+  const [quickNames, setQuickNames] = useState("");
 
   // Shared onboarding data (used by both syllabus & manual paths)
   const [data, setData] = useState<OnboardingData>({
@@ -161,6 +164,68 @@ export default function OnboardingPage() {
     if (file) setSyllabusFile(file);
   }, []);
 
+  // Map the AI parser's output into our onboarding shape, then go to review.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const applyParsed = (parsed: any) => {
+    const subjects: OnboardingSubject[] = (parsed?.subjects || []).map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (s: any, i: number) => ({
+        name: s.name || "",
+        code: s.code || "",
+        emoji: s.emoji || emojiByIndex(i),
+        color: colorByIndex(i),
+        topics: (s.topics || []).length > 0
+          ? s.topics.map((t: unknown) => (typeof t === "string" ? t : (t as { name?: string }).name || ""))
+          : [""],
+        // The parser returns exam_date (ISO) + exam_type; keep dates (the old code dropped them).
+        exams: (s.exams || []).map(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (ex: any) => ({
+            name: ex.name || "",
+            date: ex.exam_date ? String(ex.exam_date).slice(0, 10) : (ex.date || ""),
+            type: ex.exam_type || ex.type || "exam",
+          })
+        ),
+      })
+    );
+    setData({ semesterName: parsed?.semester || "", subjects });
+    setStep("review");
+  };
+
+  const subjectsFromNames = (names: string[]): OnboardingSubject[] =>
+    names.map((n, i) => ({ name: n, code: "", emoji: emojiByIndex(i), color: colorByIndex(i), topics: [""], exams: [] }));
+
+  // Fast path: turn typed names into fully-scaffolded subjects via AI. Falls back
+  // to bare subjects if the AI is unreachable, so the user is never blocked.
+  const handleScaffold = async () => {
+    const names = quickNames.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+    if (names.length === 0) { setParseError("Type at least one subject to continue."); return; }
+    setIsParsing(true);
+    setParseError("");
+    try {
+      const content =
+        "Course list. For each course infer 6-8 key study topics and a fitting emoji.\n" +
+        names.map((n) => `- ${n}`).join("\n");
+      const res = await fetch(`${BACKEND_URL}/api/ai/parse-syllabus`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file_type: "text", content }),
+      });
+      const result = res.ok ? await res.json() : null;
+      if (result?.data?.subjects?.length) {
+        applyParsed(result.data);
+      } else {
+        setData({ semesterName: "", subjects: subjectsFromNames(names) });
+        setStep("review");
+      }
+    } catch {
+      setData({ semesterName: "", subjects: subjectsFromNames(names) });
+      setStep("review");
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
   const handleParseSyllabus = async () => {
     setIsParsing(true);
     setParseError("");
@@ -202,35 +267,7 @@ export default function OnboardingPage() {
       }
 
       const result = await res.json();
-      const parsed = result.data;
-
-      // Map parsed data into our onboarding format
-      const subjects: OnboardingSubject[] = (parsed.subjects || []).map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (s: any, i: number) => ({
-          name: s.name || "",
-          code: s.code || "",
-          emoji: s.emoji || emojiByIndex(i),
-          color: colorByIndex(i),
-          topics: (s.topics || []).length > 0
-            ? s.topics.map((t: unknown) => (typeof t === "string" ? t : (t as { name?: string }).name || ""))
-            : [""],
-          exams: (s.exams || []).map(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (ex: any) => ({
-              name: ex.name || "",
-              date: ex.date || "",
-              type: ex.type || "exam",
-            })
-          ),
-        })
-      );
-
-      setData({
-        semesterName: parsed.semester || "",
-        subjects,
-      });
-      setStep("review");
+      applyParsed(result.data);
     } catch (err) {
       console.error("Parse syllabus error:", err);
       setParseError(
@@ -456,103 +493,82 @@ export default function OnboardingPage() {
   // Render helpers for each step
   // ============================================
 
-  const renderWelcome = () => (
-    <motion.div
-      key="welcome"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -30 }}
-      className="flex flex-col items-center text-center max-w-2xl mx-auto"
-    >
-      {/* Hero */}
+  const renderQuickAdd = () => {
+    const names = quickNames.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+    return (
       <motion.div
-        initial={{ scale: 0.8 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", damping: 12 }}
-        className="mb-8"
+        key="quickadd"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -24 }}
+        className="flex flex-col items-center text-center max-w-xl mx-auto w-full"
       >
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-purple-500/30 mx-auto mb-6">
-          <GraduationCap className="w-12 h-12 text-white" />
+        <div className="w-16 h-16 rounded-2xl bg-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30 mb-6">
+          <GraduationCap className="w-8 h-8 text-white" />
         </div>
-        <h1 className={`text-4xl md:text-5xl font-bold font-[family-name:var(--font-nunito)] mb-4 ${title}`}>
-          Welcome, Traveler!
+        <h1 className={`text-3xl md:text-4xl font-bold font-[family-name:var(--font-nunito)] mb-3 ${title}`}>
+          What are you studying?
         </h1>
-        <p className={`text-lg font-[family-name:var(--font-quicksand)] max-w-md mx-auto ${subtitle}`}>
-          Let&apos;s set up your study journey. Tell us about your courses so we can
-          build your adventure map.
+        <p className={`text-base font-[family-name:var(--font-quicksand)] max-w-md mx-auto mb-7 ${subtitle}`}>
+          Just type your subjects — I&apos;ll build the topics, decks and trials around them.
         </p>
+
+        <textarea
+          value={quickNames}
+          onChange={(e) => { setQuickNames(e.target.value); if (parseError) setParseError(""); }}
+          placeholder={"Organic Chemistry\nCalculus II\nWorld History"}
+          rows={4}
+          autoFocus
+          className={`w-full p-4 rounded-2xl border-2 resize-none outline-none transition-colors text-base leading-relaxed ${
+            isSun
+              ? "bg-white/70 border-slate-200 focus:border-violet-400 text-slate-800 placeholder:text-slate-400"
+              : "bg-white/5 border-white/10 focus:border-violet-500 text-white placeholder:text-slate-500"
+          }`}
+        />
+        <p className={`self-start mt-2 text-xs ${muted}`}>One per line, or comma-separated.</p>
+
+        {/* Live chip preview */}
+        {names.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4 self-start">
+            {names.map((n, i) => (
+              <span key={i} className={`px-3 py-1.5 rounded-full text-sm font-medium ${isSun ? "bg-violet-100 text-violet-700" : "bg-violet-500/20 text-violet-200"}`}>
+                {n}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {parseError && <p className="self-start mt-3 text-sm text-red-500 font-medium">{parseError}</p>}
+
+        <motion.button
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleScaffold}
+          disabled={isParsing || names.length === 0}
+          className="w-full mt-6 py-4 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold font-[family-name:var(--font-nunito)] text-lg shadow-lg shadow-purple-500/30 disabled:opacity-40 flex items-center justify-center gap-3 transition-colors"
+        >
+          {isParsing ? (<><Loader2 className="w-5 h-5 animate-spin" /> Building your subjects…</>)
+            : (<>Build my subjects <ChevronRight className="w-5 h-5" /></>)}
+        </motion.button>
+
+        {/* Power on-ramps */}
+        <div className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6 text-sm ${muted}`}>
+          <button onClick={() => setStep("syllabus")} className="flex items-center gap-1.5 hover:underline">
+            <Upload className="w-4 h-4" /> Paste or snap a syllabus
+          </button>
+          <button
+            onClick={() => { setData((prev) => ({ ...prev, subjects: prev.subjects.length ? prev.subjects : [emptySubject(0)] })); setStep("manual"); }}
+            className="flex items-center gap-1.5 hover:underline"
+          >
+            <PenTool className="w-4 h-4" /> Add manually
+          </button>
+          <button onClick={handleSkip} className="flex items-center gap-1.5 hover:underline">
+            <SkipForward className="w-4 h-4" /> Skip for now
+          </button>
+        </div>
       </motion.div>
-
-      {/* Two path cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mt-4">
-        {/* Upload Syllabus */}
-        <motion.button
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setStep("syllabus")}
-          className={`p-8 rounded-[24px] text-left transition-all border-[3px] ${
-            isSun
-              ? "bg-white/70 backdrop-blur-[12px] border-emerald-600/40 shadow-xl shadow-amber-300/20 hover:border-violet-500/50"
-              : "bg-slate-900/50 backdrop-blur-[12px] border-emerald-400/30 shadow-2xl shadow-black/30 hover:border-violet-400/50"
-          }`}
-        >
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-4">
-            <Upload className="w-7 h-7 text-white" />
-          </div>
-          <h3 className={`text-xl font-bold font-[family-name:var(--font-nunito)] mb-2 ${title}`}>
-            Upload Syllabus
-          </h3>
-          <p className={`text-sm font-[family-name:var(--font-quicksand)] ${muted}`}>
-            Upload a PDF, image, or paste text. Our AI will extract your subjects,
-            topics, and exam dates automatically.
-          </p>
-        </motion.button>
-
-        {/* Manual Entry */}
-        <motion.button
-          whileHover={{ scale: 1.02, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => {
-            setData((prev) => ({
-              ...prev,
-              subjects: prev.subjects.length > 0 ? prev.subjects : [emptySubject(0)],
-            }));
-            setStep("manual");
-          }}
-          className={`p-8 rounded-[24px] text-left transition-all border-[3px] ${
-            isSun
-              ? "bg-white/70 backdrop-blur-[12px] border-emerald-600/40 shadow-xl shadow-amber-300/20 hover:border-violet-500/50"
-              : "bg-slate-900/50 backdrop-blur-[12px] border-emerald-400/30 shadow-2xl shadow-black/30 hover:border-violet-400/50"
-          }`}
-        >
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4">
-            <PenTool className="w-7 h-7 text-white" />
-          </div>
-          <h3 className={`text-xl font-bold font-[family-name:var(--font-nunito)] mb-2 ${title}`}>
-            Manual Entry
-          </h3>
-          <p className={`text-sm font-[family-name:var(--font-quicksand)] ${muted}`}>
-            Add your subjects, topics, and exams by hand. Great if you already know
-            your schedule.
-          </p>
-        </motion.button>
-      </div>
-
-      {/* Skip */}
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        onClick={handleSkip}
-        className={`mt-8 flex items-center gap-2 text-sm font-medium transition-colors ${
-          isSun ? "text-slate-400 hover:text-slate-600" : "text-slate-500 hover:text-slate-300"
-        }`}
-      >
-        <SkipForward className="w-4 h-4" />
-        Skip for now
-      </motion.button>
-    </motion.div>
-  );
+    );
+  };
 
   const renderSyllabus = () => (
     <motion.div
@@ -567,7 +583,7 @@ export default function OnboardingPage() {
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setStep("welcome")}
+          onClick={() => setStep("quickadd")}
           className={`flex items-center gap-2 text-sm font-medium ${muted} hover:${accent}`}
         >
           <ChevronLeft className="w-4 h-4" />
@@ -718,7 +734,7 @@ export default function OnboardingPage() {
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setStep("welcome")}
+          onClick={() => setStep("quickadd")}
           className={`flex items-center gap-2 text-sm font-medium ${muted}`}
         >
           <ChevronLeft className="w-4 h-4" />
@@ -1002,7 +1018,7 @@ export default function OnboardingPage() {
           <motion.button
             whileHover={{ x: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setStep(data.subjects.length > 0 ? "manual" : "welcome")}
+            onClick={() => setStep(data.subjects.length > 0 ? "manual" : "quickadd")}
             className={`flex items-center gap-2 text-sm font-medium ${muted}`}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -1251,18 +1267,32 @@ export default function OnboardingPage() {
         <span className="text-sm font-bold">+50 XP earned!</span>
       </motion.div>
 
-      <motion.button
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.0 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => router.push("/")}
-        className="px-10 py-4 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold font-[family-name:var(--font-nunito)] text-lg shadow-lg shadow-purple-500/30 flex items-center gap-3"
+        className="flex flex-col sm:flex-row items-center gap-3"
       >
-        Enter Base Camp
-        <ChevronRight className="w-5 h-5" />
-      </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => router.push("/codex")}
+          className="px-8 py-4 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold font-[family-name:var(--font-nunito)] text-lg shadow-lg shadow-purple-500/30 flex items-center gap-3 transition-colors"
+        >
+          Open my Codex
+          <ChevronRight className="w-5 h-5" />
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => router.push("/")}
+          className={`px-6 py-4 rounded-2xl font-bold font-[family-name:var(--font-nunito)] text-base transition-colors ${
+            isSun ? "bg-white/70 text-slate-700 border border-slate-200 hover:bg-white" : "bg-white/10 text-slate-200 border border-white/10 hover:bg-white/20"
+          }`}
+        >
+          Go to dashboard
+        </motion.button>
+      </motion.div>
     </motion.div>
   );
 
@@ -1285,9 +1315,9 @@ export default function OnboardingPage() {
       {step !== "done" && (
         <div className="relative z-10 max-w-3xl mx-auto px-6 pt-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            {(["welcome", "syllabus|manual", "review"] as const).map((s, i) => {
+            {(["quickadd", "syllabus|manual", "review"] as const).map((s, i) => {
               const currentIdx =
-                step === "welcome" ? 0 : step === "syllabus" || step === "manual" ? 1 : 2;
+                step === "quickadd" ? 0 : step === "syllabus" || step === "manual" ? 1 : 2;
               const isActive = i <= currentIdx;
 
               return (
@@ -1324,7 +1354,7 @@ export default function OnboardingPage() {
       {/* Content */}
       <div className="relative z-10 px-6 py-8 pb-32">
         <AnimatePresence mode="wait">
-          {step === "welcome" && renderWelcome()}
+          {step === "quickadd" && renderQuickAdd()}
           {step === "syllabus" && renderSyllabus()}
           {step === "manual" && renderManual()}
           {step === "review" && renderReview()}

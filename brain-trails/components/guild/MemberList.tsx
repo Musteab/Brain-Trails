@@ -33,13 +33,13 @@ const ROLE_CONFIG: Record<string, { color: string; bg: string; icon: typeof Shie
     color: "text-amber-500",
     bg: "bg-amber-500/10 border-amber-500/30",
     icon: Crown,
-    label: "Leader",
+    label: "Guild Master",
   },
   officer: {
     color: "text-blue-500",
     bg: "bg-blue-500/10 border-blue-500/30",
     icon: Swords,
-    label: "Officer",
+    label: "Elder",
   },
   member: {
     color: "text-slate-400",
@@ -66,8 +66,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
     if (!guildId) return;
 
     const fetchMembers = async () => {
-      const { data, error } = await supabase
-        .from("guild_members")
+      const { data, error } = await (supabase.from("guild_members") as any)
         .select("*, profiles:user_id ( display_name, avatar_url, level )")
         .eq("guild_id", guildId)
         .order("role", { ascending: true })
@@ -119,8 +118,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
 
   const handlePromote = async (member: Member) => {
     const newRole = member.role === "member" ? "officer" : "member";
-    const { error } = await supabase
-      .from("guild_members")
+    const { error } = await (supabase.from("guild_members") as any)
       .update({ role: newRole })
       .eq("id", member.id);
 
@@ -131,7 +129,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
         prev.map((m) => (m.id === member.id ? { ...m, role: newRole } : m))
       );
       addToast(
-        `${member.profiles.display_name || "Member"} ${newRole === "officer" ? "promoted to Officer" : "demoted to Member"}.`,
+        `${member.profiles.display_name || "Member"} ${newRole === "officer" ? "promoted to Elder" : "demoted to Member"}.`,
         "success"
       );
     }
@@ -142,8 +140,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
     if (!confirm(`Remove ${member.profiles.display_name || "this member"} from the guild?`)) return;
 
     // Remove from guild_members
-    const { error: removeError } = await supabase
-      .from("guild_members")
+    const { error: removeError } = await (supabase.from("guild_members") as any)
       .delete()
       .eq("id", member.id);
 
@@ -154,14 +151,12 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
     }
 
     // Clear their profile guild_id
-    await supabase
-      .from("profiles")
+    await (supabase.from("profiles") as any)
       .update({ guild_id: null })
       .eq("id", member.user_id);
 
     // Decrement member count
-    await supabase
-      .from("guilds")
+    await (supabase.from("guilds") as any)
       .update({ member_count: Math.max(0, members.length - 1) })
       .eq("id", guildId);
 
@@ -318,7 +313,7 @@ export default function MemberList({ guildId, isLeader }: MemberListProps) {
                             {member.role === "member" ? (
                               <>
                                 <ArrowUp className="w-4 h-4 text-blue-500" />
-                                Promote to Officer
+                                Promote to Elder
                               </>
                             ) : (
                               <>

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Star } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
+import ManaBoostParticles from "@/components/effects/ManaBoostParticles";
 
 interface LevelUpData {
   level: number;
@@ -138,6 +139,16 @@ export default function LevelUpCelebration() {
             className={`absolute inset-0 ${
               isSun ? "bg-black/40" : "bg-black/60"
             }`}
+          />
+
+          {/* ManaBoostParticles - Rainbow celebration effect */}
+          <ManaBoostParticles
+            active={true}
+            variant="rainbow"
+            count={60}
+            duration={3500}
+            intensity={1.5}
+            origin={{ x: 50, y: 50 }}
           />
 
           {/* Particles */}

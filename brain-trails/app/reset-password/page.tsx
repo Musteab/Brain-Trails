@@ -16,22 +16,27 @@ export default function ResetPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   
   const { theme } = useTheme();
   const isSun = theme === "sun";
 
-  // Supabase sends users here with a hash fragment containing the access token.
-  // The JS client auto-picks it up from the URL hash on mount.
+  // Wait for the supabase client to pick up the recovery token from the URL hash
+  // and establish a valid session before allowing the user to submit.
   useEffect(() => {
-    // The supabase client automatically handles the hash/token exchange
-    // via onAuthStateChange when the page loads with the recovery token.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === "PASSWORD_RECOVERY") {
-          // User arrived via password recovery link — form is ready
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+          setIsReady(true);
         }
       }
     );
+
+    // Also check if we already have a session (e.g. came via server-side code exchange)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setIsReady(true);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -104,7 +109,7 @@ export default function ResetPasswordPage() {
                 <CheckCircle className="w-10 h-10" />
               </motion.div>
               <h2 className={`text-2xl font-bold mb-3 font-heading ${isSun ? "text-slate-800" : "text-white"}`}>
-                Password Updated! ✨
+                Password Updated!
               </h2>
               <p className={`text-sm mb-4 ${isSun ? "text-slate-600" : "text-indigo-100/80"}`}>
                 Your new password has been set. Redirecting to login...
@@ -115,7 +120,7 @@ export default function ResetPasswordPage() {
                   isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"
                 }`}
               >
-                Go to Login Now →
+                Go to Login Now
               </Link>
             </motion.div>
           ) : (
@@ -133,7 +138,9 @@ export default function ResetPasswordPage() {
                   Set New Password
                 </h1>
                 <p className={`text-sm ${isSun ? "text-slate-600" : "text-indigo-100/90"}`}>
-                  Choose a strong new password for your account.
+                  {isReady
+                    ? "Choose a strong new password for your account."
+                    : "Verifying your reset link..."}
                 </p>
               </div>
 
@@ -164,7 +171,7 @@ export default function ResetPasswordPage() {
                           : "bg-white/10 border-white/10 text-white focus:border-emerald-400 focus:bg-white/20 placeholder:text-indigo-200/50"
                       }`}
                       placeholder="New Password (min 6 chars)"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !isReady}
                     />
                   </div>
 
@@ -182,7 +189,7 @@ export default function ResetPasswordPage() {
                           : "bg-white/10 border-white/10 text-white focus:border-emerald-400 focus:bg-white/20 placeholder:text-indigo-200/50"
                       }`}
                       placeholder="Confirm New Password"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !isReady}
                     />
                   </div>
                 </div>
@@ -191,10 +198,12 @@ export default function ResetPasswordPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isReady}
                   className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-70"
                 >
                   {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : !isReady ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
@@ -212,7 +221,7 @@ export default function ResetPasswordPage() {
                     isSun ? "text-violet-600 hover:text-violet-500" : "text-violet-300 hover:text-white"
                   }`}
                 >
-                  ← Back to Login
+                  Back to Login
                 </Link>
               </div>
             </>

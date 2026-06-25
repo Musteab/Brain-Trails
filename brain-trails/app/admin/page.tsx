@@ -48,8 +48,8 @@ export default function AdminPage() {
       setLoading(true);
       try {
         const [{ count: userCount, data: usersData }, { count: ticketCount, data: ticketsData }] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact" }).order('created_at', { ascending: false }),
-          supabase.from("support_tickets").select("*", { count: "exact" }).order('created_at', { ascending: false }),
+          (supabase.from("profiles") as any).select("*", { count: "exact" }).order('created_at', { ascending: false }),
+          (supabase.from("support_tickets") as any).select("*", { count: "exact" }).order('created_at', { ascending: false }),
         ]);
 
         setTotalUsers(userCount || 0);
@@ -70,7 +70,7 @@ export default function AdminPage() {
     setUpdatingUser(userId);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await supabase.from("profiles").update({ role: newRole as any }).eq("id", userId);
+      const { error } = await (supabase.from("profiles") as any).update({ role: newRole }).eq("id", userId);
       if (error) throw error;
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (err) {
@@ -84,7 +84,7 @@ export default function AdminPage() {
     setUpdatingTicket(ticketId);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await supabase.from("support_tickets").update({ status: newStatus as any }).eq("id", ticketId);
+      const { error } = await ((supabase.from("support_tickets") as any) as any).update({ status: newStatus }).eq("id", ticketId);
       if (error) throw error;
       setTickets(tickets.map(t => t.id === ticketId ? { ...t, status: newStatus } : t));
     } catch (err) {

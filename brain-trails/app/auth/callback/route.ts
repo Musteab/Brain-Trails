@@ -3,14 +3,15 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  console.log("[Auth Callback] Code received:", code ? code.substring(0, 10) + "..." : null);
+  console.log("[Auth Callback] Full URL:", request.url);
   const next = requestUrl.searchParams.get("next") || "/";
 
-  // If there's no code, Supabase might be using hash-fragment (implicit) flow.
-  // In that case, redirect to the target page and let the client-side JS
-  // pick up the token from the URL hash via onAuthStateChange.
   if (!code) {
     return NextResponse.redirect(new URL(next, request.url));
   }
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
   );
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
+  console.log("[Auth Callback] Exchange error:", error || "None (Success)");
 
   if (error) {
     console.error("Auth callback exchange error:", error.message);
@@ -50,5 +52,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // After successful code exchange, ensure we always redirect to dashboard
+  // for OAuth logins (not password reset which passes next=/reset-password)
   return response;
 }

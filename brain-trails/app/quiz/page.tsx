@@ -47,15 +47,14 @@ export default function QuizPage() {
   // Fetch past quizzes
   const fetchPastQuizzes = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from("quiz_attempts")
+    const { data } = await (supabase.from("quiz_attempts") as any)
       .select("id, score, total_questions, xp_earned, completed_at, quiz_id")
       .eq("user_id", user.id)
       .order("completed_at", { ascending: false })
       .limit(20);
 
     if (data) {
-      setPastQuizzes(data.map(d => ({
+      setPastQuizzes(data.map((d: any) => ({
         id: d.id,
         title: `Quiz Attempt`,
         score: d.score,
@@ -166,8 +165,7 @@ export default function QuizPage() {
 
       // Save quiz and attempt to Supabase
       try {
-        const { data: quizData } = await supabase
-          .from("quizzes")
+        const { data: quizData } = await (supabase.from("quizzes") as any)
           .insert({
             user_id: user.id,
             title: `Quiz - ${new Date().toLocaleDateString()}`,
@@ -177,7 +175,7 @@ export default function QuizPage() {
           .single();
 
         if (quizData) {
-          await supabase.from("quiz_attempts").insert({
+          await (supabase.from("quiz_attempts") as any).insert({
             quiz_id: quizData.id,
             user_id: user.id,
             score: playerScore,

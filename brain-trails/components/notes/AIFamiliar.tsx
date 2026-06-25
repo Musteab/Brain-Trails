@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Send, X, Loader2, Wand2, BookOpen, HelpCircle, PenTool } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { friendlyAiError } from "@/lib/aiError";
 
 interface Message {
   id: string;
@@ -78,12 +79,12 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
 
       if (!response.ok) {
         const errData = await response.json().catch(() => null);
-        const errMsg = errData?.error || `Backend returned ${response.status}`;
+        const errMsg = errData?.error || `error ${response.status}`;
 
         const errorMessage: Message = {
           id: `assistant-${Date.now()}`,
           role: "assistant",
-          content: `⚠️ ${errMsg}`,
+          content: friendlyAiError(errMsg),
           timestamp: new Date(),
         };
 
@@ -104,11 +105,10 @@ export default function AIFamiliar({ noteContent = "", isOpen = false, onToggle 
     } catch (error) {
       console.error("AI chat error:", error);
 
-      // Network error — backend is unreachable
       const fallbackMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
-        content: "🔌 I can't reach the backend right now. Make sure the Flask server is running on port 5000.\n\n```\ncd backend\npip install -r requirements.txt\npython app.py\n```",
+        content: friendlyAiError(error),
         timestamp: new Date(),
       };
 

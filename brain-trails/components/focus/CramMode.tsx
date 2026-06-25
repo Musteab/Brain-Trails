@@ -91,7 +91,7 @@ export default function CramMode({
   onExit,
 }: CramModeProps) {
   const { user, profile, refreshProfile } = useAuth();
-  const { awardXp, awardGold, logActivity } = useGameStore();
+  const { awardXp, awardGold, logActivity, reportQuestProgress } = useGameStore();
   const addToast = useUIStore((s) => s.addToast);
   const playSound = useSoundEffects();
   const ambient = useAmbientSound();
@@ -185,10 +185,12 @@ export default function CramMode({
       mode: "cram",
     });
     await updateStreak(user.id);
+    await reportQuestProgress(user.id, "focus", focusMinutes);
 
     addToast(`Focus complete! +${gainedXp} XP, +${gainedGold} Gold`, "success");
     refreshProfile();
-  }, [user, profile, focusMinutes, subject, awardXp, awardGold, logActivity, addToast, refreshProfile]);
+    window.dispatchEvent(new CustomEvent("check-achievements"));
+  }, [user, profile, focusMinutes, subject, awardXp, awardGold, logActivity, reportQuestProgress, addToast, refreshProfile]);
 
   // ── Timer countdown ──────────────────────────────────────────────────────
   useEffect(() => {

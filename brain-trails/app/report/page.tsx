@@ -11,6 +11,7 @@ import {
   Calendar,
   Target,
   Zap,
+  Share2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +22,7 @@ import BackgroundLayer from "@/components/layout/BackgroundLayer";
 import Skeleton from "@/components/ui/Skeleton";
 import StreakCalendar from "@/components/report/StreakCalendar";
 import StudyChart from "@/components/report/StudyChart";
+import ShareCard from "@/components/ui/ShareCard";
 
 interface WeeklyStats {
   totalMinutes: number;
@@ -137,6 +139,7 @@ export default function ReportPage() {
     0, 0, 0, 0, 0, 0, 0,
   ]);
   const [isLoading, setIsLoading] = useState(true);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -262,6 +265,18 @@ export default function ReportPage() {
                 Your adventure this week
               </p>
             </div>
+
+            {/* Share your week — the flex */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShareOpen(true)}
+              disabled={!stats}
+              className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg shadow-purple-500/30 disabled:opacity-50"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Share</span>
+            </motion.button>
           </motion.div>
 
           {isLoading ? (
@@ -499,6 +514,23 @@ export default function ReportPage() {
           ) : null}
         </div>
       </div>
+
+      {stats && (
+        <ShareCard
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          data={{
+            displayName: profile?.display_name || profile?.username || "A Traveler",
+            level: profile?.level ?? 1,
+            streakDays: stats.streakDays,
+            weekMinutes: stats.totalMinutes,
+            weekXp: stats.xpEarned,
+            sessionCount: stats.sessionCount,
+            dailyCounts,
+          }}
+        />
+      )}
+
       <TravelerHotbar />
     </>
   );

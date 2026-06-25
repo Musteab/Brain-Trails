@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Plus, GraduationCap, Flame } from "lucide-react";
+import { BookOpen, CheckCircle, Plus, GraduationCap, Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -20,12 +20,7 @@ type Subject = {
   topics: { id: string; is_completed: boolean }[];
 };
 
-/**
- * Left Panel - My Study Profile
- * Compact frosted glass panel with Season Mastery progress + action buttons
- * Memoized to prevent unnecessary re-renders from parent components
- */
-function SyllabusWidget() {
+export default function SyllabusWidget() {
   const { user, profile } = useAuth();
   const { theme } = useTheme();
   const isSun = theme === "sun";
@@ -39,7 +34,8 @@ function SyllabusWidget() {
   const fetchSyllabus = async () => {
     if (!user) return;
     try {
-      const { data: semData } = await (supabase.from("semesters") as any)
+      const { data: semData } = await supabase
+        .from("semesters")
         .select("*")
         .eq("user_id", user.id)
         .eq("is_active", true)
@@ -49,7 +45,8 @@ function SyllabusWidget() {
 
       if (semData) {
         setSemester(semData);
-        const { data: subData } = await (supabase.from("subjects") as any)
+        const { data: subData } = await supabase
+          .from("subjects")
           .select(`id, name, topics ( id, is_completed )`)
           .eq("semester_id", semData.id);
 
@@ -66,18 +63,19 @@ function SyllabusWidget() {
 
   useEffect(() => {
     fetchSyllabus();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleCompleteSemester = async () => {
     if (!user || !semester) return;
     setIsCompleting(true);
     try {
-      await (supabase.from("semesters") as any)
+      await supabase
+        .from("semesters")
         .update({ is_active: false })
         .eq("id", semester.id);
       
-      await (supabase.from("profiles") as any)
+      await supabase
+        .from("profiles")
         .update({ onboarding_completed: false })
         .eq("id", user.id);
       
@@ -88,19 +86,15 @@ function SyllabusWidget() {
     }
   };
 
-  const glassPanel = isSun 
-    ? "bg-white/30 border border-white/50 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.06)]" 
-    : "bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]";
-
-  const glassInner = isSun
-    ? "inset 0 1px 0 rgba(255,255,255,0.6)"
-    : "inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.03)";
-
   if (isLoading) {
     return (
-      <div className={`p-5 rounded-[24px] ${glassPanel} animate-pulse h-48`} />
+      <div className={`p-5 rounded-[24px] border backdrop-blur-md ${isSun ? "bg-white/50 border-white/60" : "bg-black/20 border-white/10"} animate-pulse h-40`} />
     );
   }
+
+  const glassClasses = isSun 
+    ? "bg-white/50 border border-white/60 shadow-xl backdrop-blur-md" 
+    : "bg-black/20 border border-white/10 shadow-xl backdrop-blur-md";
 
   let totalTopics = 0;
   let completedTopics = 0;
@@ -112,34 +106,29 @@ function SyllabusWidget() {
   const streakDays = profile?.streak_days || 0;
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Season Mastery Card */}
+    <div className="flex flex-col gap-4">
+      {/* Main Syllabus Card */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`p-5 rounded-[24px] ${glassPanel}`}
-        style={{ boxShadow: glassInner }}
+        className={`p-5 rounded-[24px] ${glassClasses}`}
       >
         {semester ? (
           <div className="space-y-4">
-            {/* Header */}
-            <div className="flex items-center gap-2.5">
-              <div className={`p-2 rounded-xl ${isSun ? "bg-amber-100/80 text-amber-600" : "bg-indigo-500/15 text-indigo-400"}`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-xl ${isSun ? "bg-amber-100 text-amber-600" : "bg-indigo-500/20 text-indigo-400"}`}>
                 <BookOpen className="w-4 h-4" />
               </div>
-              <div>
-                <h3 className={`font-bold text-sm ${isSun ? "text-slate-800" : "text-white"}`}>Season Mastery</h3>
-                <p className={`text-[10px] ${isSun ? "text-slate-400" : "text-white/40"}`}>{semester.name}</p>
-              </div>
+              <h3 className={`font-bold text-sm ${isSun ? "text-slate-800" : "text-white"}`}>{semester.name}</h3>
             </div>
 
-            {/* Progress */}
+            {/* Overall Mastery Progress */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>Progress</span>
+              <div className="flex items-center justify-between text-sm">
+                <span className={`text-xs ${isSun ? "text-slate-600" : "text-slate-300"}`}>Overall Mastery</span>
                 <span className={`text-xs font-bold ${isSun ? "text-slate-800" : "text-white"}`}>{progressPct}%</span>
               </div>
-              <div className={`h-2 rounded-full overflow-hidden ${isSun ? "bg-slate-200/60" : "bg-white/[0.06]"}`}>
+              <div className={`h-2.5 rounded-full overflow-hidden ${isSun ? "bg-slate-200/80" : "bg-white/10"}`}>
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPct}%` }}
@@ -147,53 +136,54 @@ function SyllabusWidget() {
                   className={`h-full rounded-full ${isSun ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-indigo-400 to-purple-500"}`}
                 />
               </div>
-              <p className={`text-[10px] ${isSun ? "text-slate-400" : "text-white/30"}`}>
-                {subjects.length} Subjects &middot; {completedTopics}/{totalTopics} Topics
+              <p className={`text-[10px] ${isSun ? "text-slate-500" : "text-slate-400"}`}>
+                {subjects.length} Subjects • {totalTopics} Topics
               </p>
             </div>
 
-            {/* Pill Buttons */}
+            {/* Action Buttons */}
             <div className="flex gap-2">
-              <button
-                onClick={() => router.push("/knowledge")}
-                className={`flex-1 py-2 rounded-full text-[11px] font-bold text-center transition-all ${
-                  isSun 
-                    ? "bg-white/60 text-slate-600 border border-white/80 hover:bg-white/80" 
-                    : "bg-white/[0.06] text-white/70 border border-white/[0.08] hover:bg-white/[0.1]"
-                }`}
-              >
-                Current Plan
-              </button>
               <button
                 onClick={handleCompleteSemester}
                 disabled={isCompleting}
-                className={`flex-1 py-2 rounded-full text-[11px] font-bold text-center transition-all ${
+                className={`flex-1 py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                   isSun 
-                    ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-white hover:shadow-md" 
-                    : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25"
+                    ? "bg-gradient-to-r from-emerald-400 to-teal-500 text-white hover:shadow-lg" 
+                    : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30"
                 }`}
               >
-                {isCompleting ? "..." : "Set New Goal"}
+                <Plus className="w-3.5 h-3.5" />
+                {isCompleting ? "..." : "Start New Plan"}
+              </button>
+              <button
+                onClick={() => router.push("/codex")}
+                className={`flex-1 py-2.5 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                  isSun
+                    ? "bg-white/80 text-slate-700 border border-slate-200 hover:bg-white"
+                    : "bg-white/10 text-white/80 border border-white/10 hover:bg-white/20"
+                }`}
+              >
+                Open Codex
               </button>
             </div>
           </div>
         ) : (
           <div className="text-center py-4 space-y-3">
-            <GraduationCap className={`w-7 h-7 mx-auto ${isSun ? "text-slate-300" : "text-slate-600"}`} />
-            <p className={`text-xs ${isSun ? "text-slate-400" : "text-slate-400"}`}>
-              No active syllabus
+            <GraduationCap className={`w-8 h-8 mx-auto ${isSun ? "text-slate-300" : "text-slate-600"}`} />
+            <p className={`text-sm ${isSun ? "text-slate-500" : "text-slate-300"}`}>
+              No active syllabus found.
             </p>
             <button
               onClick={() => {
-                (supabase.from("profiles") as any).update({ onboarding_completed: false }).eq("id", user?.id || "").then(() => {
+                supabase.from("profiles").update({ onboarding_completed: false }).eq("id", user?.id || "").then(() => {
                   router.push("/onboarding");
                 });
               }}
-              className={`px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 mx-auto transition-all ${
+              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center justify-center gap-2 mx-auto transition-all ${
                 isSun ? "bg-amber-500 text-white hover:bg-amber-600" : "bg-indigo-500 text-white hover:bg-indigo-600"
               }`}
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               Create Syllabus
             </button>
           </div>
@@ -204,27 +194,24 @@ function SyllabusWidget() {
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className={`p-4 rounded-[20px] ${glassPanel} flex items-center gap-3`}
-        style={{ boxShadow: glassInner }}
+        transition={{ delay: 0.15 }}
+        className={`p-4 rounded-[20px] ${glassClasses} flex items-center gap-3`}
       >
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-          isSun ? "bg-orange-100/80" : "bg-orange-500/15"
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          isSun ? "bg-orange-100" : "bg-orange-500/20"
         }`}>
-          <Flame className={`w-4.5 h-4.5 ${isSun ? "text-orange-500" : "text-orange-400"}`} />
+          <Flame className={`w-5 h-5 ${isSun ? "text-orange-500" : "text-orange-400"}`} />
         </div>
         <div className="flex-1">
           <div className="flex items-baseline gap-1">
-            <span className={`text-xl font-black ${isSun ? "text-slate-800" : "text-white"}`}>{streakDays}</span>
-            <span className={`text-[10px] font-bold ${isSun ? "text-slate-400" : "text-white/40"}`}>day streak</span>
+            <span className={`text-2xl font-black ${isSun ? "text-slate-800" : "text-white"}`}>{streakDays}</span>
+            <span className={`text-xs font-bold ${isSun ? "text-slate-500" : "text-white/60"}`}>days</span>
           </div>
-          <p className={`text-[9px] ${isSun ? "text-slate-400" : "text-white/30"}`}>
-            Keep the flame alive
+          <p className={`text-[10px] ${isSun ? "text-slate-500" : "text-white/50"}`}>
+            🔥 Keep Trying, Never Be Tired
           </p>
         </div>
       </motion.div>
     </div>
   );
 }
-
-export default memo(SyllabusWidget);

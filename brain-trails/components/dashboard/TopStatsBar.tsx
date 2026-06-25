@@ -36,8 +36,11 @@ function TopStatsBar() {
   const gold = profile?.gold ?? 0;
   const level = profile?.level ?? 1;
   const currentXP = profile?.xp ?? 0;
-  const maxXP = level * 1000; 
-  const xpPercentage = Math.min((currentXP / maxXP) * 100, 100);
+  // Progress *within* the current level. Levels are every 1000 XP
+  // (level = floor(xp/1000)+1), so the bar fills from this level's floor to
+  // the next — it should reset toward 0 right after a level-up.
+  const xpIntoLevel = currentXP - (level - 1) * 1000;
+  const xpPercentage = Math.min(Math.max((xpIntoLevel / 1000) * 100, 0), 100);
 
   const handleSignOut = useCallback(async () => {
     await signOut();

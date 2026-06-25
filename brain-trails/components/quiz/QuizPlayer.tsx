@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Swords, CheckCircle2, XCircle } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
+import { isAnswerCorrect, resolveCorrectOption } from "@/lib/quizScoring";
 
 export interface QuizQuestion {
   type: "mcq" | "true_false" | "fill_blank" | "short_answer";
@@ -54,7 +55,7 @@ export default function QuizPlayer({ questions, timePerQuestion, onComplete }: Q
 
   const handleSubmit = useCallback((answer: string) => {
     const finalAnswer = answer || selectedAnswer;
-    const correct = finalAnswer.toLowerCase().trim() === question.correct_answer.toLowerCase().trim();
+    const correct = isAnswerCorrect(finalAnswer, question);
     setIsCorrect(correct);
     setShowFeedback(true);
 
@@ -67,15 +68,18 @@ export default function QuizPlayer({ questions, timePerQuestion, onComplete }: Q
       setSelectedAnswer("");
 
       if (currentIndex + 1 >= questions.length) {
-        const score = newAnswers.filter(
-          (a, i) => a.toLowerCase().trim() === questions[i].correct_answer.toLowerCase().trim()
-        ).length;
+        const score = newAnswers.filter((a, i) => isAnswerCorrect(a, questions[i])).length;
         onComplete(newAnswers, score);
       } else {
         setCurrentIndex(prev => prev + 1);
       }
     }, 1500);
   }, [selectedAnswer, question, answers, currentIndex, questions, onComplete]);
+
+  // Canonical correct option text (handles letter vs full-text answers).
+  const correctOption = question.options ? resolveCorrectOption(question) : question.correct_answer;
+  const isCorrectOption = (option: string) =>
+    option.toLowerCase().trim() === correctOption.toLowerCase().trim();
 
   const timerPct = timePerQuestion > 0 ? (timeLeft / timePerQuestion) * 100 : 100;
   const timerColor = timerPct > 50 ? "bg-emerald-500" : timerPct > 25 ? "bg-amber-500" : "bg-red-500";
@@ -170,7 +174,7 @@ export default function QuizPlayer({ questions, timePerQuestion, onComplete }: Q
                   }}
                   className={`w-full text-left px-4 py-3 rounded-xl border-2 font-[family-name:var(--font-quicksand)] text-sm font-medium transition-all ${
                     showFeedback
-                      ? option === question.correct_answer
+                      ? isCorrectOption(option)
                         ? "border-emerald-500 bg-emerald-500/20 text-emerald-500"
                         : option === selectedAnswer
                           ? "border-red-500 bg-red-500/20 text-red-500"
@@ -182,13 +186,13 @@ export default function QuizPlayer({ questions, timePerQuestion, onComplete }: Q
                 >
                   <span className="flex items-center gap-3">
                     <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                      showFeedback && option === question.correct_answer
+                      showFeedback && isCorrectOption(option)
                         ? "bg-emerald-500 text-white"
                         : showFeedback && option === selectedAnswer
                           ? "bg-red-500 text-white"
                           : isSun ? "bg-slate-100 text-slate-500" : "bg-slate-700 text-slate-400"
                     }`}>
-                      {showFeedback && option === question.correct_answer ? <CheckCircle2 className="w-4 h-4" /> :
+                      {showFeedback && isCorrectOption(option) ? <CheckCircle2 className="w-4 h-4" /> :
                        showFeedback && option === selectedAnswer ? <XCircle className="w-4 h-4" /> :
                        String.fromCharCode(65 + i)}
                     </span>
@@ -251,8 +255,10 @@ export default function QuizPlayer({ questions, timePerQuestion, onComplete }: Q
                     : isSun ? "bg-red-50 border-red-300 text-red-800" : "bg-red-500/10 border-red-500/30 text-red-300"
                 }`}
               >
-                <p className="text-sm font-bold font-[family-name:var(--font-nunito)] mb-1">
-                  {isCorrect ? "✅ Correct!" : `❌ Wrong — Answer: ${question.correct_answer}`}
+                <p className="text-sm font-bold font-[family-name:var(--font-nunito)] mb-1 flex items-center gap-1.5">
+                  {isCorrect
+                    ? (<><CheckCircle2 className="w-4 h-4" /> Correct!</>)
+                    : (<><XCircle className="w-4 h-4" /> Answer: {correctOption}</>)}
                 </p>
                 <p className="text-xs font-[family-name:var(--font-quicksand)]">
                   {question.explanation}

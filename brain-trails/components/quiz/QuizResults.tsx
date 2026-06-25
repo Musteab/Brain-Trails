@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Coins, Zap, RotateCcw, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react";
+import { Trophy, Coins, Zap, RotateCcw, ChevronDown, ChevronUp, CheckCircle2, XCircle, Share2 } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
+import TrialResultCard from "@/components/ui/TrialResultCard";
+import { isAnswerCorrect, resolveCorrectOption } from "@/lib/quizScoring";
 import type { QuizQuestion } from "./QuizPlayer";
 
 interface QuizResultsProps {
@@ -12,6 +14,7 @@ interface QuizResultsProps {
   score: number;
   xpEarned: number;
   goldEarned: number;
+  subjectName?: string;
   onTryAgain: () => void;
   onNewQuiz: () => void;
 }
@@ -25,10 +28,11 @@ function getGrade(pct: number): { letter: string; color: string; emoji: string }
 }
 
 export default function QuizResults({
-  questions, answers, score, xpEarned, goldEarned, onTryAgain, onNewQuiz,
+  questions, answers, score, xpEarned, goldEarned, subjectName, onTryAgain, onNewQuiz,
 }: QuizResultsProps) {
   const { card, isSun, title: titleStyle, muted } = useCardStyles();
   const [showReview, setShowReview] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const pct = Math.round((score / questions.length) * 100);
   const grade = getGrade(pct);
 
@@ -87,6 +91,22 @@ export default function QuizResults({
         </motion.div>
       </div>
 
+      {/* Share result — the flex */}
+      <motion.button
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        onClick={() => setShareOpen(true)}
+        className="w-full py-3 rounded-xl text-sm font-bold font-[family-name:var(--font-nunito)] flex items-center justify-center gap-2 bg-gradient-to-r from-fuchsia-500 to-violet-600 text-white shadow-lg"
+      >
+        <Share2 className="w-4 h-4" /> Share your result
+      </motion.button>
+
+      <TrialResultCard
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        result={{ subjectName: subjectName || "Trial by Fire", score, total: questions.length, xpEarned }}
+      />
+
       {/* Review Answers Toggle */}
       <motion.button
         whileHover={{ scale: 1.01 }}
@@ -95,7 +115,7 @@ export default function QuizResults({
         className={`w-full ${card} p-4 flex items-center justify-between`}
       >
         <span className={`text-sm font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-700" : "text-slate-200"}`}>
-          📋 Review Answers
+          Review answers
         </span>
         {showReview ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
       </motion.button>
@@ -111,7 +131,7 @@ export default function QuizResults({
           >
             {questions.map((q, i) => {
               const userAnswer = answers[i] || "";
-              const correct = userAnswer.toLowerCase().trim() === q.correct_answer.toLowerCase().trim();
+              const correct = isAnswerCorrect(userAnswer, q);
               return (
                 <div key={i} className={`${card} p-4`}>
                   <div className="flex items-start gap-3">
@@ -128,7 +148,7 @@ export default function QuizResults({
                         Your answer: {userAnswer || "(no answer)"}
                       </p>
                       {!correct && (
-                        <p className={`text-xs text-emerald-500 mt-0.5`}>Correct: {q.correct_answer}</p>
+                        <p className={`text-xs text-emerald-500 mt-0.5`}>Correct: {resolveCorrectOption(q)}</p>
                       )}
                       <p className={`text-xs ${muted} mt-1`}>{q.explanation}</p>
                     </div>

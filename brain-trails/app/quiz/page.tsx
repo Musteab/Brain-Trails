@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useGameStore } from "@/stores";
 import { supabase } from "@/lib/supabase";
+import { friendlyAiError } from "@/lib/aiError";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import BackgroundLayer from "@/components/layout/BackgroundLayer";
 import QuizCreator from "@/components/quiz/QuizCreator";
@@ -91,9 +92,11 @@ export default function QuizPage() {
           setState("playing");
         } else {
           setState("hub");
+          alert(friendlyAiError(data.error || "no questions"));
         }
-      } catch {
+      } catch (err) {
         setState("hub");
+        alert(friendlyAiError(err));
       } finally {
         setIsGenerating(false);
       }
@@ -122,10 +125,12 @@ export default function QuizPage() {
         setTimePerQuestion(settings.timeLimit);
         setState("playing");
       } else {
-        alert(data.error || "Failed to generate quiz. Please try again.");
+        setState("hub");
+        alert(friendlyAiError(data.error || "no questions"));
       }
-    } catch {
-      alert("Failed to connect to AI service. Make sure the backend is running.");
+    } catch (err) {
+      setState("hub");
+      alert(friendlyAiError(err));
     } finally {
       setIsGenerating(false);
     }

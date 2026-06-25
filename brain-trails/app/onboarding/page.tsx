@@ -25,6 +25,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { supabase } from "@/lib/supabase";
 import { useGameStore } from "@/stores";
+import { friendlyAiError } from "@/lib/aiError";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 
 // ============================================
@@ -270,11 +271,7 @@ export default function OnboardingPage() {
       applyParsed(result.data);
     } catch (err) {
       console.error("Parse syllabus error:", err);
-      setParseError(
-        err instanceof Error
-          ? err.message
-          : "Failed to parse syllabus. Make sure the Flask backend is running."
-      );
+      setParseError(`${friendlyAiError(err)} You can also just type your subject names on the previous screen.`);
     } finally {
       setIsParsing(false);
     }

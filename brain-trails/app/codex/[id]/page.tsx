@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useUIStore } from "@/stores";
 import { supabase } from "@/lib/supabase";
+import { friendlyAiError } from "@/lib/aiError";
 import BackgroundLayer from "@/components/layout/BackgroundLayer";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 
@@ -105,7 +106,7 @@ export default function SubjectDetail() {
         body: JSON.stringify({ subject: subject.name, topic: topicName || "General", count: 8, type: "flashcard" }),
       });
       const data = await res.json();
-      if (!data.questions || data.questions.length === 0) throw new Error("No cards generated");
+      if (!data.questions || data.questions.length === 0) throw new Error(data.error || "No cards generated");
 
       const deckName = `${subject.emoji || "📘"} ${topicName || subject.name}`;
       const { data: deckData, error: deckErr } = await supabase
@@ -120,8 +121,8 @@ export default function SubjectDetail() {
       );
       addToast(`Generated "${deckName}" — ${data.questions.length} cards`, "success");
       await load();
-    } catch {
-      addToast("AI generation failed. Is the study service reachable?", "error");
+    } catch (err) {
+      addToast(friendlyAiError(err), "error");
     } finally {
       setGenerating(false);
     }

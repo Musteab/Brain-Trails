@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useGameStore, useUIStore } from "@/stores";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { supabase } from "@/lib/supabase";
+import { friendlyAiError } from "@/lib/aiError";
 import { gameText } from "@/constants/gameText";
 
 interface Flashcard {
@@ -187,7 +188,7 @@ export default function FlashcardsPage() {
       const data = await res.json();
 
       if (!data.questions || data.questions.length === 0) {
-        throw new Error("No flashcards generated");
+        throw new Error(data.error || "No flashcards generated");
       }
 
       // Create the deck
@@ -238,6 +239,7 @@ export default function FlashcardsPage() {
       playSound("success");
     } catch (err) {
       console.error("AI generation failed:", err);
+      addToast(friendlyAiError(err), "error");
     } finally {
       setIsGenerating(false);
     }

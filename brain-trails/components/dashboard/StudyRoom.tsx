@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Flame, Coins, Timer, GraduationCap, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import OwlCompanion from "@/components/ui/OwlCompanion";
 
 /**
  * Dashboard centerpiece — a focused "today" hero that drives the core loop
- * (study now / take a trial) and shows level progress at a glance.
- * Replaced the old mascot-on-pedestal with floating emoji stats.
+ * (study now / take a trial) and shows level progress at a glance, with Archie
+ * the owl as a friendly mascot (no more broken pedestal / emoji orbs).
  */
 export default function StudyRoom() {
   const { profile } = useAuth();
@@ -49,8 +50,13 @@ export default function StudyRoom() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`w-full max-w-md mx-auto rounded-3xl border ${panel} p-7 shadow-sm`}
+      className={`relative w-full max-w-md mx-auto rounded-3xl border ${panel} p-7 shadow-sm`}
     >
+      {/* Archie — peeks from the top-right corner, perks up on a streak */}
+      <div className="absolute -top-10 right-3 w-24 h-24 pointer-events-none select-none">
+        <OwlCompanion mood={streak > 0 ? "celebrating" : "idle"} showName={false} className="w-full h-full" />
+      </div>
+
       <p className={`text-xs font-medium uppercase tracking-[0.18em] ${sub}`}>{greeting}</p>
       <h2 className={`text-2xl font-bold ${ink} font-[family-name:var(--font-nunito)] mt-0.5`}>
         {name}

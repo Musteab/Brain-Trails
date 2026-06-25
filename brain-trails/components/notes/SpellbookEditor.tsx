@@ -28,51 +28,9 @@ import { useUIStore } from "@/stores";
 import SlashCommandMenu from "./SlashCommandMenu";
 import "./spellbook-editor.css";
 
-// Welcome content for new notes
-const welcomeContent = `
-<h1>Welcome to Your Spellbook 📖</h1>
-<p>This is your magical grimoire for capturing knowledge with enhanced Notion-style editing.</p>
-
-<h2>✨ Slash Commands</h2>
-<p>Type <strong>/</strong> anywhere to summon the command menu:</p>
-<ul>
-  <li><strong>/heading1</strong> - Large chapter headings</li>
-  <li><strong>/heading2</strong> - Section headings</li>
-  <li><strong>/bullet</strong> - Bullet lists</li>
-  <li><strong>/todo</strong> - Task lists with checkboxes</li>
-  <li><strong>/table</strong> - Insert tables</li>
-  <li><strong>/code</strong> - Code blocks with syntax highlighting</li>
-  <li><strong>/callout</strong> - Ancient Insights, Scrolls of Warning, Tomes of Knowledge</li>
-</ul>
-
-<h2>⌨️ Keyboard Shortcuts</h2>
-<p>Master these shortcuts for faster writing:</p>
-<ul>
-  <li><strong>Ctrl/Cmd + B</strong> - Bold text</li>
-  <li><strong>Ctrl/Cmd + I</strong> - Italic text</li>
-  <li><strong>Ctrl/Cmd + U</strong> - Underline text</li>
-  <li><strong>Ctrl/Cmd + E</strong> - Inline code</li>
-  <li><strong>Ctrl/Cmd + K</strong> - Add link</li>
-  <li><strong>Ctrl/Cmd + Shift + H</strong> - Highlight text</li>
-  <li><strong>Ctrl/Cmd + Z</strong> - Undo</li>
-  <li><strong>Ctrl/Cmd + Shift + Z</strong> - Redo</li>
-</ul>
-
-<h2>🤖 AI Familiar</h2>
-<p>Your AI assistant waits in the sidebar. Ask it to:</p>
-<ul>
-  <li>Summarize your notes</li>
-  <li>Generate quiz questions</li>
-  <li>Rewrite for exam preparation</li>
-  <li>Explain complex concepts</li>
-</ul>
-
-<blockquote>
-  <p><em>"Knowledge is the beginning of all magic."</em></p>
-</blockquote>
-
-<p>Start writing below and let the magic flow... ✍️</p>
-`;
+// Shown only for a brand-new, never-edited note (the notes page passes the
+// note's own content otherwise, so this rarely appears).
+const welcomeContent = `<h1>Untitled</h1><p></p>`;
 
 interface SpellbookEditorProps {
   onContentChange?: (html: string, text: string) => void;
@@ -146,7 +104,9 @@ const SpellbookEditor = forwardRef<SpellbookEditorRef, SpellbookEditorProps>(
         Callout,
 
       ],
-      content: initialContent || welcomeContent,
+      // `??` not `||` so an intentionally-empty note ("") stays empty (shows the
+      // placeholder) instead of falling back to the welcome boilerplate.
+      content: initialContent ?? welcomeContent,
       immediatelyRender: false,
       editorProps: {
         attributes: {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState, useEffect } from "react";
@@ -41,8 +42,7 @@ export default function BossSelect({ onStartBattle }: BossSelectProps) {
 
     async function fetchDecks() {
       setIsLoadingDecks(true);
-      const { data, error } = await supabase
-        .from("decks")
+      const { data, error } = await (supabase.from("decks") as any)
         .select("id, name, emoji, cards(id)")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: true });

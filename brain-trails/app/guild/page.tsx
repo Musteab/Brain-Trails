@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   Shield,
   Users,
@@ -21,6 +22,7 @@ import GuildChat from "@/components/guild/GuildChat";
 import GuildLeaderboard from "@/components/guild/GuildLeaderboard";
 import GuildRaid from "@/components/guild/GuildRaid";
 import MemberList from "@/components/guild/MemberList";
+import RealmCommunicator from "@/components/social/RealmCommunicator";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useUIStore } from "@/stores";
@@ -40,6 +42,50 @@ interface GuildRow {
 }
 
 type TabId = "overview" | "chat" | "raids";
+
+// Helper to get grand role name
+function getRoleDisplayName(role: "leader" | "officer" | "member"): string {
+  const roleNames = {
+    leader: "Guild Master",
+    officer: "Elder",
+    member: "Member"
+  };
+  return roleNames[role] || "Member";
+}
+
+// Helper to get role color
+function getRoleColor(role: "leader" | "officer" | "member", isSun: boolean): string {
+  if (role === "leader") return "text-amber-500";
+  if (role === "officer") return isSun ? "text-blue-600" : "text-blue-400";
+  return isSun ? "text-slate-600" : "text-slate-400";
+}
+
+// Helper to render guild emblem (emoji or image)
+function GuildEmblem({ emblem, size = "md", className = "" }: { emblem: string; size?: "sm" | "md" | "lg"; className?: string }) {
+  const isUrl = emblem.startsWith("http");
+  const sizeClasses = {
+    sm: "w-12 h-12 text-2xl",
+    md: "w-16 h-16 text-3xl",
+    lg: "w-20 h-20 text-4xl"
+  };
+  
+  return (
+    <div className={`${sizeClasses[size]} rounded-2xl flex items-center justify-center overflow-hidden ${className}`}>
+      {isUrl ? (
+        <Image 
+          src={emblem} 
+          alt="Guild emblem" 
+          width={size === "sm" ? 48 : size === "md" ? 64 : 80}
+          height={size === "sm" ? 48 : size === "md" ? 64 : 80}
+          className="w-full h-full object-cover"
+          unoptimized
+        />
+      ) : (
+        emblem
+      )}
+    </div>
+  );
+}
 
 export default function GuildPage() {
   const { user, profile, refreshProfile, isLoading: authLoading } = useAuth();
@@ -66,8 +112,7 @@ export default function GuildPage() {
       // Check if user is in a guild
       if (profile?.guild_id) {
         // Fetch user's guild
-        const { data: guild } = await supabase
-          .from("guilds")
+        const { data: guild } = await (supabase.from("guilds") as any)
           .select("*")
           .eq("id", profile.guild_id)
           .single();
@@ -76,8 +121,7 @@ export default function GuildPage() {
           setMyGuild(guild);
 
           // Get user's role
-          const { data: membership } = await supabase
-            .from("guild_members")
+          const { data: membership } = await (supabase.from("guild_members") as any)
             .select("role")
             .eq("guild_id", guild.id)
             .eq("user_id", user.id)
@@ -91,8 +135,7 @@ export default function GuildPage() {
         setMyGuild(null);
 
         // Fetch available guilds
-        const { data: availableGuilds } = await supabase
-          .from("guilds")
+        const { data: availableGuilds } = await (supabase.from("guilds") as any)
           .select("*")
           .order("weekly_xp", { ascending: false })
           .limit(50);
@@ -125,7 +168,7 @@ export default function GuildPage() {
 
     try {
       // Insert into guild_members
-      const { error: memberError } = await supabase.from("guild_members").insert({
+      const { error: memberError } = await (supabase.from("guild_members") as any).insert({
         guild_id: guild.id,
         user_id: user.id,
         role: "member",
@@ -139,14 +182,12 @@ export default function GuildPage() {
       }
 
       // Update profile.guild_id
-      await supabase
-        .from("profiles")
+      await (supabase.from("profiles") as any)
         .update({ guild_id: guild.id })
         .eq("id", user.id);
 
       // Increment member count
-      await supabase
-        .from("guilds")
+      await (supabase.from("guilds") as any)
         .update({ member_count: guild.member_count + 1 })
         .eq("id", guild.id);
 
@@ -170,21 +211,18 @@ export default function GuildPage() {
     if (!confirm("Are you sure you want to leave this guild?")) return;
 
     // Remove from guild_members
-    await supabase
-      .from("guild_members")
+    await (supabase.from("guild_members") as any)
       .delete()
       .eq("guild_id", myGuild.id)
       .eq("user_id", user.id);
 
     // Clear profile guild_id
-    await supabase
-      .from("profiles")
+    await (supabase.from("profiles") as any)
       .update({ guild_id: null })
       .eq("id", user.id);
 
     // Decrement member count
-    await supabase
-      .from("guilds")
+    await (supabase.from("guilds") as any)
       .update({ member_count: Math.max(0, myGuild.member_count - 1) })
       .eq("id", myGuild.id);
 
@@ -241,15 +279,15 @@ export default function GuildPage() {
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
-                <div
-                  className={`w-16 h-16 rounded-3xl flex items-center justify-center text-3xl border-3 shadow-lg ${
+                <GuildEmblem 
+                  emblem={myGuild.emblem}
+                  size="md"
+                  className={`border-3 shadow-lg ${
                     isSun
                       ? "bg-white/70 border-emerald-500/30 shadow-emerald-200/30"
                       : "bg-white/5 border-emerald-400/30 shadow-emerald-500/10"
                   }`}
-                >
-                  {myGuild.emblem}
-                </div>
+                />
                 <div>
                   <h1
                     className={`text-3xl font-bold font-[family-name:var(--font-nunito)] ${
@@ -329,7 +367,7 @@ export default function GuildPage() {
               transition={{ duration: 0.2 }}
             >
               {activeTab === "overview" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Guild Info */}
                   <div className={`${card} p-6`}>
                     <div className="flex items-center gap-3 mb-4">
@@ -342,7 +380,7 @@ export default function GuildPage() {
                     <div className="space-y-3">
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
                         <span className={`text-sm ${muted} font-[family-name:var(--font-quicksand)]`}>Emblem</span>
-                        <span className="text-2xl">{myGuild.emblem}</span>
+                        <GuildEmblem emblem={myGuild.emblem} size="sm" />
                       </div>
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
                         <span className={`text-sm ${muted} font-[family-name:var(--font-quicksand)]`}>Members</span>
@@ -358,17 +396,11 @@ export default function GuildPage() {
                       </div>
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
                         <span className={`text-sm ${muted} font-[family-name:var(--font-quicksand)]`}>Your Role</span>
-                        <span className={`text-sm font-bold flex items-center gap-1 font-[family-name:var(--font-nunito)] ${
-                          myRole === "leader"
-                            ? "text-amber-500"
-                            : myRole === "officer"
-                            ? "text-blue-500"
-                            : muted
-                        }`}>
+                        <span className={`text-sm font-bold flex items-center gap-1 font-[family-name:var(--font-nunito)] ${getRoleColor(myRole, isSun)}`}>
                           {myRole === "leader" && <Crown className="w-3.5 h-3.5" />}
                           {myRole === "officer" && <Swords className="w-3.5 h-3.5" />}
                           {myRole === "member" && <Shield className="w-3.5 h-3.5" />}
-                          {myRole.charAt(0).toUpperCase() + myRole.slice(1)}
+                          {getRoleDisplayName(myRole)}
                         </span>
                       </div>
                       <div className={`flex justify-between px-4 py-3 rounded-xl ${itemStyle}`}>
@@ -383,7 +415,12 @@ export default function GuildPage() {
                   {/* Member List */}
                   <MemberList guildId={myGuild.id} isLeader={myRole === "leader"} />
 
-                  {/* Weekly Leaderboard - Full width */}
+                  {/* Realm Communicator - Social Panel */}
+                  <div className="lg:row-span-2">
+                    <RealmCommunicator />
+                  </div>
+
+                  {/* Weekly Leaderboard - Spans 2 columns */}
                   <div className="lg:col-span-2">
                     <GuildLeaderboard guildId={myGuild.id} />
                   </div>
@@ -479,15 +516,15 @@ export default function GuildPage() {
                 >
                   {/* Guild emblem & name */}
                   <div className="flex items-center gap-3 mb-3">
-                    <div
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border-2 ${
+                    <GuildEmblem 
+                      emblem={guild.emblem}
+                      size="sm"
+                      className={`border-2 ${
                         isSun
                           ? "bg-white/50 border-emerald-500/20"
                           : "bg-white/5 border-emerald-400/20"
                       }`}
-                    >
-                      {guild.emblem}
-                    </div>
+                    />
                     <div className="flex-1 min-w-0">
                       <h3
                         className={`text-lg font-bold truncate font-[family-name:var(--font-nunito)] ${

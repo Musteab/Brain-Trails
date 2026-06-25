@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -24,8 +24,9 @@ interface RecentBattle {
  * result and a link to fight again.
  *
  * Falls back to a "Start your first battle" prompt if no battles exist.
+ * Memoized to prevent unnecessary re-renders from parent components.
  */
-export default function CoopBossRaid() {
+function CoopBossRaid() {
   const { card, isSun } = useCardStyles();
   const { user } = useAuth();
   const [lastBattle, setLastBattle] = useState<RecentBattle | null>(null);
@@ -38,8 +39,7 @@ export default function CoopBossRaid() {
     let cancelled = false;
 
     async function fetchLatest() {
-      const { data, error } = await supabase
-        .from("boss_battles")
+      const { data, error } = await (supabase.from("boss_battles") as any)
         .select("boss_id, result, cards_correct, cards_answered, xp_earned, completed_at")
         .eq("user_id", user!.id)
         .order("completed_at", { ascending: false })
@@ -323,3 +323,5 @@ export default function CoopBossRaid() {
     </motion.div>
   );
 }
+
+export default memo(CoopBossRaid);

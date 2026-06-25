@@ -67,8 +67,7 @@ export default function NodeEditor({
   useEffect(() => {
     if (nodeType !== "boss") return;
     const fetchDecks = async () => {
-      const { data } = await supabase
-        .from("decks")
+      const { data } = await (supabase.from("decks") as any)
         .select("id, name, emoji")
         .order("name");
       if (data) setDecks(data);
@@ -104,8 +103,7 @@ export default function NodeEditor({
         updateData.required_mastery_pct = requiredMasteryPct;
       }
 
-      const { error } = await supabase
-        .from("knowledge_nodes")
+      const { error } = await (supabase.from("knowledge_nodes") as any)
         .update(updateData)
         .eq("id", existing.id);
 
@@ -143,8 +141,7 @@ export default function NodeEditor({
         insertData.required_mastery_pct = requiredMasteryPct;
       }
 
-      const { error } = await supabase
-        .from("knowledge_nodes")
+      const { error } = await (supabase.from("knowledge_nodes") as any)
         .insert(insertData);
 
       if (error) {

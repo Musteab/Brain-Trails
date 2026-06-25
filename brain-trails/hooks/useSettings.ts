@@ -83,8 +83,7 @@ export function useSettings() {
       return;
     }
 
-    const { data, error } = await supabase
-      .from("user_settings")
+    const { data, error } = await (supabase.from("user_settings") as any)
       .select("theme, focus_duration, break_duration, sound_enabled, notifications_enabled, streak_reminders, guild_notifications, study_nudges, cram_mode_enabled, ambient_sound")
       .eq("user_id", user.id)
       .maybeSingle();
@@ -126,8 +125,7 @@ export function useSettings() {
 
       setSaveStatus("saving");
       debounceRef.current = setTimeout(async () => {
-        const { error } = await supabase
-          .from("user_settings")
+        const { error } = await (supabase.from("user_settings") as any)
           .upsert(
             {
               user_id: user.id,

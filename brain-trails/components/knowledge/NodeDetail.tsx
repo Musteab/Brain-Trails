@@ -125,8 +125,7 @@ export default function NodeDetail({
   const handleDelete = async () => {
     if (!confirm("Delete this node? Children will become orphaned.")) return;
 
-    const { error } = await supabase
-      .from("knowledge_nodes")
+    const { error } = await (supabase.from("knowledge_nodes") as any)
       .delete()
       .eq("id", node.id);
 

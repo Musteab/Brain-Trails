@@ -48,8 +48,7 @@ export default function GuildChat({ guildId }: GuildChatProps) {
     if (!guildId) return;
 
     const fetchMessages = async () => {
-      const { data, error } = await supabase
-        .from("guild_messages")
+      const { data, error } = await (supabase.from("guild_messages") as any)
         .select("*, profiles:user_id ( display_name, avatar_url )")
         .eq("guild_id", guildId)
         .order("created_at", { ascending: true })
@@ -86,8 +85,7 @@ export default function GuildChat({ guildId }: GuildChatProps) {
         async (payload) => {
           const newMsg = payload.new as ChatMessage;
           // Fetch the profile for the sender
-          const { data: profile } = await supabase
-            .from("profiles")
+          const { data: profile } = await (supabase.from("profiles") as any)
             .select("display_name, avatar_url")
             .eq("id", newMsg.user_id)
             .single();
@@ -134,7 +132,7 @@ export default function GuildChat({ guildId }: GuildChatProps) {
     const content = newMessage.trim();
     setNewMessage("");
 
-    const { error } = await supabase.from("guild_messages").insert({
+    const { error } = await (supabase.from("guild_messages") as any).insert({
       guild_id: guildId,
       user_id: user.id,
       content,

@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Flag, FastForward, ArrowLeft } from "lucide-react";
+import { Play, Pause, Flag, FastForward, ArrowLeft, Sprout, TreeDeciduous, TreePine, Award, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useGameStore, useUIStore } from "@/stores";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useAmbientSound, type AmbientSound } from "@/hooks/useAmbientSound";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -53,15 +54,15 @@ async function updateStreak(userId: string): Promise<void> {
 type PlantStage = "seed" | "sprout" | "smallTree" | "bigTree";
 
 interface PlantConfig {
-  emoji: string;
+  Icon: LucideIcon;
   label: string;
 }
 
 const plantStages: Record<PlantStage, PlantConfig> = {
-  seed: { emoji: "🌱", label: "Seed" },
-  sprout: { emoji: "🌿", label: "Sprout" },
-  smallTree: { emoji: "🌳", label: "Small Tree" },
-  bigTree: { emoji: "🌲", label: "Big Tree" },
+  seed: { Icon: Sprout, label: "Seed" },
+  sprout: { Icon: Sprout, label: "Sprout" },
+  smallTree: { Icon: TreeDeciduous, label: "Sapling" },
+  bigTree: { Icon: TreePine, label: "Evergreen" },
 };
 
 /**
@@ -86,6 +87,7 @@ function formatTime(seconds: number): string {
 interface FocusTimerProps {
   focusSubject?: string;
   defaultMinutes?: number;
+  ambient?: AmbientSound;
   onBack?: () => void;
 }
 
@@ -107,9 +109,10 @@ const PARTICLE_POSITIONS = Array.from({ length: 12 }, () => ({
  * - Growing plant animation based on progress
  * - Play/Pause/Reset controls
  */
-export default function FocusTimer({ 
-  focusSubject = "Math", 
+export default function FocusTimer({
+  focusSubject = "Math",
   defaultMinutes = 25,
+  ambient = "none",
   onBack
 }: FocusTimerProps) {
   const { user, profile, refreshProfile } = useAuth();
@@ -117,6 +120,7 @@ export default function FocusTimer({
   const addToast = useUIStore((s) => s.addToast);
   const playSound = useSoundEffects();
   const { isAdmin } = useAdmin();
+  const { play: playAmbient, stop: stopAmbient } = useAmbientSound();
 
   const totalSessions = 4;
   const totalTime = defaultMinutes * 60;
@@ -211,6 +215,7 @@ export default function FocusTimer({
         setCompletedSessions((prev) => Math.min(prev + 1, totalSessions));
         setShowReward(true);
         playSound("timerEnd");
+        stopAmbient();
         saveSessionData(legit);
       }
     };
@@ -224,7 +229,7 @@ export default function FocusTimer({
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [isActive, playSound, saveSessionData, totalSessions, totalTime]);
+  }, [isActive, playSound, saveSessionData, totalSessions, totalTime, stopAmbient]);
 
   // Control handlers
   const toggleTimer = useCallback(() => {
@@ -235,6 +240,7 @@ export default function FocusTimer({
         deadlineRef.current = Date.now() + timeLeft * 1000;
         activeStartRef.current = Date.now();
         playSound("timerStart");
+        if (ambient !== "none") playAmbient(ambient);
       } else if (deadlineRef.current != null) {
         // Pausing - freeze remaining time, bank the active time, drop the deadline.
         setTimeLeft(Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000)));
@@ -243,18 +249,20 @@ export default function FocusTimer({
           activeStartRef.current = null;
         }
         deadlineRef.current = null;
+        stopAmbient();
       }
       return next;
     });
-  }, [timeLeft, playSound]);
+  }, [timeLeft, playSound, ambient, playAmbient, stopAmbient]);
 
   const resetTimer = useCallback(() => {
     setIsActive(false);
     deadlineRef.current = null;
     activeStartRef.current = null;
     activeMsRef.current = 0;
+    stopAmbient();
     setTimeLeft(totalTime);
-  }, [totalTime]);
+  }, [totalTime, stopAmbient]);
 
   // Admin-only dev tool: jump to completion to test the UI. Because no real
   // active time is accrued, the completion path treats it as "not legit" and
@@ -470,12 +478,12 @@ export default function FocusTimer({
                 stiffness: 300,
                 damping: 20,
               }}
-              className="text-5xl mb-2"
+              className="mb-2"
               style={{
                 filter: "drop-shadow(0 0 10px rgba(34, 211, 238, 0.5))",
               }}
             >
-              {plantStages[currentStage].emoji}
+              {(() => { const Icon = plantStages[currentStage].Icon; return <Icon className="w-12 h-12 text-cyan-200" strokeWidth={1.5} />; })()}
             </motion.div>
           </AnimatePresence>
 
@@ -601,12 +609,12 @@ export default function FocusTimer({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="text-7xl mb-4 relative z-10"
+                className="mb-4 relative z-10 flex justify-center"
                 style={{
                   filter: "drop-shadow(0 0 20px rgba(34, 211, 238, 0.6))",
                 }}
               >
-                ✨
+                <Award className="w-16 h-16 text-cyan-300" strokeWidth={1.5} />
               </motion.div>
 
               <h2 className="text-3xl font-bold text-cyan-100 font-[family-name:var(--font-cinzel)] mb-2 relative z-10">
@@ -644,7 +652,7 @@ export default function FocusTimer({
                   }}
                   className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all font-[family-name:var(--font-cinzel)]"
                 >
-                  {completedSessions >= totalSessions ? "Complete! ✨" : "Continue"}
+                  {completedSessions >= totalSessions ? "Complete!" : "Continue"}
                 </motion.button>
                 {onBack && (
                   <motion.button

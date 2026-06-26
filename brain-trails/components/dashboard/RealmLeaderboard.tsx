@@ -297,7 +297,7 @@ export default function RealmLeaderboard() {
                       <div className="flex items-center gap-2 text-xs">
                         <span className="text-amber-600/60">Lv.{player.level}</span>
                         {player.title && (
-                          <span className="text-purple-400/60 truncate">{player.title}</span>
+                          <span className={`text-purple-400/60 truncate ${player.title.split("|")[1] || ""}`}>{player.title.split("|")[0]}</span>
                         )}
                       </div>
                     </div>
@@ -494,7 +494,7 @@ function LegendaryHoverCard({
             {player.display_name}
           </h3>
           {player.title && (
-            <p className="text-sm text-purple-400 mt-0.5">{player.title}</p>
+            <p className={`text-sm text-purple-400 mt-0.5 ${player.title.split("|")[1] || ""}`}>{player.title.split("|")[0]}</p>
           )}
         </div>
 

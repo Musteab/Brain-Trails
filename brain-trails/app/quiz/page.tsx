@@ -221,8 +221,8 @@ export default function QuizPage() {
             </motion.button>
             <div>
               <h1 className={`text-2xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-                {state === "playing" ? "⚔️ Trial in Progress" :
-                 state === "results" ? "📜 Trial Results" : "📝 Trial Arena"}
+                {state === "playing" ? "Trial in Progress" :
+                 state === "results" ? "Trial Results" : "Trial by Fire"}
               </h1>
               <p className={`text-xs ${muted}`}>
                 {state === "playing" ? "Answer wisely, adventurer!" :
@@ -270,7 +270,7 @@ export default function QuizPage() {
                 <div className="space-y-2">
                   {pastQuizzes.length === 0 ? (
                     <div className={`${card} p-8 text-center`}>
-                      <p className="text-3xl mb-3">📝</p>
+                      <ScrollText className={`w-8 h-8 mx-auto mb-3 ${isSun ? "text-slate-300" : "text-slate-600"}`} />
                       <p className={`text-sm font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-500" : "text-slate-400"}`}>
                         No quizzes yet
                       </p>

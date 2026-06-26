@@ -19,12 +19,12 @@ interface QuizResultsProps {
   onNewQuiz: () => void;
 }
 
-function getGrade(pct: number): { letter: string; color: string; emoji: string } {
-  if (pct >= 95) return { letter: "S", color: "from-amber-400 to-yellow-500", emoji: "👑" };
-  if (pct >= 85) return { letter: "A", color: "from-emerald-500 to-green-600", emoji: "🌟" };
-  if (pct >= 70) return { letter: "B", color: "from-blue-500 to-cyan-600", emoji: "⭐" };
-  if (pct >= 55) return { letter: "C", color: "from-amber-500 to-orange-600", emoji: "📖" };
-  return { letter: "D", color: "from-red-500 to-rose-600", emoji: "🔥" };
+function getGrade(pct: number): { letter: string; color: string; word: string; glow: string } {
+  if (pct >= 95) return { letter: "S", color: "from-amber-400 to-yellow-500", word: "FLAWLESS", glow: "shadow-amber-500/50" };
+  if (pct >= 85) return { letter: "A", color: "from-emerald-500 to-green-600", word: "MASTERED", glow: "shadow-emerald-500/50" };
+  if (pct >= 70) return { letter: "B", color: "from-blue-500 to-cyan-600", word: "SOLID", glow: "shadow-blue-500/50" };
+  if (pct >= 55) return { letter: "C", color: "from-amber-500 to-orange-600", word: "GETTING THERE", glow: "shadow-orange-500/50" };
+  return { letter: "D", color: "from-red-500 to-rose-600", word: "KEEP TRAINING", glow: "shadow-red-500/50" };
 }
 
 export default function QuizResults({
@@ -43,20 +43,25 @@ export default function QuizResults({
       className="space-y-4"
     >
       {/* Grade Card */}
-      <div className={`${card} p-8 text-center`}>
+      <div className={`${card} p-8 text-center relative overflow-hidden`}>
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 10, delay: 0.2 }}
-          className={`w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${grade.color} flex items-center justify-center text-white shadow-2xl mb-4`}
+          initial={{ scale: 0, rotate: -18 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.15 }}
+          className={`w-28 h-28 mx-auto rounded-3xl bg-gradient-to-br ${grade.color} flex items-center justify-center text-white shadow-2xl ${grade.glow} mb-4`}
         >
-          <span className="text-4xl font-black font-[family-name:var(--font-nunito)]">
+          <span className="text-6xl font-black font-[family-name:var(--font-nunito)] drop-shadow-lg">
             {grade.letter}
           </span>
         </motion.div>
-        <p className="text-3xl mb-1">{grade.emoji}</p>
+        <motion.p
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+          className={`text-sm font-black tracking-[0.25em] bg-gradient-to-r ${grade.color} bg-clip-text text-transparent mb-1`}
+        >
+          {grade.word}
+        </motion.p>
         <h2 className={`text-2xl font-bold font-[family-name:var(--font-nunito)] ${titleStyle}`}>
-          {pct >= 85 ? "Outstanding!" : pct >= 70 ? "Great Job!" : pct >= 55 ? "Not Bad!" : "Keep Training!"}
+          {pct >= 85 ? "Outstanding!" : pct >= 70 ? "Great job!" : pct >= 55 ? "Not bad!" : "Keep training!"}
         </h2>
         <p className={`text-sm ${muted} mt-1`}>
           You scored {score} out of {questions.length} ({pct}%)

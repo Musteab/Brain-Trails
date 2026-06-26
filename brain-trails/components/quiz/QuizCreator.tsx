@@ -19,16 +19,16 @@ interface QuizCreatorProps {
 }
 
 const QUESTION_TYPES = [
-  { id: "mcq", label: "Multiple Choice", emoji: "🔘" },
-  { id: "true_false", label: "True / False", emoji: "⚖️" },
-  { id: "fill_blank", label: "Fill in Blank", emoji: "✏️" },
-  { id: "short_answer", label: "Short Answer", emoji: "📝" },
+  { id: "mcq", label: "Multiple Choice" },
+  { id: "true_false", label: "True / False" },
+  { id: "fill_blank", label: "Fill in Blank" },
+  { id: "short_answer", label: "Short Answer" },
 ];
 
 const DIFFICULTIES = [
-  { id: "easy", label: "Easy", emoji: "🌱", color: "from-emerald-500 to-green-600" },
-  { id: "medium", label: "Medium", emoji: "⚔️", color: "from-amber-500 to-orange-600" },
-  { id: "hard", label: "Hard", emoji: "🔥", color: "from-red-500 to-rose-600" },
+  { id: "easy", label: "Easy", color: "from-emerald-500 to-green-600" },
+  { id: "medium", label: "Medium", color: "from-amber-500 to-orange-600" },
+  { id: "hard", label: "Hard", color: "from-red-500 to-rose-600" },
 ];
 
 export default function QuizCreator({ onGenerate, isGenerating }: QuizCreatorProps) {
@@ -143,7 +143,7 @@ export default function QuizCreator({ onGenerate, isGenerating }: QuizCreatorPro
                     : "bg-slate-800 border-slate-700 text-slate-300"
               }`}
             >
-              <span className="mr-1">{d.emoji}</span> {d.label}
+              {d.label}
             </motion.button>
           ))}
         </div>
@@ -188,7 +188,7 @@ export default function QuizCreator({ onGenerate, isGenerating }: QuizCreatorPro
                     : "bg-slate-800 border-slate-700 text-slate-400"
               }`}
             >
-              <span className="mr-1">{type.emoji}</span> {type.label}
+              {type.label}
             </motion.button>
           ))}
         </div>
@@ -226,7 +226,7 @@ export default function QuizCreator({ onGenerate, isGenerating }: QuizCreatorPro
         ) : (
           <span className="flex items-center justify-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Generate with AI ✨
+            Generate with AI
           </span>
         )}
       </motion.button>

@@ -129,8 +129,8 @@ const LeaderboardItem = ({ member, isSun }: { member: GuildMember; isSun: boolea
                   {member.name}
                 </p>
                 {member.title && (
-                  <p className={`text-[10px] font-medium ${isSun ? 'text-amber-600' : 'text-amber-400'}`}>
-                    {member.title}
+                  <p className={`text-[10px] font-medium ${isSun ? 'text-amber-600' : 'text-amber-400'} ${member.title.split("|")[1] || ""}`}>
+                    {member.title.split("|")[0]}
                   </p>
                 )}
                 {roleBadge && (

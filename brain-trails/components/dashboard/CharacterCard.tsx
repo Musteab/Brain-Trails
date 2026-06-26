@@ -94,8 +94,13 @@ export default function CharacterCard() {
     >
       {/* Identity row */}
       <div className="flex items-center gap-4">
-        <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 ${isSun ? "bg-violet-50" : "bg-violet-500/10"}`}>
-          <OwlCompanion mood={streak > 0 ? "celebrating" : "idle"} showName={false} className="w-[78px] h-[78px]" />
+        <div className="relative shrink-0">
+          {/* OwlCompanion renders at a fixed 180x220, so clip + scale it to fit. */}
+          <div className={`w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center ${isSun ? "bg-violet-50" : "bg-violet-500/10"}`}>
+            <div style={{ transform: "scale(0.34)", transformOrigin: "center" }}>
+              <OwlCompanion mood={streak > 0 ? "celebrating" : "idle"} showName={false} />
+            </div>
+          </div>
           <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-bold shadow">
             Lv {level}
           </span>

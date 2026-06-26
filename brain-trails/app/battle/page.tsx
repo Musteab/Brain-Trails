@@ -13,7 +13,7 @@ interface ActiveBattle {
 }
 
 /**
- * Battle Page — Flashcard Boss Battle
+ * Battle Page - Flashcard Boss Battle
  *
  * Flow: BossSelect (pick boss + deck) → BossBattle (fight).
  * Exiting a battle returns to boss selection.

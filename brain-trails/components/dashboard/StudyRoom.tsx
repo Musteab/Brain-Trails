@@ -8,7 +8,7 @@ import { useTheme } from "@/context/ThemeContext";
 import OwlCompanion from "@/components/ui/OwlCompanion";
 
 /**
- * Dashboard centerpiece — a focused "today" hero that drives the core loop
+ * Dashboard centerpiece - a focused "today" hero that drives the core loop
  * (study now / take a trial) and shows level progress at a glance, with Archie
  * the owl as a friendly mascot (no more broken pedestal / emoji orbs).
  */
@@ -52,7 +52,7 @@ export default function StudyRoom() {
       transition={{ duration: 0.5 }}
       className={`relative w-full max-w-md mx-auto rounded-3xl border ${panel} p-7 shadow-sm`}
     >
-      {/* Archie — peeks from the top-right corner, perks up on a streak */}
+      {/* Archie - peeks from the top-right corner, perks up on a streak */}
       <div className="absolute -top-10 right-3 w-24 h-24 pointer-events-none select-none">
         <OwlCompanion mood={streak > 0 ? "celebrating" : "idle"} showName={false} className="w-full h-full" />
       </div>

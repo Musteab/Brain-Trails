@@ -44,7 +44,7 @@ function buildRain(ctx: AudioContext, master: GainNode): SoundGraph {
   const sources: (AudioBufferSourceNode | OscillatorNode)[] = [];
   const nodes: AudioNode[] = [];
 
-  // Noise source — loop a 4-second noise buffer
+  // Noise source - loop a 4-second noise buffer
   const noiseBuffer = createNoiseBuffer(ctx, 4);
   const noise = ctx.createBufferSource();
   noise.buffer = noiseBuffer;
@@ -505,7 +505,7 @@ const BUILDERS: Record<Exclude<AmbientSound, "none">, BuildFn> = {
 /**
  * Hook for procedurally-generated ambient background sounds.
  *
- * Uses the Web Audio API only — no mp3 files.
+ * Uses the Web Audio API only - no mp3 files.
  * Supports: rain, cafe, forest, lofi.
  * Smooth 1-second crossfade when switching sounds.
  * Respects global mute state (localStorage key: braintrails_sound_muted).

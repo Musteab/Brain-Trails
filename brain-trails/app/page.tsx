@@ -19,7 +19,7 @@ export default function Home() {
   }, [needsOnboarding, router]);
 
   // Don't flash the dashboard while loading or while we're about to redirect
-  // into onboarding — show a quiet loader instead (avoids the jarring blink).
+  // into onboarding - show a quiet loader instead (avoids the jarring blink).
   if (isLoading || needsOnboarding) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-transparent">

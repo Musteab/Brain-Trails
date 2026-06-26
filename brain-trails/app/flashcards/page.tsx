@@ -37,7 +37,7 @@ function applySM2(card: Flashcard, button: number) {
   let reps = card.repetitions ?? 0;
 
   if (quality < 3) {
-    // Lapse — relearn from the start, see it again tomorrow.
+    // Lapse - relearn from the start, see it again tomorrow.
     reps = 0;
     interval = 1;
   } else {
@@ -192,7 +192,7 @@ export default function FlashcardsPage() {
       }
 
       // Create the deck
-      const deckName = `${subject.emoji} ${subject.name} — ${topicName}`;
+      const deckName = `${subject.emoji} ${subject.name} - ${topicName}`;
       const emoji = subject.emoji || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
       const color = COLORS[Math.floor(Math.random() * COLORS.length)];
 
@@ -523,7 +523,7 @@ export default function FlashcardsPage() {
                   🤖 AI Flashcard Generator
                 </h3>
                 <p className={`text-xs mb-4 ${isSun ? "text-slate-500" : "text-slate-400"}`}>
-                  Pick a subject and topic from your syllabus — AI will create 8 study cards.
+                  Pick a subject and topic from your syllabus - AI will create 8 study cards.
                 </p>
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col sm:flex-row gap-3">

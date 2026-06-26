@@ -61,7 +61,7 @@ function buildSvg(r: TrialResult): string {
   <text x="${W / 2}" y="1400" font-family="${SHARE_FONT}" font-size="56" font-weight="800" fill="url(#grade)" text-anchor="middle" letter-spacing="4">${g.word}</text>
   <text x="${W / 2}" y="1470" font-family="${SHARE_FONT}" font-size="40" font-weight="600" fill="#8b86b8" text-anchor="middle">${r.score} / ${r.total} correct · +${r.xpEarned} XP</text>
 
-  <text x="${W / 2}" y="${H - 90}" font-family="${SHARE_FONT}" font-size="30" font-weight="600" fill="#8b86b8" text-anchor="middle">braintrails.dev — come get tested</text>
+  <text x="${W / 2}" y="${H - 90}" font-family="${SHARE_FONT}" font-size="30" font-weight="600" fill="#8b86b8" text-anchor="middle">braintrails.dev - come get tested</text>
 </svg>`;
 }
 
@@ -79,7 +79,7 @@ export default function TrialResultCard({
     try {
       const blob = await renderCardPng({ overlaySvg: svg, width: W, height: H });
       if (mode === "share") {
-        await shareOrDownload(blob, "brain-trails-trial.png", `I scored ${Math.round((result.score / Math.max(1, result.total)) * 100)}% on ${result.subjectName} — your turn.`);
+        await shareOrDownload(blob, "brain-trails-trial.png", `I scored ${Math.round((result.score / Math.max(1, result.total)) * 100)}% on ${result.subjectName} - your turn.`);
       } else {
         downloadBlob(blob, "brain-trails-trial.png");
       }

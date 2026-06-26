@@ -197,7 +197,7 @@ export default function AboutPage() {
               }`} />
             ))}
           </div>
-          <span className={`text-xs font-serif italic ${textMuted}`}>— {currentPage + 1} / {PAGES.length} —</span>
+          <span className={`text-xs font-serif italic ${textMuted}`}>- {currentPage + 1} / {PAGES.length} -</span>
         </div>
 
         {/* Page content area */}
@@ -245,7 +245,7 @@ export default function AboutPage() {
                       <motion.div animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }} transition={{ duration: 4, repeat: Infinity }} className="text-7xl mb-8">📚</motion.div>
                       <h2 className={`text-3xl font-bold font-[family-name:var(--font-nunito)] mb-5 ${textPrimary}`}>Welcome, Traveler</h2>
                       <p className={`text-base leading-relaxed max-w-lg mx-auto mb-3 ${textSecondary}`}>
-                        Within these ancient pages lies the story of <span className={accentPurple}>Brain Trails</span> — a realm
+                        Within these ancient pages lies the story of <span className={accentPurple}>Brain Trails</span> - a realm
                         where knowledge is power, studying is an adventure, and every scholar&apos;s journey is legendary.
                       </p>
                       <p className={`text-sm italic mt-6 ${textMuted}`}>&quot;Turn the pages to discover the secrets of the realm...&quot;</p>
@@ -260,7 +260,7 @@ export default function AboutPage() {
                   {currentPage === 1 && (
                     <div className={`space-y-5 text-base leading-relaxed ${textSecondary}`}>
                       <p><strong className={textPrimary}>Brain Trails</strong> was born from a simple belief: <em className={accentGold}>studying should feel like an adventure, not a chore.</em></p>
-                      <p>Inspired by RPGs like Final Fantasy, gamified experiences like Habitica, and the cozy aesthetics of Stardew Valley — Brain Trails transforms your daily study habits into <strong className={textPrimary}>quests, boss battles, guild raids</strong>, and knowledge maps.</p>
+                      <p>Inspired by RPGs like Final Fantasy, gamified experiences like Habitica, and the cozy aesthetics of Stardew Valley - Brain Trails transforms your daily study habits into <strong className={textPrimary}>quests, boss battles, guild raids</strong>, and knowledge maps.</p>
                       <p className={`text-xs italic pt-2 ${textMuted}`}>&ldquo;Every quest completed brings you closer to mastery...&rdquo;</p>
                     </div>
                   )}
@@ -268,7 +268,7 @@ export default function AboutPage() {
                   {/* ── ARCH-MAGE ── */}
                   {currentPage === 2 && (
                     <div className={`space-y-5 text-base leading-relaxed ${textSecondary}`}>
-                      <p>Brain Trails is designed and maintained by <strong className={accentGold}>Muste</strong> — a passionate developer and student who wanted to build the study tool they wished they had growing up.</p>
+                      <p>Brain Trails is designed and maintained by <strong className={accentGold}>Muste</strong> - a passionate developer and student who wanted to build the study tool they wished they had growing up.</p>
                       <p>What started out as a basic flashcard script evolved into a full-blown gamified universe, complete with animated owls, a glassmorphism UI, and a cosmetics shop. It’s built on Next.js, Supabase, and Framer Motion, and fueled by a heavy mix of determination and coffee.</p>
                       <motion.div whileHover={{ scale: 1.02 }} className={`mt-6 p-6 rounded-2xl border flex items-center gap-5 shadow-xl shadow-purple-500/5 ${cardBg}`}>
                         <div className="w-18 h-18 rounded-full flex items-center justify-center text-4xl flex-shrink-0 bg-amber-500/10 ring-2 ring-amber-400/30 shadow-inner w-[72px] h-[72px]">👑</div>
@@ -314,7 +314,7 @@ export default function AboutPage() {
                           { emoji: "⏳", title: "Focus Timer", desc: "Pomodoro-style sessions with XP rewards, ambient sounds, and cram mode" },
                           { emoji: "📖", title: "Spellbook Notes", desc: "Dual-page editor with slash commands, task lists, tables, and AI summaries" },
                           { emoji: "🃏", title: "Flashcard System", desc: "Spaced repetition with mastery tracking and boss battle integration" },
-                          { emoji: "⚔️", title: "Boss Battles", desc: "Test your knowledge against legendary bosses — answer flashcards to deal damage" },
+                          { emoji: "⚔️", title: "Boss Battles", desc: "Test your knowledge against legendary bosses - answer flashcards to deal damage" },
                           { emoji: "🛡️", title: "Guild System", desc: "Form study groups, compete in weekly raids, and climb the leaderboard" },
                           { emoji: "🗺️", title: "Knowledge Maps", desc: "Visual skill trees that track your progress across subjects" },
                         ].map((f, i) => (

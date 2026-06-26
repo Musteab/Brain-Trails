@@ -20,7 +20,7 @@ interface RecentBattle {
 }
 
 /**
- * CoopBossRaid — Dashboard widget showing the user's latest boss battle
+ * CoopBossRaid - Dashboard widget showing the user's latest boss battle
  * result and a link to fight again.
  *
  * Falls back to a "Start your first battle" prompt if no battles exist.
@@ -61,7 +61,7 @@ function CoopBossRaid() {
     return () => { cancelled = true; };
   }, [user]);
 
-  // ── No battle history — first-time prompt ─────────────
+  // ── No battle history - first-time prompt ─────────────
 
   if (!isLoading && !lastBattle) {
     return (
@@ -289,7 +289,7 @@ function CoopBossRaid() {
         )}
       </div>
 
-      {/* Action buttons — Flashcard + Quiz */}
+      {/* Action buttons - Flashcard + Quiz */}
       <div className="flex gap-2">
         <Link href="/battle" className="flex-1">
           <motion.span

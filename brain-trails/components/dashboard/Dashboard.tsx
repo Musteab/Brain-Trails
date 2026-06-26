@@ -13,7 +13,7 @@ import AmbientPlayer from "../ui/AmbientPlayer";
 import { useTheme } from "@/context/ThemeContext";
 
 /**
- * Dashboard — an "adventurer's board" (Habitica-flavoured): character sheet on
+ * Dashboard - an "adventurer's board" (Habitica-flavoured): character sheet on
  * top, today's dailies front-and-centre, party + subjects to the side.
  */
 export default function Dashboard() {

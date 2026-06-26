@@ -156,7 +156,7 @@ export default function QuizPage() {
         total: questions.length,
       });
 
-      // Advance quiz quests — only counts as a "completed quiz" at 70%+ (matches the quest text)
+      // Advance quiz quests - only counts as a "completed quiz" at 70%+ (matches the quest text)
       if (pct >= 0.7) {
         await reportQuestProgress(user.id, "quiz", 1);
       }
@@ -186,7 +186,7 @@ export default function QuizPage() {
           });
         }
       } catch {
-        // Non-critical — quiz still works without persistence
+        // Non-critical - quiz still works without persistence
       }
     }
 

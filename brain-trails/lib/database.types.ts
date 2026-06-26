@@ -1,7 +1,7 @@
 /**
  * Database type definitions for Brain Trails.
  *
- * Generated from supabase/schema.sql — keep in sync when the schema changes.
+ * Generated from supabase/schema.sql - keep in sync when the schema changes.
  * These types are consumed by the Supabase client via
  *   createBrowserClient<Database>(...)
  * to get end-to-end type safety on `.from()` calls.

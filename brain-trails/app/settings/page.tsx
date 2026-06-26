@@ -121,7 +121,7 @@ function Toggle({
 // ── Main page component ─────────────────────────────────
 
 /**
- * Settings page — functional user preferences.
+ * Settings page - functional user preferences.
  *
  * What works:
  * - Editable profile (display_name, username, bio)
@@ -129,7 +129,7 @@ function Toggle({
  * - Sound toggle (synced with localStorage mute + Supabase)
  * - Focus/break duration defaults (read by Focus page via useSettings)
  * - Change password
- * - Reset progress (XP, gold, level — with confirmation)
+ * - Reset progress (XP, gold, level - with confirmation)
  * - Export study data as JSON
  * - Sign out
  *

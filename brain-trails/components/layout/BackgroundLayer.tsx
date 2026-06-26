@@ -32,7 +32,7 @@ export default function BackgroundLayer() {
         top: Math.random() * 30,
         delay: 5 + Math.random() * 15
       })),
-      // Day sparkles — golden twinkling dots like the night stars
+      // Day sparkles - golden twinkling dots like the night stars
       sparkles: Array.from({ length: 30 }).map(() => ({
         left: Math.random() * 100,
         top: 5 + Math.random() * 55,
@@ -100,7 +100,7 @@ export default function BackgroundLayer() {
   return (
     <>
       <div className="fixed inset-0 w-full h-full -z-50 overflow-hidden bg-[#e6dbcf]">
-        {/* Base image — cover viewport completely */}
+        {/* Base image - cover viewport completely */}
         <Image
           src="/assets/new morning bg.jpg"
           alt="Morning Sky Background"
@@ -119,7 +119,7 @@ export default function BackgroundLayer() {
 
         {mounted && particles && (
           <>
-            {/* ★ Golden sparkle stars — twinkling like night stars but golden */}
+            {/* ★ Golden sparkle stars - twinkling like night stars but golden */}
             {particles.sparkles.map((s: any, i: number) => (
               <div
                 key={`sparkle-${i}`}

@@ -119,7 +119,7 @@ export default function SubjectDetail() {
           deck_id: deckData.id, front: q.question, back: q.answer, mastery: 0, review_count: 0,
         }))
       );
-      addToast(`Generated "${deckName}" — ${data.questions.length} cards`, "success");
+      addToast(`Generated "${deckName}" - ${data.questions.length} cards`, "success");
       await load();
     } catch (err) {
       addToast(friendlyAiError(err), "error");
@@ -209,7 +209,7 @@ export default function SubjectDetail() {
           {/* Topics */}
           <Section title="Topics" icon={<GraduationCap className="w-4 h-4" />} card={card} ink={ink} muted={muted}>
             {topics.length === 0 ? (
-              <p className={`text-sm ${muted}`}>No topics yet — the AI adds these when it parses your syllabus.</p>
+              <p className={`text-sm ${muted}`}>No topics yet - the AI adds these when it parses your syllabus.</p>
             ) : (
               <div className="space-y-2">
                 {topics.map(t => (

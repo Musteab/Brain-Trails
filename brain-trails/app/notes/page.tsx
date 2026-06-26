@@ -32,7 +32,7 @@ function toHtml(stored: string | null): string {
         return right ? `${left}${right}` : left;
       }
     } catch {
-      /* fall through — treat as plain html */
+      /* fall through - treat as plain html */
     }
   }
   return stored;
@@ -92,7 +92,7 @@ export default function NotesPage() {
   }, [saveToSupabase]);
 
   // Load the selected note. Content is fed to the editor via its `key`+initial
-  // content (it remounts per note), so it's always in sync — no ref-timing race.
+  // content (it remounts per note), so it's always in sync - no ref-timing race.
   useEffect(() => {
     if (!selectedNoteId) return;
     let cancelled = false;
@@ -297,7 +297,7 @@ export default function NotesPage() {
                     placeholder="Untitled"
                     className={`w-full bg-transparent border-none outline-none text-4xl font-bold mb-4 font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-900 placeholder:text-slate-300" : "text-white placeholder:text-slate-600"}`}
                   />
-                  {/* One editor, remounted per note via key — always loads correctly */}
+                  {/* One editor, remounted per note via key - always loads correctly */}
                   <SpellbookEditor key={selectedNoteId} ref={editorRef} initialContent={loadedHtml} onContentChange={handleContentChange} />
                 </div>
               </motion.div>

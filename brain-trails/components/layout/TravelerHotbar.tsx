@@ -16,7 +16,7 @@ type NavItem = {
   icon: LucideIcon;
 };
 
-// Focused navigation — the notebook → test → flex loop.
+// Focused navigation - the notebook → test → flex loop.
 // (Knowledge Map, Battle, and Guild were removed to consolidate the study loop.)
 const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Home', icon: LayoutGrid },

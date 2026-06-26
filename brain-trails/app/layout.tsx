@@ -36,7 +36,7 @@ const cinzel = Cinzel({
 
 export const metadata: Metadata = {
   title: {
-    default: "Brain Trails — Gamified Study Companion",
+    default: "Brain Trails - Gamified Study Companion",
     template: "%s | Brain Trails",
   },
   description:
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Brain Trails Team" }],
   openGraph: {
-    title: "Brain Trails — Gamified Study Companion",
+    title: "Brain Trails - Gamified Study Companion",
     description:
       "Turn your study sessions into RPG adventures. Focus timers, flashcards, guilds, and AI-powered learning.",
     siteName: "Brain Trails",

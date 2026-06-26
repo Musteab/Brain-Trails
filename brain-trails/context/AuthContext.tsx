@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return fetchProfile(userId, retries - 1);
       }
       
-      // Retries exhausted — create a fallback profile
+      // Retries exhausted - create a fallback profile
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         console.error("AuthContext: Could not get current user for fallback creation.");
@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch profile on login
         await fetchProfile(sessionUser.id);
 
-        // Subscribe to real-time stat updates — but only once per user.
+        // Subscribe to real-time stat updates - but only once per user.
         // onAuthStateChange (token refresh, etc.) and the visibilitychange
         // handler both re-enter here; without this guard each re-entry leaked
         // a new realtime channel (the old unsub ref was overwritten, not called).
@@ -181,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        // Fire-and-forget — the lock is released immediately
+        // Fire-and-forget - the lock is released immediately
         handleSession(session?.user ?? null);
       }
     );

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
             try {
               cookieStore.set(name, value, options);
             } catch {
-              // Swallow — cookieStore.set may throw in some edge-runtime versions
+              // Swallow - cookieStore.set may throw in some edge-runtime versions
             }
             response.cookies.set(name, value, options);
           });

@@ -4,7 +4,7 @@ import { useTheme } from "@/context/ThemeContext";
 
 /**
  * Hook to get theme-aware styling for cards
- * Premium glassmorphism with subtle gradient borders — no more thick green borders
+ * Premium glassmorphism with subtle gradient borders - no more thick green borders
  */
 export function useCardStyles() {
   const { theme } = useTheme();
@@ -12,7 +12,7 @@ export function useCardStyles() {
 
   return {
     isSun,
-    // Card container styles — Premium glass with subtle gradient borders
+    // Card container styles - Premium glass with subtle gradient borders
     card: isSun
       ? "bg-white/60 backdrop-blur-xl rounded-3xl shadow-lg shadow-amber-900/5 border border-amber-200/40 transition-all duration-300"
       : "bg-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 border border-white/10 transition-all duration-300",
@@ -25,7 +25,7 @@ export function useCardStyles() {
     muted: isSun ? "text-slate-500" : "text-slate-400",
     accent: isSun ? "text-purple-600" : "text-[#C77DFF]",
     
-    // Border styles — subtle, not game-y green
+    // Border styles - subtle, not game-y green
     border: isSun ? "border-amber-200/50" : "border-white/10",
     borderLight: isSun ? "border-amber-100/30" : "border-white/5",
     

@@ -9,7 +9,7 @@ import { useQuests } from "@/hooks/useQuests";
 import OwlCompanion from "@/components/ui/OwlCompanion";
 
 /**
- * Habitica-style "character sheet" — the dashboard hero. Avatar + three vitality
+ * Habitica-style "character sheet" - the dashboard hero. Avatar + three vitality
  * bars (streak / XP / today's quests) + the gold purse + the do-a-thing actions.
  */
 function levelTitle(level: number): string {
@@ -37,7 +37,7 @@ export default function CharacterCard() {
   const xpIntoLevel = Math.max(0, xp - (level - 1) * 1000);
   const xpPct = Math.min(xpIntoLevel / 1000, 1) * 100;
 
-  // Streak "vitality" — fills toward the next milestone (7 / 30 / 100).
+  // Streak "vitality" - fills toward the next milestone (7 / 30 / 100).
   const tiers = [7, 30, 100];
   const nextTier = tiers.find((t) => streak < t) ?? 100;
   const prevTier = [0, ...tiers].filter((t) => t <= streak).pop() ?? 0;

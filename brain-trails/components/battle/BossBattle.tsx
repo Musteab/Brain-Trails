@@ -27,7 +27,7 @@ interface BossBattleProps {
 type BattlePhase = "intro" | "question" | "reveal" | "victory" | "defeat";
 
 /**
- * BossBattle — The core flashcard boss fight.
+ * BossBattle - The core flashcard boss fight.
  *
  * Flow: intro → question → reveal → (loop) → victory/defeat
  * Correct answer → deal DAMAGE_PER_HIT to boss.

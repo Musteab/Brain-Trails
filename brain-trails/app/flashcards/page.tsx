@@ -342,7 +342,7 @@ export default function FlashcardsPage() {
         await logActivity(user.id, "flashcard", 50, { type: "first_deck_created", deck_name: created.name });
         refreshProfile();
         playSound("success");
-        addToast("First deck created! +50 XP 🎴", "success");
+        addToast("First deck created! +50 XP", "success");
       }
     }
   };
@@ -479,7 +479,7 @@ export default function FlashcardsPage() {
           >
             <div>
               <h1 className={`text-4xl font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-                🃏 {gameText.study.flashcards}
+                {gameText.study.flashcards}
               </h1>
               <p className={`mt-2 ${isSun ? "text-slate-600" : "text-slate-400"} font-[family-name:var(--font-quicksand)]`}>
                 Choose a deck to study, or create a new one.
@@ -520,7 +520,7 @@ export default function FlashcardsPage() {
                 className={`mb-8 p-6 rounded-2xl border-2 overflow-hidden ${isSun ? "bg-white/80 border-amber-200" : "bg-slate-800/95 border-amber-500/30"}`}
               >
                 <h3 className={`text-base font-bold mb-1 ${isSun ? "text-slate-700" : "text-white"}`}>
-                  🤖 AI Flashcard Generator
+                  AI Flashcard Generator
                 </h3>
                 <p className={`text-xs mb-4 ${isSun ? "text-slate-500" : "text-slate-400"}`}>
                   Pick a subject and topic from your syllabus - AI will create 8 study cards.
@@ -614,7 +614,7 @@ export default function FlashcardsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {decks.length === 0 ? (
                  <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center py-12 text-slate-500 italic">
-                   No decks yet! Create your first deck and earn 50 XP 🎴
+                   No decks yet. Create your first deck to earn 50 XP.
                  </div>
               ) : decks.map((deck, i) => (
                 <motion.div

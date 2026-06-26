@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   ArrowLeft, BookOpen, Code2, Shield, Star, Sparkles, Heart,
   ChevronLeft, ChevronRight, Github, Linkedin, Globe, Mail, MessageSquare,
-  Sword, Scroll, Flame, Crown
+  Sword, Scroll, Flame, Crown, Timer, Layers, Map, type LucideIcon
 } from "lucide-react";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
@@ -242,7 +242,7 @@ export default function AboutPage() {
                   {/* ── COVER ── */}
                   {currentPage === 0 && (
                     <div className="text-center py-8">
-                      <motion.div animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }} transition={{ duration: 4, repeat: Infinity }} className="text-7xl mb-8">📚</motion.div>
+                      <motion.div animate={{ y: [-4, 4, -4] }} transition={{ duration: 4, repeat: Infinity }} className="mb-8 flex justify-center"><BookOpen className="w-20 h-20 text-purple-400" strokeWidth={1.25} /></motion.div>
                       <h2 className={`text-3xl font-bold font-[family-name:var(--font-nunito)] mb-5 ${textPrimary}`}>Welcome, Traveler</h2>
                       <p className={`text-base leading-relaxed max-w-lg mx-auto mb-3 ${textSecondary}`}>
                         Within these ancient pages lies the story of <span className={accentPurple}>Brain Trails</span> - a realm
@@ -271,7 +271,7 @@ export default function AboutPage() {
                       <p>Brain Trails is designed and maintained by <strong className={accentGold}>Muste</strong> - a passionate developer and student who wanted to build the study tool they wished they had growing up.</p>
                       <p>What started out as a basic flashcard script evolved into a full-blown gamified universe, complete with animated owls, a glassmorphism UI, and a cosmetics shop. It’s built on Next.js, Supabase, and Framer Motion, and fueled by a heavy mix of determination and coffee.</p>
                       <motion.div whileHover={{ scale: 1.02 }} className={`mt-6 p-6 rounded-2xl border flex items-center gap-5 shadow-xl shadow-purple-500/5 ${cardBg}`}>
-                        <div className="w-18 h-18 rounded-full flex items-center justify-center text-4xl flex-shrink-0 bg-amber-500/10 ring-2 ring-amber-400/30 shadow-inner w-[72px] h-[72px]">👑</div>
+                        <div className="rounded-full flex items-center justify-center flex-shrink-0 bg-amber-500/10 ring-2 ring-amber-400/30 shadow-inner w-[72px] h-[72px]"><Crown className="w-9 h-9 text-amber-400" /></div>
                         <div>
                           <div className={`font-bold text-xl font-[family-name:var(--font-nunito)] ${textPrimary}`}>Muste</div>
                           <div className="flex items-center gap-1.5 mt-1">
@@ -310,17 +310,17 @@ export default function AboutPage() {
                     <div className={`space-y-4 ${textSecondary}`}>
                       <p className="text-base leading-relaxed mb-6">The realm is vast, and its powers are many:</p>
                       <div className="space-y-3">
-                        {[
-                          { emoji: "⏳", title: "Focus Timer", desc: "Pomodoro-style sessions with XP rewards, ambient sounds, and cram mode" },
-                          { emoji: "📖", title: "Spellbook Notes", desc: "Dual-page editor with slash commands, task lists, tables, and AI summaries" },
-                          { emoji: "🃏", title: "Flashcard System", desc: "Spaced repetition with mastery tracking and boss battle integration" },
-                          { emoji: "⚔️", title: "Boss Battles", desc: "Test your knowledge against legendary bosses - answer flashcards to deal damage" },
-                          { emoji: "🛡️", title: "Guild System", desc: "Form study groups, compete in weekly raids, and climb the leaderboard" },
-                          { emoji: "🗺️", title: "Knowledge Maps", desc: "Visual skill trees that track your progress across subjects" },
-                        ].map((f, i) => (
+                        {([
+                          { icon: Timer, title: "Focus Timer", desc: "Pomodoro sessions with XP rewards, ambient sounds, and cram mode" },
+                          { icon: BookOpen, title: "Spellbook Notes", desc: "A clean notion-style editor with slash commands, tasks, tables, and AI" },
+                          { icon: Layers, title: "Flashcard Decks", desc: "Real SM-2 spaced repetition with due-first review and AI generation" },
+                          { icon: Sword, title: "Trial by Fire", desc: "Subject trials that grade you and turn into shareable result cards" },
+                          { icon: Shield, title: "The Codex", desc: "Every subject's notes, decks, trials and exams in one place" },
+                          { icon: Map, title: "Adventure Log", desc: "Track your streak, mastery and history across the realm" },
+                        ] as { icon: LucideIcon; title: string; desc: string }[]).map((f, i) => (
                           <motion.div key={f.title} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.08 }}
                             whileHover={{ x: 6, scale: 1.01 }} className={`flex items-start gap-4 p-4 rounded-xl border transition-all hover:shadow-lg hover:shadow-purple-500/10 ${cardBg}`}>
-                            <span className="text-2xl shrink-0 mt-0.5">{f.emoji}</span>
+                            <f.icon className="w-6 h-6 shrink-0 mt-0.5 text-purple-400" />
                             <div>
                               <span className={`text-sm font-bold ${textPrimary}`}>{f.title}</span>
                               <p className={`text-sm mt-0.5 ${textMuted}`}>{f.desc}</p>
@@ -361,7 +361,7 @@ export default function AboutPage() {
                           <Sparkles className="w-3.5 h-3.5 text-amber-400/50" />
                           <div className="h-px w-16 bg-gradient-to-l from-transparent to-amber-500/40" />
                         </div>
-                        <p className={`text-xs ${textMuted}`}>Brain Trails v1.0.0.0 · Built with 💜 by Muste</p>
+                        <p className={`text-xs ${textMuted} inline-flex items-center gap-1`}>Brain Trails v1.0.0.0 · Built with <Heart className="w-3 h-3 text-purple-400" fill="currentColor" /> by Muste</p>
                       </div>
                     </div>
                   )}

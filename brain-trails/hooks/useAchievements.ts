@@ -149,7 +149,7 @@ export function useAchievements(): UseAchievementsReturn {
       const userValue = stats[achievement.condition_type] ?? 0;
       if (userValue < achievement.condition_value) continue;
 
-      // Achievement condition met — unlock it
+      // Achievement condition met - unlock it
       const { data, error } = await (supabase.from("user_achievements") as any)
         .insert({
           user_id: user.id,
@@ -159,7 +159,7 @@ export function useAchievements(): UseAchievementsReturn {
         .single();
 
       if (error) {
-        // Likely a duplicate — skip
+        // Likely a duplicate - skip
         console.warn("[useAchievements] insert error:", error.message);
         continue;
       }

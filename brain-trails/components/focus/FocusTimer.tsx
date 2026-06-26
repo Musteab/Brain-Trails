@@ -35,10 +35,10 @@ async function updateStreak(userId: string): Promise<void> {
 
   let newStreak: number;
   if (profile.streak_last_date === yesterdayStr) {
-    // Consecutive day — increment
+    // Consecutive day - increment
     newStreak = (profile.streak_days || 0) + 1;
   } else {
-    // Streak broken — reset to 1
+    // Streak broken - reset to 1
     newStreak = 1;
   }
 
@@ -148,9 +148,9 @@ export default function FocusTimer({
   const saveSessionData = useCallback(async (legit: boolean) => {
     if (!user || !profile) return;
 
-    // Session wasn't actually studied (skipped / jumped) — no rewards.
+    // Session wasn't actually studied (skipped / jumped) - no rewards.
     if (!legit) {
-      addToast("Session ended early — no rewards earned.", "info");
+      addToast("Session ended early - no rewards earned.", "info");
       return;
     }
 
@@ -179,7 +179,7 @@ export default function FocusTimer({
     // 4. Update daily streak
     await updateStreak(user.id);
 
-    // 5. Advance focus quests (measured in minutes) — pays out rewards on completion
+    // 5. Advance focus quests (measured in minutes) - pays out rewards on completion
     await reportQuestProgress(user.id, "focus", defaultMinutes);
 
     addToast(`Session complete! +${gainedXp} XP, +${gainedGold} Gold`, "success");
@@ -188,14 +188,14 @@ export default function FocusTimer({
     window.dispatchEvent(new CustomEvent("check-achievements"));
   }, [user, profile, defaultMinutes, focusSubject, awardXp, awardGold, logActivity, reportQuestProgress, addToast, refreshProfile]);
 
-  // Timer countdown logic — recompute remaining time from the wall clock so a
+  // Timer countdown logic - recompute remaining time from the wall clock so a
   // throttled/frozen background tab can't desync the timer. Whenever a tick
   // (or a tab refocus) fires, we snap to the true remaining time.
   useEffect(() => {
     if (!isActive) return;
 
     const tick = () => {
-      // null deadline means completion has already been handled — ignore stray ticks.
+      // null deadline means completion has already been handled - ignore stray ticks.
       if (deadlineRef.current == null) return;
       const remaining = Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000));
       setTimeLeft(remaining);
@@ -216,7 +216,7 @@ export default function FocusTimer({
     };
 
     const interval = setInterval(tick, 250);
-    // A backgrounded timer may finish while throttled — re-check the moment the tab is visible again.
+    // A backgrounded timer may finish while throttled - re-check the moment the tab is visible again.
     const onVisible = () => { if (document.visibilityState === "visible") tick(); };
     document.addEventListener("visibilitychange", onVisible);
 
@@ -231,12 +231,12 @@ export default function FocusTimer({
     setIsActive((prev) => {
       const next = !prev;
       if (next) {
-        // Starting/resuming — anchor the deadline + begin counting active time.
+        // Starting/resuming - anchor the deadline + begin counting active time.
         deadlineRef.current = Date.now() + timeLeft * 1000;
         activeStartRef.current = Date.now();
         playSound("timerStart");
       } else if (deadlineRef.current != null) {
-        // Pausing — freeze remaining time, bank the active time, drop the deadline.
+        // Pausing - freeze remaining time, bank the active time, drop the deadline.
         setTimeLeft(Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000)));
         if (activeStartRef.current) {
           activeMsRef.current += Date.now() - activeStartRef.current;
@@ -258,7 +258,7 @@ export default function FocusTimer({
 
   // Admin-only dev tool: jump to completion to test the UI. Because no real
   // active time is accrued, the completion path treats it as "not legit" and
-  // grants no rewards — it can't be used to farm XP.
+  // grants no rewards - it can't be used to farm XP.
   const skipSession = useCallback(() => {
     deadlineRef.current = Date.now();
     setIsActive(true);
@@ -533,7 +533,7 @@ export default function FocusTimer({
             )}
           </motion.button>
 
-          {/* Fast Forward / Skip Button — admin-only testing tool (removed for
+          {/* Fast Forward / Skip Button - admin-only testing tool (removed for
               players; it previously let anyone skip to full XP/gold instantly). */}
           {isAdmin && (
             <motion.button

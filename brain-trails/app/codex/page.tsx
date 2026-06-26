@@ -124,7 +124,7 @@ export default function CodexHub() {
                 <NotebookPen className="w-6 h-6" />
               </div>
               <h3 className={`text-lg font-bold ${isSun ? "text-slate-800" : "text-white"}`}>No subjects yet</h3>
-              <p className={`text-sm mt-1 mb-5 ${muted}`}>Let the AI parse your syllabus into a study plan — subjects, topics and exams.</p>
+              <p className={`text-sm mt-1 mb-5 ${muted}`}>Let the AI parse your syllabus into a study plan - subjects, topics and exams.</p>
               <button onClick={() => router.push("/onboarding")}
                 className="px-5 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700">
                 Build my plan

@@ -17,7 +17,7 @@ export function usePWA() {
   const [swRegistered, setSwRegistered] = useState(false);
 
   // Register service worker (production only). In development a registered SW
-  // — including a stale one left over from a previous build or the live site —
+  // - including a stale one left over from a previous build or the live site -
   // serves a cached app shell and makes code changes appear to do nothing. So
   // in dev we actively tear down any existing SW and caches instead.
   useEffect(() => {

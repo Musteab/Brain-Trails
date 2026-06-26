@@ -76,7 +76,7 @@ export function useStudyReminders() {
     }
   }, [settings.streak_reminders, settings.study_nudges, isLoading, requestPermission]);
 
-  // Streak reminder check — runs once per page load
+  // Streak reminder check - runs once per page load
   useEffect(() => {
     if (isLoading || streakCheckRef.current) return;
     if (!settings.streak_reminders || !profile) return;
@@ -99,7 +99,7 @@ export function useStudyReminders() {
     }
   }, [isLoading, settings.streak_reminders, profile]);
 
-  // Study nudges — every 2 hours
+  // Study nudges - every 2 hours
   useEffect(() => {
     if (isLoading) return;
     if (!settings.study_nudges || getPermission() !== "granted") {

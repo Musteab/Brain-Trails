@@ -91,7 +91,7 @@ export default function QuizResults({
         </motion.div>
       </div>
 
-      {/* Share result — the flex */}
+      {/* Share result - the flex */}
       <motion.button
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}

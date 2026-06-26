@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
 /**
- * usePresence — tracks how many users are currently online
+ * usePresence - tracks how many users are currently online
  * using Supabase Realtime Presence on a shared channel.
  *
  * Returns the count of unique online users (including self).

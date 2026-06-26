@@ -55,7 +55,7 @@ interface OnboardingData {
 type Step = "quickadd" | "syllabus" | "manual" | "review" | "done";
 
 // ============================================
-// Constants (outside component — no render-time randomness)
+// Constants (outside component - no render-time randomness)
 // ============================================
 
 const SUBJECT_EMOJIS = ["📚", "📐", "⚡", "🧬", "🌍", "💻", "🧠", "🔬", "🎨", "🔮", "📊", "🧪", "🏛️", "🔧", "📝"];
@@ -110,7 +110,7 @@ export default function OnboardingPage() {
   // Step state
   const [step, setStep] = useState<Step>("quickadd");
 
-  // Quick-add: the fast path — just type subject names, AI scaffolds the rest.
+  // Quick-add: the fast path - just type subject names, AI scaffolds the rest.
   const [quickNames, setQuickNames] = useState("");
 
   // Shared onboarding data (used by both syllabus & manual paths)
@@ -504,7 +504,7 @@ export default function OnboardingPage() {
           What are you studying?
         </h1>
         <p className={`text-base font-[family-name:var(--font-quicksand)] max-w-md mx-auto mb-7 ${subtitle}`}>
-          Just type your subjects — I&apos;ll build the topics, decks and trials around them.
+          Just type your subjects - I&apos;ll build the topics, decks and trials around them.
         </p>
 
         <textarea
@@ -655,7 +655,7 @@ export default function OnboardingPage() {
               Drop your syllabus here
             </p>
             <p className={`text-sm ${muted}`}>
-              PDF, image, or text file — or click to browse
+              PDF, image, or text file - or click to browse
             </p>
           </div>
         )}

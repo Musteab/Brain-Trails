@@ -85,7 +85,7 @@ function ConfirmEmailContent() {
             isSun ? "text-slate-500" : "text-indigo-200/60"
           }`}>
             Click the link in the email to activate your account and begin your adventure.
-            It may take a minute to arrive — check your spam folder too!
+            It may take a minute to arrive - check your spam folder too!
           </p>
 
           <motion.button

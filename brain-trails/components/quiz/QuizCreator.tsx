@@ -85,7 +85,7 @@ export default function QuizCreator({ onGenerate, isGenerating }: QuizCreatorPro
           } outline-none`}
         />
         <p className={`text-xs mt-1 ${muted}`}>
-          {content.length} chars — minimum 10 required
+          {content.length} chars - minimum 10 required
         </p>
       </div>
 

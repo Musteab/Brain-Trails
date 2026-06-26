@@ -237,7 +237,7 @@ export default function ShareCard({
       const file = new File([blob], "brain-trails-week.png", { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean };
       if (nav.canShare?.({ files: [file] }) && nav.share) {
-        await nav.share({ files: [file], title: "My Brain Trails week", text: "My study week on Brain Trails — come study with me!" });
+        await nav.share({ files: [file], title: "My Brain Trails week", text: "My study week on Brain Trails - come study with me!" });
       } else {
         downloadBlob(blob, "brain-trails-week.png");
       }

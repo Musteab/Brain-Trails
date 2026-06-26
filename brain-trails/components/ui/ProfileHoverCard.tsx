@@ -310,7 +310,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
                       <UserIcon className={`w-7 h-7 ${isSun ? "text-slate-400" : "text-slate-500"}`} />
                     )}
                   </motion.div>
-                  {/* Camera overlay — click to upload */}
+                  {/* Camera overlay - click to upload */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingAvatar}

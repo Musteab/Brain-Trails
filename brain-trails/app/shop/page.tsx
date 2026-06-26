@@ -548,7 +548,7 @@ export default function ShopPage() {
       const classStr = TITLE_CLASSES[cosmetic.rarity] || "";
       profileUpdate.title = newEquipped ? `${text}|${classStr}` : null;
     } else if (cosmetic.category === "avatar_frame") {
-      // Write to avatar_frame — the column TopStatsBar, ProfileHoverCard and the
+      // Write to avatar_frame - the column TopStatsBar, ProfileHoverCard and the
       // leaderboard read. ('default' is the column's no-frame value.)
       profileUpdate.avatar_frame = newEquipped ? FRAME_CLASSES[cosmetic.rarity] : "default";
     }

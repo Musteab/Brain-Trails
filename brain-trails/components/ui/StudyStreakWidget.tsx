@@ -103,7 +103,7 @@ export default function StudyStreakWidget({ streakDays, lastStudyDate }: StudySt
             ? isSun ? "text-orange-500" : "text-orange-400"
             : "text-red-500"
         }`}>
-          {isActive ? "🔥 Streak active — Don't break the chain!" : "⚠️ Study today to keep your streak!"}
+          {isActive ? "🔥 Streak active - Don't break the chain!" : "⚠️ Study today to keep your streak!"}
         </p>
       )}
     </motion.div>

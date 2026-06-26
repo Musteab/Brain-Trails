@@ -22,7 +22,7 @@ interface BossSelectProps {
 }
 
 /**
- * BossSelect — Pick a boss and a deck, then start the battle.
+ * BossSelect - Pick a boss and a deck, then start the battle.
  *
  * Two-step flow:
  * 1. Select a boss from the grid.
@@ -180,7 +180,7 @@ export default function BossSelect({ onStartBattle }: BossSelectProps) {
                         </p>
                         <p className={`text-xs ${isSun ? "text-slate-500" : "text-slate-400"}`}>
                           {deck.card_count} card{deck.card_count !== 1 ? "s" : ""}
-                          {!hasCards && " — add cards to use this deck"}
+                          {!hasCards && " - add cards to use this deck"}
                         </p>
                       </div>
                       {hasCards && (

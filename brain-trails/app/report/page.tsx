@@ -140,11 +140,27 @@ export default function ReportPage() {
   ]);
   const [isLoading, setIsLoading] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
+  const [yearStudy, setYearStudy] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!user) return;
 
     async function fetchWeeklyData() {
+      // Real yearly study data for the heatmap (hours per day from focus sessions).
+      const yearStart = new Date();
+      yearStart.setDate(yearStart.getDate() - 365);
+      const { data: yearSessions } = await (supabase.from("focus_sessions") as any)
+        .select("duration_minutes, completed_at")
+        .eq("user_id", user!.id)
+        .gte("completed_at", yearStart.toISOString());
+      const yMap: Record<string, number> = {};
+      (yearSessions || []).forEach((s: { duration_minutes: number; completed_at: string }) => {
+        if (!s.completed_at) return;
+        const key = new Date(s.completed_at).toISOString().split("T")[0];
+        yMap[key] = (yMap[key] || 0) + (s.duration_minutes || 0) / 60;
+      });
+      setYearStudy(yMap);
+
       // Get start of current week (Sunday)
       const now = new Date();
       const startOfWeek = new Date(now);
@@ -496,20 +512,8 @@ export default function ReportPage() {
                 />
               )}
 
-              {/* 365-Day Streak Calendar */}
-              <StreakCalendar
-                studyData={((): Record<string, number> => {
-                  // Build study data from daily counts
-                  const result: Record<string, number> = {};
-                  const today = new Date();
-                  for (let i = 6; i >= 0; i--) {
-                    const d = new Date(today);
-                    d.setDate(d.getDate() - (today.getDay() - (6 - i)));
-                    result[d.toISOString().split('T')[0]] = (dailyCounts[6 - i] || 0) / 60;
-                  }
-                  return result;
-                })()}
-              />
+              {/* 365-day study heatmap (real focus-session hours per day) */}
+              <StreakCalendar studyData={yearStudy} />
             </>
           ) : null}
         </div>

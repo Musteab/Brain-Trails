@@ -167,7 +167,7 @@ export default function AmbientPlayer() {
                         : "bg-white/10 text-slate-400 hover:bg-white/20"
                     }`}
                   >
-                    <span>{pl.emoji}</span>
+                    <Music className="w-3 h-3 opacity-70" />
                     {pl.name}
                     {pl.name === "My Playlist" && (
                       <X
@@ -267,7 +267,7 @@ export default function AmbientPlayer() {
           >
             <Music className={`w-5 h-5 ${isSun ? "text-emerald-600" : "text-emerald-400"}`} />
             <span className="text-sm font-bold font-[family-name:var(--font-nunito)]">
-              {activePlaylist.emoji} Music
+              Music
             </span>
             <ChevronUp className="w-4 h-4 opacity-50" />
           </motion.button>

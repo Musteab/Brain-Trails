@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCardStyles } from "@/hooks/useCardStyles";
-import { Shield, Star, Coins, Flame, Zap, BookOpen, Sparkles, Crown, Swords } from "lucide-react";
+import { Shield, Star, Coins, Flame, Zap, BookOpen, Sparkles, Crown, Swords, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
@@ -203,7 +203,7 @@ export default function MemberHoverCard({ userId, isOpen, onClose, position = "r
                       className="w-full h-full rounded-xl object-cover"
                     />
                   ) : (
-                    <div className="text-2xl">🧙</div>
+                    <Sparkles className="w-6 h-6 text-violet-300" />
                   )}
                 </motion.div>
               </div>
@@ -216,7 +216,7 @@ export default function MemberHoverCard({ userId, isOpen, onClose, position = "r
                   <p className={`text-[11px] font-bold mt-0.5 truncate ${isDev ? "cosmetic-title-dev" : titleStyleClass} ${
                     !isDev && !titleStyleClass ? muted : ""
                   }`}>
-                    {isDev ? "🏛️ Realm Arch-Mage" : titleText}
+                    {isDev ? "Realm Arch-Mage" : titleText}
                   </p>
                 )}
                 <div className="flex items-center gap-2 mt-1">
@@ -263,30 +263,33 @@ export default function MemberHoverCard({ userId, isOpen, onClose, position = "r
 
           {/* Badges */}
           {(() => {
-            const badges: string[] = [];
-            if (profile.streak_days >= 30) badges.push("🔥 Dedicated");
-            else if (profile.streak_days >= 7) badges.push("🔥 On Fire");
-            if (profile.level >= 25) badges.push("🎓 Master");
-            else if (profile.level >= 10) badges.push("📚 Scholar");
-            if (profile.role === "dev") badges.push("⚡ Creator");
-            else if (profile.role === "beta_tester") badges.push("⭐ Pioneer");
-            
+            type Badge = { label: string; Icon: LucideIcon; tone: "orange" | "violet" | "amber" };
+            const badges: Badge[] = [];
+            if (profile.streak_days >= 30) badges.push({ label: "Dedicated", Icon: Flame, tone: "orange" });
+            else if (profile.streak_days >= 7) badges.push({ label: "On Fire", Icon: Flame, tone: "orange" });
+            if (profile.level >= 25) badges.push({ label: "Master", Icon: Shield, tone: "violet" });
+            else if (profile.level >= 10) badges.push({ label: "Scholar", Icon: BookOpen, tone: "violet" });
+            if (profile.role === "dev") badges.push({ label: "Creator", Icon: Zap, tone: "amber" });
+            else if (profile.role === "beta_tester") badges.push({ label: "Pioneer", Icon: Star, tone: "amber" });
+
+            const tones: Record<Badge["tone"], string> = {
+              orange: isSun ? "bg-orange-50 border-orange-200 text-orange-600" : "bg-orange-500/10 border-orange-400/30 text-orange-300",
+              violet: isSun ? "bg-violet-50 border-violet-200 text-violet-700" : "bg-violet-500/10 border-violet-400/30 text-violet-300",
+              amber: isSun ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-amber-500/10 border-amber-400/30 text-amber-300",
+            };
+
             return badges.length > 0 ? (
               <div className="px-4 pb-2">
                 <div className="flex flex-wrap gap-1.5">
-                  {badges.slice(0, 4).map((badge, i) => (
+                  {badges.slice(0, 4).map((b, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.05 }}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                        isSun
-                          ? "bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50 text-violet-700"
-                          : "bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-400/30 text-violet-300"
-                      }`}
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${tones[b.tone]}`}
                     >
-                      {badge}
+                      <b.Icon className="w-3 h-3" /> {b.label}
                     </motion.div>
                   ))}
                 </div>

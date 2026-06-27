@@ -175,26 +175,18 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
   const { user } = useAuth();
   const [members, setMembers] = useState<GuildMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [mode, setMode] = useState<"realm" | "circle">("realm");
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, xp, title, avatar_frame, level, role')
-        .order('xp', { ascending: false })
-        .limit(3);
+    const cols = "id, display_name, avatar_url, xp, title, avatar_frame, level, role";
 
-      if (error) {
-        console.error("Error fetching leaderboard:", error);
-        setIsLoading(false);
-        return;
-      }
-
-      const formattedMembers: GuildMember[] = (data || []).map((profile, index) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const format = (rows: any[]): GuildMember[] =>
+      (rows || []).map((profile, index) => ({
         id: profile.id,
         rank: index + 1,
-        name: profile.display_name || `Traveler ${profile.id.substring(0,4)}`, 
-        avatar: profile.avatar_url || '',
+        name: profile.display_name || `Traveler ${profile.id.substring(0, 4)}`,
+        avatar: profile.avatar_url || "",
         points: profile.xp || 0,
         isCurrentUser: user ? profile.id === user.id : false,
         title: profile.title,
@@ -203,12 +195,36 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
         role: profile.role,
       }));
 
-      setMembers(formattedMembers);
+    const fetchLeaderboard = async () => {
+      setIsLoading(true);
+
+      if (mode === "circle" && user) {
+        // Me + my accepted friends, ranked by XP.
+        const { data: fr } = await (supabase.from("friendships") as any)
+          .select("user_id, friend_id, status")
+          .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`);
+        const ids = new Set<string>([user.id]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (fr || []).forEach((r: any) => {
+          if (r.status === "accepted") ids.add(r.user_id === user.id ? r.friend_id : r.user_id);
+        });
+        const { data } = await supabase
+          .from("profiles").select(cols).in("id", [...ids])
+          .order("xp", { ascending: false }).limit(10);
+        setMembers(format(data || []));
+      } else {
+        const { data, error } = await supabase
+          .from("profiles").select(cols)
+          .order("xp", { ascending: false }).limit(3);
+        if (error) console.error("Error fetching leaderboard:", error);
+        setMembers(format(data || []));
+      }
+
       setIsLoading(false);
     };
 
     fetchLeaderboard();
-  }, [user]);
+  }, [user, mode]);
 
   const glassClasses = isSun 
     ? "bg-white/40 border border-white/60 shadow-xl backdrop-blur-md text-slate-800" 
@@ -217,13 +233,31 @@ const LeaderboardPodium = memo(function LeaderboardPodium() {
   return (
     <div className={`p-5 rounded-[24px] ${glassClasses} flex flex-col`}>
       {/* Header */}
-      <div className="mb-4">
-        <h3 className={`text-base font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-          Realm Leaders
-        </h3>
-        <p className={`text-xs ${isSun ? "text-slate-500" : "text-white/50"}`}>
-          Top scholars this week
-        </p>
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <div>
+          <h3 className={`text-base font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
+            {mode === "realm" ? "Realm Leaders" : "Your Circle"}
+          </h3>
+          <p className={`text-xs ${isSun ? "text-slate-500" : "text-white/50"}`}>
+            {mode === "realm" ? "Top scholars in the realm" : "You and your friends"}
+          </p>
+        </div>
+        {/* Realm / Circle toggle */}
+        <div className={`flex p-0.5 rounded-full text-[11px] font-bold ${isSun ? "bg-slate-200/70" : "bg-white/10"}`}>
+          {(["realm", "circle"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-2.5 py-1 rounded-full capitalize transition-colors ${
+                mode === m
+                  ? "bg-violet-600 text-white shadow"
+                  : isSun ? "text-slate-500" : "text-slate-400"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Leaderboard */}

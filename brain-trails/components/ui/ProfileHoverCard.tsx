@@ -547,8 +547,9 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
             <div className="px-5 mb-3">
               {!showFriendSearch ? (
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowFriendSearch(true)}
+                  <Link
+                    href="/circle"
+                    onClick={onClose}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${
                       isSun
                         ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200"
@@ -556,7 +557,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
                     }`}
                   >
                     <Search className="w-3.5 h-3.5" /> Find Friends
-                  </button>
+                  </Link>
                   <button
                     onClick={() => addToast("Co-op Ritual coming in v1.1!", "success")}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${

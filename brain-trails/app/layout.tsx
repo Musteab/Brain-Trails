@@ -63,9 +63,8 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  icons: {
-    icon: "/favicon.ico",
-  },
+  // Icons are picked up from the app/ file conventions (favicon.ico, icon.svg,
+  // apple-icon.png) - Next emits hashed <link> tags, so no stale-path override.
 };
 
 export const viewport: Viewport = {

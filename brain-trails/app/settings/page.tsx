@@ -380,7 +380,7 @@ export default function SettingsPage() {
     return (
       <>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="text-4xl animate-bounce">🦉</div>
+          <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
         </div>
         <TravelerHotbar />
       </>
@@ -459,8 +459,8 @@ export default function SettingsPage() {
               /* Display mode */
               <div className="flex items-start gap-4">
                 <div
-                  className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl shrink-0 ${
-                    isSun ? "bg-purple-100" : "bg-purple-500/20"
+                  className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${
+                    isSun ? "bg-purple-100 text-purple-500" : "bg-purple-500/20 text-purple-300"
                   }`}
                 >
                   {profile?.avatar_url ? (
@@ -471,7 +471,7 @@ export default function SettingsPage() {
                       className="w-14 h-14 rounded-full object-cover"
                     />
                   ) : (
-                    "🦉"
+                    <UserIcon className="w-7 h-7" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

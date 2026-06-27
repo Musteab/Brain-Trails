@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
 import { useAdmin } from "@/hooks/useAdmin";
-import { Settings, LogOut, Shield, Star, User as UserIcon, Search, UserPlus, Coins, Flame, Zap, Camera, Loader2, Users, BookOpen, Sparkles } from "lucide-react";
+import { Settings, LogOut, Shield, Star, User as UserIcon, Search, UserPlus, Coins, Flame, Zap, Camera, Loader2, Users, BookOpen, Sparkles, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
@@ -219,7 +219,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
           const dataUrl = ev.target?.result as string;
           await (supabase.from("profiles") as any).update({ avatar_url: dataUrl }).eq("id", user.id);
           await refreshProfile();
-          addToast("Avatar updated! ✨", "success");
+          addToast("Avatar updated!", "success");
           setUploadingAvatar(false);
         };
         reader.readAsDataURL(file);
@@ -234,7 +234,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
       // Update profile with avatar URL
       await (supabase.from("profiles") as any).update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
       await refreshProfile();
-      addToast("Avatar updated! ✨", "success");
+      addToast("Avatar updated!", "success");
     } catch (err) {
       console.error("Avatar upload error:", err);
       addToast("Upload failed, try again", "error");
@@ -341,7 +341,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
                     <p className={`text-[11px] font-bold mt-0.5 truncate w-44 ${isDev ? "cosmetic-title-dev" : titleStyleClass} ${
                       !isDev && !titleStyleClass ? (isSun ? "text-slate-600" : "text-slate-400") : ""
                     }`}>
-                      {isDev ? "🏛️ Realm Arch-Mage" : titleText}
+                      {isDev ? "Realm Arch-Mage" : titleText}
                     </p>
                   )}
                   <div className="flex items-center gap-2 mt-1">
@@ -382,30 +382,33 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
 
             {/* ― Badges ― */}
             {(() => {
-              const badges: string[] = [];
-              if (profile.streak_days >= 30) badges.push("🔥 Dedicated");
-              else if (profile.streak_days >= 7) badges.push("🔥 On Fire");
-              if (profile.level >= 25) badges.push("🎓 Master");
-              else if (profile.level >= 10) badges.push("📚 Scholar");
-              if (profile.role === "dev") badges.push("⚡ Creator");
-              else if (profile.role === "beta_tester") badges.push("⭐ Pioneer");
-              
+              type Badge = { label: string; Icon: LucideIcon; tone: "orange" | "violet" | "amber" };
+              const badges: Badge[] = [];
+              if (profile.streak_days >= 30) badges.push({ label: "Dedicated", Icon: Flame, tone: "orange" });
+              else if (profile.streak_days >= 7) badges.push({ label: "On Fire", Icon: Flame, tone: "orange" });
+              if (profile.level >= 25) badges.push({ label: "Master", Icon: Shield, tone: "violet" });
+              else if (profile.level >= 10) badges.push({ label: "Scholar", Icon: BookOpen, tone: "violet" });
+              if (profile.role === "dev") badges.push({ label: "Creator", Icon: Zap, tone: "amber" });
+              else if (profile.role === "beta_tester") badges.push({ label: "Pioneer", Icon: Star, tone: "amber" });
+
+              const tones: Record<Badge["tone"], string> = {
+                orange: isSun ? "bg-orange-50 border-orange-200 text-orange-600" : "bg-orange-500/10 border-orange-400/30 text-orange-300",
+                violet: isSun ? "bg-violet-50 border-violet-200 text-violet-700" : "bg-violet-500/10 border-violet-400/30 text-violet-300",
+                amber: isSun ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-amber-500/10 border-amber-400/30 text-amber-300",
+              };
+
               return badges.length > 0 ? (
                 <div className="px-5 mb-2">
                   <div className="flex flex-wrap gap-1.5">
-                    {badges.slice(0, 4).map((badge, i) => (
+                    {badges.slice(0, 4).map((b, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.05 }}
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                          isSun
-                            ? "bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50 text-violet-700"
-                            : "bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-400/30 text-violet-300"
-                        }`}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${tones[b.tone]}`}
                       >
-                        {badge}
+                        <b.Icon className="w-3 h-3" /> {b.label}
                       </motion.div>
                     ))}
                   </div>
@@ -555,7 +558,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
                     <Search className="w-3.5 h-3.5" /> Find Friends
                   </button>
                   <button
-                    onClick={() => addToast("Co-op Ritual coming in v1.1! 🧙", "success")}
+                    onClick={() => addToast("Co-op Ritual coming in v1.1!", "success")}
                     className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${
                       isSun
                         ? "bg-violet-50 text-violet-600 hover:bg-violet-100 border border-violet-200"
@@ -616,7 +619,7 @@ export default function ProfileHoverCard({ isOpen, onClose, onLogout }: ProfileH
                             </div>
                           </div>
                           <button
-                            onClick={() => addToast("Friends coming in v1.1! 🚀", "success")}
+                            onClick={() => addToast("Friends coming in v1.1!", "success")}
                             className={`p-1.5 rounded-lg transition-colors ${
                               isSun ? "text-emerald-500 hover:bg-emerald-50" : "text-emerald-400 hover:bg-emerald-500/10"
                             }`}

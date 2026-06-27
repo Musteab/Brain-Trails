@@ -226,7 +226,7 @@ export default function AmbientPlayer() {
                       </button>
                     </div>
                     <p className={`text-[10px] mt-1 ${isSun ? "text-slate-400" : "text-slate-500"}`}>
-                      💡 Log in to Spotify in the player for full tracks
+                      Log in to Spotify in the player for full tracks
                     </p>
                   </div>
                 </motion.div>

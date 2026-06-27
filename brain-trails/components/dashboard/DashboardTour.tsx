@@ -121,7 +121,6 @@ export default function DashboardTour() {
               <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
                 <StepIcon className="w-10 h-10 text-white" />
               </div>
-              <span className="text-4xl">{step.emoji}</span>
             </motion.div>
           </div>
 
@@ -174,7 +173,7 @@ export default function DashboardTour() {
                   whileTap={{ scale: 0.95 }}
                   className={`px-6 py-2 rounded-full text-sm font-bold text-white shadow-lg bg-gradient-to-r ${step.gradient}`}
                 >
-                  {currentStep === TOUR_STEPS.length - 1 ? "Let's Go! 🚀" : "Next →"}
+                  {currentStep === TOUR_STEPS.length - 1 ? "Let's Go!" : "Next →"}
                 </motion.button>
               </div>
             </div>

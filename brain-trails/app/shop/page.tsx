@@ -19,6 +19,7 @@ import {
   X,
   Crown,
   Gem,
+  User as UserIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -90,7 +91,7 @@ function CosmeticPreview({ cosmetic, isSun, size = "small" }: { cosmetic: Cosmet
           className={`${dim} ${frameClass} flex items-center justify-center text-3xl`}
           style={{ "--frame-bg": isSun ? "#f8fafc" : "#1e293b" } as React.CSSProperties}
         >
-          <span className="text-2xl">👤</span>
+          <UserIcon className="w-6 h-6 text-slate-400" />
         </motion.div>
         {/* Sparkle particles for epic+ */}
         {(cosmetic.rarity === "epic" || cosmetic.rarity === "legendary") && (
@@ -517,7 +518,7 @@ export default function ShopPage() {
 
     if (data) setUserCosmetics((prev) => [...prev, data]);
     await refreshProfile();
-    addToast(`🎉 Purchased ${cosmetic.name}!`, "success");
+    addToast(`Purchased ${cosmetic.name}!`, "success");
     setPurchasingId(null);
   }, [user, purchasingId, gold, level, addToast, refreshProfile]);
 
@@ -579,9 +580,8 @@ export default function ShopPage() {
           <motion.div
             animate={{ scale: [1, 1.2, 1], rotate: [0, 10, 0, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="text-5xl"
           >
-            🛍️
+            <ShoppingBag className="w-12 h-12 text-violet-400" />
           </motion.div>
         </div>
         <TravelerHotbar />
@@ -641,9 +641,8 @@ export default function ShopPage() {
                 <motion.span
                   animate={{ rotate: [0, 15, 0, -15, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="text-xl"
                 >
-                  🪙
+                  <Coins className="w-5 h-5 text-amber-500" />
                 </motion.span>
                 <span className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${
                   isSun ? "text-amber-700" : "text-amber-400"
@@ -806,7 +805,7 @@ export default function ShopPage() {
                               ? "bg-emerald-500/20 text-emerald-500"
                               : isSun ? "bg-slate-100 text-slate-500" : "bg-white/10 text-slate-400"
                           }`}>
-                            {equipped ? "✓ Equipped" : "Owned"}
+                            {equipped ? "Equipped" : "Owned"}
                           </span>
                         ) : levelLocked ? (
                           <span className={`text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 ${
@@ -838,7 +837,7 @@ export default function ShopPage() {
                     <ShoppingBag className={`w-14 h-14 mx-auto mb-4 ${muted}`} />
                   </motion.div>
                   <p className={`text-sm font-bold font-[family-name:var(--font-nunito)] ${muted}`}>
-                    The merchant is restocking this category... 🏪
+                    The merchant is restocking this category...
                   </p>
                   <p className={`text-xs mt-1 ${muted}`}>Check back soon!</p>
                 </div>

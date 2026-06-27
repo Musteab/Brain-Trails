@@ -103,7 +103,7 @@ function emptySubject(index: number): OnboardingSubject {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { awardXp, logActivity } = useGameStore();
   const { isSun, card, title, subtitle, muted, accent } = useCardStyles();
 
@@ -489,6 +489,7 @@ export default function OnboardingPage() {
 
   const renderQuickAdd = () => {
     const names = quickNames.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+    const firstName = profile?.display_name?.trim().split(/\s+/)[0] || "";
     return (
       <motion.div
         key="quickadd"
@@ -497,9 +498,17 @@ export default function OnboardingPage() {
         exit={{ opacity: 0, y: -24 }}
         className="flex flex-col items-center text-center max-w-xl mx-auto w-full"
       >
-        <div className="w-16 h-16 rounded-2xl bg-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30 mb-6">
+        <motion.div
+          initial={{ scale: 0.7, rotate: -12, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 180, damping: 12 }}
+          className="w-16 h-16 rounded-2xl bg-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30 mb-6"
+        >
           <GraduationCap className="w-8 h-8 text-white" />
-        </div>
+        </motion.div>
+        <p className={`text-xs font-bold uppercase tracking-[0.2em] mb-2 ${accent}`}>
+          Welcome{firstName ? `, ${firstName}` : ""} - your trail begins here
+        </p>
         <h1 className={`text-3xl md:text-4xl font-bold font-[family-name:var(--font-nunito)] mb-3 ${title}`}>
           What are you studying?
         </h1>

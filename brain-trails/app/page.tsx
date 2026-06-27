@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Loader2, Compass } from "lucide-react";
 import TravelerHotbar from "@/components/layout/TravelerHotbar";
 import Dashboard from "@/components/dashboard/Dashboard";
 import { useAuth } from "@/context/AuthContext";
@@ -19,11 +20,25 @@ export default function Home() {
   }, [needsOnboarding, router]);
 
   // Don't flash the dashboard while loading or while we're about to redirect
-  // into onboarding - show a quiet loader instead (avoids the jarring blink).
+  // into onboarding - show a warm branded loader instead (avoids the jarring
+  // blink, and makes the first-run hand-off feel intentional rather than stuck).
   if (isLoading || needsOnboarding) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-transparent">
-        <Loader2 className="w-7 h-7 animate-spin text-violet-500" />
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-transparent">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 14 }}
+          className="w-16 h-16 rounded-2xl bg-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30"
+        >
+          <Compass className="w-8 h-8 text-white" />
+        </motion.div>
+        <div className="flex items-center gap-2 text-slate-400">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm font-medium">
+            {needsOnboarding ? "Setting up your adventure..." : "Loading your realm..."}
+          </span>
+        </div>
       </div>
     );
   }

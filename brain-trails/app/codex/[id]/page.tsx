@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, NotebookPen, Layers, GraduationCap, CalendarClock,
-  Plus, Check, Sparkle, Loader2, ChevronRight, BookOpen,
+  Plus, Check, Sparkle, Loader2, ChevronRight, BookOpen, Flame,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useCardStyles } from "@/hooks/useCardStyles";
@@ -291,6 +291,23 @@ export default function SubjectDetail() {
             <button onClick={() => router.push(`/quiz?subject=${subject.id}`)}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700">
               Start <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Exam Cram */}
+          <div className={`rounded-3xl border ${card} p-5 flex items-center justify-between gap-4`}>
+            <div className="flex items-center gap-3">
+              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${isSun ? "bg-orange-100 text-orange-600" : "bg-orange-500/20 text-orange-300"}`}>
+                <Flame className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className={`font-bold ${ink}`}>Exam Cram</h3>
+                <p className={`text-xs ${muted}`}>Distraction-free crunch session</p>
+              </div>
+            </div>
+            <button onClick={() => router.push(`/codex/${subject.id}/exam-cram`)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700">
+              Enter <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>

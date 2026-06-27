@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Menu, LayoutGrid, Compass, NotebookPen, Layers, Timer,
-  GraduationCap, Trophy, Store, LineChart, Library, Settings,
+  GraduationCap, Trophy, Store, LineChart, Library, Settings, Users,
   type LucideIcon,
 } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/flashcards', label: 'Decks', icon: Layers },
   { href: '/focus', label: 'Focus', icon: Timer },
   { href: '/quiz', label: 'Trials', icon: GraduationCap },
+  { href: '/circle', label: 'Circle', icon: Users },
   { href: '/achievements', label: 'Trophies', icon: Trophy },
   { href: '/report', label: 'Reports', icon: LineChart },
   { href: '/shop', label: 'Merchant', icon: Store },

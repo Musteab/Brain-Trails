@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/context/ThemeContext";
+import { Bird } from "lucide-react";
 import Link from "next/link";
 
 /**
@@ -36,8 +37,8 @@ export default function Footer() {
         {/* Signature with 3D Companion */}
         <div className="flex items-center justify-center gap-3">
           <div className="w-12 h-12 relative flex items-center justify-center">
-            <div className="text-2xl animate-pulse">
-              🦉
+            <div className="text-violet-500 animate-pulse">
+              <Bird className="w-6 h-6" />
             </div>
           </div>
           <span className={`font-serif italic text-sm font-[family-name:var(--font-quicksand)] ${

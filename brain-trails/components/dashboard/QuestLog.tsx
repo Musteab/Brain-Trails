@@ -4,7 +4,7 @@ import { memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuests } from "@/hooks/useQuests";
 import { useTheme } from "@/context/ThemeContext";
-import { CheckCircle2, Sword, BookOpen, Timer, PenTool, Scroll, Zap } from "lucide-react";
+import { CheckCircle2, Sword, BookOpen, Timer, PenTool, Scroll, Zap, Coins } from "lucide-react";
 
 function QuestIcon({ type, isSun }: { type: string; isSun: boolean }) {
   const colorClass = isSun ? "text-purple-600" : "text-white";
@@ -65,7 +65,7 @@ const QuestLog = memo(function QuestLog() {
           ))
         ) : quests.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-6 opacity-50">
-            <p className="text-2xl mb-2">📜</p>
+            <Scroll className="w-7 h-7 mb-2" />
             <p className="text-sm font-bold font-[family-name:var(--font-nunito)]">Your quest board is clear!</p>
           </div>
         ) : (
@@ -126,7 +126,7 @@ const QuestLog = memo(function QuestLog() {
                         <span className="text-[10px] font-bold text-purple-500">+{quest.xp_reward}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-[10px]">🪙</span>
+                        <Coins className="w-3 h-3 text-amber-500" />
                         <span className="text-[10px] font-bold text-amber-500">+{quest.gold_reward}</span>
                       </div>
                     </div>

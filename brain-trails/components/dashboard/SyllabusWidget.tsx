@@ -208,7 +208,7 @@ export default function SyllabusWidget() {
             <span className={`text-xs font-bold ${isSun ? "text-slate-500" : "text-white/60"}`}>days</span>
           </div>
           <p className={`text-[10px] ${isSun ? "text-slate-500" : "text-white/50"}`}>
-            🔥 Keep Trying, Never Be Tired
+            Keep going, never give up
           </p>
         </div>
       </motion.div>

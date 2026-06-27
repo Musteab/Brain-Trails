@@ -3,7 +3,7 @@
 import { useState, useCallback, memo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Zap, User as UserIcon, Users, Search, Settings } from "lucide-react";
+import { Zap, User as UserIcon, Users, Search, Settings, Coins } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
@@ -69,7 +69,7 @@ function TopStatsBar() {
       <div className="flex items-center gap-1.5">
         {/* Gold */}
         <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border ${pillClass}`}>
-          <span className="text-sm">🪙</span>
+          <Coins className="w-3.5 h-3.5 text-amber-500" />
           {isLoading ? (
             <div className={`w-5 h-3 rounded animate-pulse ${isSun ? "bg-amber-200" : "bg-amber-500/40"}`} />
           ) : (

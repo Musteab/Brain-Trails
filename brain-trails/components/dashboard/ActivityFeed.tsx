@@ -3,6 +3,7 @@
 
 import { useEffect, useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Timer, Layers, NotebookPen, Scroll, LogIn, Award, Sword, Users, Activity, type LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
@@ -12,9 +13,20 @@ interface ActivityEvent {
   id: string;
   action: string;
   time: string;
-  icon: string;
+  Icon: LucideIcon;
   xp: number;
 }
+
+const ACTIVITY: Record<string, { action: string; Icon: LucideIcon }> = {
+  focus:       { action: "Completed a focus session", Icon: Timer },
+  flashcard:   { action: "Reviewed flashcards",       Icon: Layers },
+  note:        { action: "Wrote a note",              Icon: NotebookPen },
+  quest:       { action: "Completed a quest",         Icon: Scroll },
+  boss:        { action: "Won a trial",               Icon: Sword },
+  achievement: { action: "Unlocked an achievement",   Icon: Award },
+  guild:       { action: "Guild activity",            Icon: Users },
+  login:       { action: "Entered the realm",         Icon: LogIn },
+};
 
 const ActivityFeed = memo(function ActivityFeed() {
   const { theme } = useTheme();
@@ -40,37 +52,12 @@ const ActivityFeed = memo(function ActivityFeed() {
       }
 
       const formattedEvents: ActivityEvent[] = (data || []).map((log) => {
-        let action = "completed a task";
-        let icon = "✨";
-
-        switch (log.activity_type) {
-          case 'focus':
-            action = `Completed a focus session`;
-            icon = "⏱️";
-            break;
-          case 'flashcard':
-            action = `Reviewed flashcards`;
-            icon = "📚";
-            break;
-          case 'note':
-            action = "Wrote a note";
-            icon = "📜";
-            break;
-          case 'quest':
-            action = `Completed a quest`;
-            icon = "⚔️";
-            break;
-          case 'login':
-            action = "Entered the realm";
-            icon = "🚪";
-            break;
-        }
-
+        const meta = ACTIVITY[log.activity_type] ?? { action: "Made progress", Icon: Activity };
         return {
           id: log.id,
-          action,
+          action: meta.action,
           time: formatDistanceToNow(new Date(log.created_at), { addSuffix: true }),
-          icon,
+          Icon: meta.Icon,
           xp: log.xp_earned ?? 0,
         };
       });
@@ -103,7 +90,7 @@ const ActivityFeed = memo(function ActivityFeed() {
       {/* Header */}
       <div className="mb-6">
         <h3 className={`text-lg font-bold font-[family-name:var(--font-nunito)] ${isSun ? "text-slate-800" : "text-white"}`}>
-          Completed Activity Feed
+          Recent Activity
         </h3>
       </div>
 
@@ -130,8 +117,8 @@ const ActivityFeed = memo(function ActivityFeed() {
                 `}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm ${isSun ? "bg-white text-slate-700" : "bg-white/10 text-white"}`}>
-                    {event.icon}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${isSun ? "bg-violet-50 text-violet-600" : "bg-violet-500/15 text-violet-300"}`}>
+                    <event.Icon className="w-4 h-4" />
                   </div>
                   <div>
                     <p className={`text-sm font-medium font-[family-name:var(--font-quicksand)] ${isSun ? "text-slate-700" : "text-slate-200"}`}>
